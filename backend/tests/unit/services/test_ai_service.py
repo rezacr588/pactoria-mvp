@@ -203,3 +203,171 @@ class TestGroqAIService:
         assert response.content == "Generated content"
         assert response.model_name == "openai/gpt-oss-120b"
         assert response.token_usage["total_tokens"] == 150
+    
+    @pytest.mark.asyncio
+    async def test_generate_contract_api_error(self, ai_service):
+        """Test contract generation with API error"""
+        mock_client = Mock()
+        mock_client.chat.completions.create.side_effect = Exception("API Error")
+        ai_service.client = mock_client
+        
+        request = ContractGenerationRequest(
+            plain_english_input="Test contract",
+            contract_type="service_agreement"
+        )
+        
+        with pytest.raises(Exception, match="API Error"):
+            await ai_service.generate_contract(request)
+    
+    @pytest.mark.asyncio
+    async def test_analyze_compliance_api_error(self, ai_service):
+        """Test compliance analysis with API error"""
+        mock_client = Mock()
+        mock_client.chat.completions.create.side_effect = Exception("API Error")
+        ai_service.client = mock_client
+        
+        request = ComplianceAnalysisRequest(
+            contract_content="Test content",
+            contract_type="service_agreement"
+        )
+        
+        with pytest.raises(Exception, match="API Error"):
+            await ai_service.analyze_compliance(request)
+    
+    @pytest.mark.asyncio
+    async def test_health_check_api_error(self, ai_service):
+        """Test health check with API error"""
+        mock_client = Mock()
+        mock_client.chat.completions.create.side_effect = Exception("API Error")
+        ai_service.client = mock_client
+        
+        with pytest.raises(Exception, match="API Error"):
+            await ai_service.health_check()
+    
+    @pytest.mark.asyncio
+    async def test_generate_content_api_error(self, ai_service):
+        """Test generic content generation with API error"""
+        mock_client = Mock()
+        mock_client.chat.completions.create.side_effect = Exception("API Error")
+        ai_service.client = mock_client
+        
+        request = AIGenerationRequest(
+            prompt="Test prompt",
+            max_tokens=100
+        )
+        
+        with pytest.raises(Exception, match="API Error"):
+            await ai_service.generate_content(request)
+    
+    def test_build_compliance_prompt(self, ai_service):
+        """Test building compliance analysis prompt"""
+        request = ComplianceAnalysisRequest(
+            contract_content="Test contract content",
+            contract_type="employment_contract",
+            jurisdiction="UK"
+        )
+        
+        prompt = ai_service._build_compliance_prompt(request)
+        
+        assert "employment_contract" in prompt.lower()
+        assert "Test contract content" in prompt
+        assert "UK" in prompt
+        assert "GDPR" in prompt
+        assert "compliance" in prompt.lower()
+    
+    def test_calculate_confidence_score_edge_cases(self, ai_service):
+        """Test confidence score calculation edge cases"""
+        # Empty content
+        score_empty = ai_service._calculate_confidence_score("", "test prompt")
+        assert 0.0 <= score_empty <= 1.0
+        
+        # Very short content
+        score_short = ai_service._calculate_confidence_score("short", "test prompt")
+        assert 0.0 <= score_short <= 1.0
+        
+        # Very long content
+        long_content = "This is a very detailed legal contract " * 100
+        score_long = ai_service._calculate_confidence_score(long_content, "test prompt")
+        assert 0.0 <= score_long <= 1.0
+        
+        # Content with legal terms should score higher
+        legal_content = "This contract contains provisions for confidentiality, termination, and GDPR compliance"
+        score_legal = ai_service._calculate_confidence_score(legal_content, "legal contract")
+        assert score_legal > 0.5
+    
+    @pytest.mark.asyncio
+    async def test_analyze_compliance_json_parsing_error(self, ai_service):
+        """Test compliance analysis with JSON parsing error"""
+        mock_response = Mock()
+        mock_response.choices = [Mock()]
+        mock_response.choices[0].message.content = "Invalid JSON content"  # Not valid JSON
+        mock_response.usage = Mock()
+        mock_response.usage.prompt_tokens = 100
+        mock_response.usage.completion_tokens = 50
+        mock_response.usage.total_tokens = 150
+        
+        mock_client = Mock()
+        mock_client.chat.completions.create = Mock(return_value=mock_response)
+        ai_service.client = mock_client
+        
+        request = ComplianceAnalysisRequest(
+            contract_content="Test content",
+            contract_type="service_agreement"
+        )
+        
+        with pytest.raises(Exception):
+            await ai_service.analyze_compliance(request)
+    
+    def test_prompt_building_with_special_characters(self, ai_service):
+        """Test prompt building with special characters"""
+        request = ContractGenerationRequest(
+            plain_english_input="Contract with €100 payment & 50% deposit",
+            contract_type="service_agreement",
+            client_name="Client & Co."
+        )
+        
+        prompt = ai_service._build_contract_prompt(request)
+        
+        # Should handle special characters properly
+        assert "€100" in prompt
+        assert "&" in prompt
+        assert "50%" in prompt
+        assert "Client & Co." in prompt
+    
+    def test_model_configuration(self, ai_service):
+        """Test AI service model configuration"""
+        assert ai_service.model == "openai/gpt-oss-120b"
+        assert hasattr(ai_service, 'client')
+    
+    @pytest.mark.asyncio
+    async def test_validate_contract_compliance_method(self, ai_service):
+        """Test the validate_contract_compliance method directly"""
+        mock_response = Mock()
+        mock_response.choices = [Mock()]
+        mock_response.choices[0].message.content = """{
+            "overall_score": 0.85,
+            "gdpr_compliance": 0.90,
+            "commercial_terms_compliance": 0.80,
+            "risk_score": 5,
+            "risk_factors": ["Minor compliance gaps"],
+            "recommendations": ["Add specific clauses"]
+        }"""
+        mock_response.usage = Mock()
+        mock_response.usage.prompt_tokens = 200
+        mock_response.usage.completion_tokens = 100
+        mock_response.usage.total_tokens = 300
+        
+        mock_client = Mock()
+        mock_client.chat.completions.create = Mock(return_value=mock_response)
+        ai_service.client = mock_client
+        
+        result = await ai_service.validate_contract_compliance(
+            "Test contract content",
+            "service_agreement"
+        )
+        
+        assert result["overall_score"] == 0.85
+        assert result["gdpr_compliance"] == 0.90
+        assert result["risk_score"] == 5
+        assert "Minor compliance gaps" in result["risk_factors"]
+        assert "Add specific clauses" in result["recommendations"]

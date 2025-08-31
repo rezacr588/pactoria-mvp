@@ -61,7 +61,7 @@ async def analyze_contract(
     MVP requirement: UK legal compliance validation
     """
     try:
-        logger.info(f"Analyzing contract for user {current_user['id']}")
+        logger.info(f"Analyzing contract for user {current_user.id}")
         
         # Validate contract compliance
         compliance_data = await ai_service.validate_contract_compliance(

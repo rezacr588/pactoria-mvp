@@ -4,7 +4,7 @@ Testing MVP requirements for AI-powered contract analysis and template recommend
 """
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, Mock
 import json
 
 from app.main import app
@@ -17,6 +17,28 @@ class TestAIAPI:
     def client(self):
         """Create test client"""
         return TestClient(app)
+    
+    def setup_auth_override(self):
+        """Set up authentication dependency override"""
+        from app.core.auth import get_current_user
+        from app.main import app
+        
+        mock_user = Mock()
+        mock_user.id = "user-123"
+        mock_user.email = "test@example.com"
+        mock_user.is_active = True
+        
+        def get_mock_current_user():
+            return mock_user
+            
+        app.dependency_overrides[get_current_user] = get_mock_current_user
+        return get_current_user
+    
+    def cleanup_auth_override(self, dependency):
+        """Clean up authentication dependency override"""
+        from app.main import app
+        if dependency in app.dependency_overrides:
+            del app.dependency_overrides[dependency]
     
     @pytest.fixture
     def auth_headers(self):
@@ -50,10 +72,10 @@ class TestAIAPI:
     
     def test_contract_analysis_success(self, client, auth_headers):
         """Test successful contract analysis"""
-        with patch('app.api.v1.endpoints.ai.get_current_user') as mock_user:
-            mock_user.return_value = {"id": "user-123"}
-            
-            with patch('app.api.v1.endpoints.ai.ai_service') as mock_ai_service:
+        auth_dependency = self.setup_auth_override()
+        
+        try:
+            with patch('app.api.v1.ai.ai_service') as mock_ai_service:
                 mock_ai_service.validate_contract_compliance = AsyncMock(return_value={
                     "overall_score": 0.92,
                     "gdpr_compliance": 0.95,
@@ -92,12 +114,14 @@ class TestAIAPI:
                 
                 # Verify MVP compliance requirements (95%+ accuracy)
                 assert data["compliance_score"] >= 0.90
+        finally:
+            self.cleanup_auth_override(auth_dependency)
     
     def test_contract_analysis_insufficient_content(self, client, auth_headers):
         """Test contract analysis with insufficient content"""
-        with patch('app.api.v1.endpoints.ai.get_current_user') as mock_user:
-            mock_user.return_value = {"id": "user-123"}
-            
+        auth_dependency = self.setup_auth_override()
+        
+        try:
             analysis_request = {
                 "contract_content": "Too short",  # Below minimum length
                 "contract_type": "service_agreement"
@@ -110,12 +134,14 @@ class TestAIAPI:
             )
             
             assert response.status_code == 422  # Validation error
+        finally:
+            self.cleanup_auth_override(auth_dependency)
     
     def test_template_recommendation_success(self, client, auth_headers):
         """Test successful template recommendation"""
-        with patch('app.api.v1.endpoints.ai.get_current_user') as mock_user:
-            mock_user.return_value = {"id": "user-123"}
-            
+        auth_dependency = self.setup_auth_override()
+        
+        try:
             recommendation_request = {
                 "business_description": "I run a consulting firm providing strategic business advice to SMEs. I need contracts for client engagements that include IP ownership, confidentiality, and payment terms.",
                 "industry": "consulting",
@@ -148,12 +174,14 @@ class TestAIAPI:
                 assert "suitable_for" in template
                 assert "includes_clauses" in template
                 assert 0.0 <= template["confidence"] <= 1.0
+        finally:
+            self.cleanup_auth_override(auth_dependency)
     
     def test_template_recommendation_short_description(self, client, auth_headers):
         """Test template recommendation with insufficient description"""
-        with patch('app.api.v1.endpoints.ai.get_current_user') as mock_user:
-            mock_user.return_value = {"id": "user-123"}
-            
+        auth_dependency = self.setup_auth_override()
+        
+        try:
             recommendation_request = {
                 "business_description": "Short",  # Too short
                 "industry": "tech"
@@ -166,12 +194,14 @@ class TestAIAPI:
             )
             
             assert response.status_code == 422
+        finally:
+            self.cleanup_auth_override(auth_dependency)
     
     def test_risk_assessment_success(self, client, auth_headers):
         """Test comprehensive contract risk assessment"""
-        with patch('app.api.v1.endpoints.ai.get_current_user') as mock_user:
-            mock_user.return_value = {"id": "user-123"}
-            
+        auth_dependency = self.setup_auth_override()
+        
+        try:
             contract_content = """
             PROFESSIONAL SERVICES AGREEMENT
             
@@ -212,12 +242,14 @@ class TestAIAPI:
             assert "critical_issues" in data
             assert "recommendations" in data
             assert "compliance_summary" in data
+        finally:
+            self.cleanup_auth_override(auth_dependency)
     
     def test_generate_additional_clauses(self, client, auth_headers):
         """Test generating additional contract clauses"""
-        with patch('app.api.v1.endpoints.ai.get_current_user') as mock_user:
-            mock_user.return_value = {"id": "user-123"}
-            
+        auth_dependency = self.setup_auth_override()
+        
+        try:
             response = client.post(
                 "/api/v1/ai/generate-clauses",
                 params={
@@ -242,12 +274,14 @@ class TestAIAPI:
                 assert "title" in clause_data
                 assert "content" in clause_data
                 assert "justification" in clause_data
+        finally:
+            self.cleanup_auth_override(auth_dependency)
     
     def test_list_available_templates(self, client, auth_headers):
         """Test listing UK legal templates (MVP requirement: 20+ templates)"""
-        with patch('app.api.v1.endpoints.ai.get_current_user') as mock_user:
-            mock_user.return_value = {"id": "user-123"}
-            
+        auth_dependency = self.setup_auth_override()
+        
+        try:
             response = client.get(
                 "/api/v1/ai/templates",
                 headers=auth_headers
@@ -281,12 +315,14 @@ class TestAIAPI:
             # Check for MVP compliance requirements
             assert "gdpr" in all_features
             assert "employment_law" in all_features or "commercial_law" in all_features
+        finally:
+            self.cleanup_auth_override(auth_dependency)
     
     def test_list_templates_with_category_filter(self, client, auth_headers):
         """Test template listing with category filtering"""
-        with patch('app.api.v1.endpoints.ai.get_current_user') as mock_user:
-            mock_user.return_value = {"id": "user-123"}
-            
+        auth_dependency = self.setup_auth_override()
+        
+        try:
             response = client.get(
                 "/api/v1/ai/templates",
                 params={"category": "service_agreements"},
@@ -301,13 +337,15 @@ class TestAIAPI:
             # All templates should be in the requested category
             for template in templates:
                 assert template["category"] == "service_agreements"
+        finally:
+            self.cleanup_auth_override(auth_dependency)
     
     def test_ai_service_error_handling(self, client, auth_headers):
         """Test AI service error handling"""
-        with patch('app.api.v1.endpoints.ai.get_current_user') as mock_user:
-            mock_user.return_value = {"id": "user-123"}
-            
-            with patch('app.api.v1.endpoints.ai.ai_service') as mock_ai_service:
+        auth_dependency = self.setup_auth_override()
+        
+        try:
+            with patch('app.api.v1.ai.ai_service') as mock_ai_service:
                 # Simulate AI service failure
                 mock_ai_service.validate_contract_compliance = AsyncMock(
                     side_effect=Exception("AI service temporarily unavailable")
@@ -327,6 +365,8 @@ class TestAIAPI:
                 assert response.status_code == 500
                 error_data = response.json()
                 assert "Contract analysis failed" in error_data["detail"]
+        finally:
+            self.cleanup_auth_override(auth_dependency)
     
     def test_unauthorized_ai_access(self, client):
         """Test that AI endpoints require authentication"""
@@ -359,10 +399,10 @@ class TestAIAPI:
     ])
     def test_contract_analysis_all_types(self, client, auth_headers, contract_type):
         """Test contract analysis for all MVP contract types"""
-        with patch('app.api.v1.endpoints.ai.get_current_user') as mock_user:
-            mock_user.return_value = {"id": "user-123"}
-            
-            with patch('app.api.v1.endpoints.ai.ai_service') as mock_ai_service:
+        auth_dependency = self.setup_auth_override()
+        
+        try:
+            with patch('app.api.v1.ai.ai_service') as mock_ai_service:
                 mock_ai_service.validate_contract_compliance = AsyncMock(return_value={
                     "overall_score": 0.90,
                     "gdpr_compliance": 0.92,
@@ -385,13 +425,15 @@ class TestAIAPI:
                 assert response.status_code == 200
                 data = response.json()
                 assert data["contract_type"] == contract_type
+        finally:
+            self.cleanup_auth_override(auth_dependency)
     
     def test_ai_performance_requirements(self, client, auth_headers):
         """Test AI performance meets MVP requirements"""
-        with patch('app.api.v1.endpoints.ai.get_current_user') as mock_user:
-            mock_user.return_value = {"id": "user-123"}
-            
-            with patch('app.api.v1.endpoints.ai.ai_service') as mock_ai_service:
+        auth_dependency = self.setup_auth_override()
+        
+        try:
+            with patch('app.api.v1.ai.ai_service') as mock_ai_service:
                 # Mock fast response (MVP requirement: ultra-fast inference)
                 mock_ai_service.validate_contract_compliance = AsyncMock(return_value={
                     "overall_score": 0.95,
@@ -419,13 +461,15 @@ class TestAIAPI:
                 assert "processing_time_ms" in data
                 # Ultra-fast inference should be under reasonable time
                 assert data["processing_time_ms"] < 30000  # 30 seconds max
+        finally:
+            self.cleanup_auth_override(auth_dependency)
     
     def test_uk_legal_compliance_validation(self, client, auth_headers):
         """Test UK legal compliance validation requirements"""
-        with patch('app.api.v1.endpoints.ai.get_current_user') as mock_user:
-            mock_user.return_value = {"id": "user-123"}
-            
-            with patch('app.api.v1.endpoints.ai.ai_service') as mock_ai_service:
+        auth_dependency = self.setup_auth_override()
+        
+        try:
+            with patch('app.api.v1.ai.ai_service') as mock_ai_service:
                 mock_ai_service.validate_contract_compliance = AsyncMock(return_value={
                     "overall_score": 0.96,  # Above MVP requirement of 95%
                     "gdpr_compliance": 0.98,
@@ -460,6 +504,8 @@ class TestAIAPI:
                     assert data["employment_law_compliance"] >= 0.90
                 if data.get("consumer_rights_compliance") is not None:
                     assert data["consumer_rights_compliance"] >= 0.85
+        finally:
+            self.cleanup_auth_override(auth_dependency)
     
     def test_ai_model_configuration(self, client):
         """Test that AI service uses correct model per MVP plan"""

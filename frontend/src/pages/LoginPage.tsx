@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { EyeIcon, EyeSlashIcon, UserIcon, BuildingOfficeIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
+import { Button, Card, Input } from '../components/ui';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -55,121 +56,112 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="mx-auto h-12 w-12 bg-primary-600 rounded-lg flex items-center justify-center mb-6">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full">
+        <Card className="p-6 sm:p-8">
+          <div className="text-center mb-8">
+            <Link to="/" className="inline-block mb-6">
+              <div className="mx-auto h-12 w-12 bg-primary-600 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+              </div>
+              <span className="mt-2 block text-lg font-bold text-primary-600">Pactoria</span>
+            </Link>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              {isLogin ? 'Welcome back' : 'Get started today'}
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              {isLogin ? "Don't have an account? " : "Already have an account? "}
+              <button
+                onClick={() => setIsLogin(!isLogin)}
+                className="font-medium text-primary-600 hover:text-primary-500"
+              >
+                {isLogin ? 'Sign up' : 'Sign in'}
+              </button>
+            </p>
           </div>
-          <h2 className="text-center text-3xl font-extrabold text-gray-900">
-            {isLogin ? 'Sign in to your account' : 'Create your account'}
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="font-medium text-primary-600 hover:text-primary-500"
-            >
-              {isLogin ? 'Sign up' : 'Sign in'}
-            </button>
-          </p>
-        </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="text-sm text-blue-700">
-            <strong>Demo Account:</strong> Use the button below or login with:
-            <br />
-            Email: demo@pactoria.com
-            <br />
-            Password: demo123
-          </div>
-        </div>
+          <Card variant="bordered" className="bg-blue-50 border-blue-200 p-4 mb-6">
+            <div className="text-sm text-blue-700">
+              <strong>Demo Account:</strong> Use the button below or login with:
+              <div className="mt-1 font-mono text-xs">
+                Email: demo@pactoria.com<br />
+                Password: demo123
+              </div>
+            </div>
+          </Card>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           {!isLogin && (
             <>
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  Full Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required={!isLogin}
-                  className="mt-1 appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                  placeholder="John Smith"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                label="Full Name"
+                placeholder="John Smith"
+                leftIcon={<UserIcon />}
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                error={errors.name}
+              />
 
-              <div>
-                <label htmlFor="company" className="block text-sm font-medium text-gray-700">
-                  Company Name
-                </label>
-                <input
-                  id="company"
-                  name="company"
-                  type="text"
-                  required={!isLogin}
-                  className="mt-1 appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                  placeholder="Acme Ltd"
-                  value={formData.company}
-                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                />
-              </div>
+              <Input
+                id="company"
+                name="company"
+                type="text"
+                label="Company Name"
+                placeholder="Acme Ltd"
+                leftIcon={<BuildingOfficeIcon />}
+                required
+                value={formData.company}
+                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                error={errors.company}
+              />
             </>
           )}
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email Address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              className="mt-1 appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-              placeholder="you@company.com"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            />
-          </div>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            label="Email Address"
+            placeholder="you@company.com"
+            leftIcon={<EnvelopeIcon />}
+            autoComplete="email"
+            required
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            error={errors.email}
+          />
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <div className="mt-1 relative">
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete={isLogin ? 'current-password' : 'new-password'}
-                required
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
+          <Input
+            id="password"
+            name="password"
+            type={showPassword ? 'text' : 'password'}
+            label="Password"
+            placeholder="Password"
+            autoComplete={isLogin ? 'current-password' : 'new-password'}
+            required
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            error={errors.password}
+            rightIcon={
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 onClick={() => setShowPassword(!showPassword)}
+                className="focus:outline-none"
               >
                 {showPassword ? (
-                  <EyeSlashIcon className="h-4 w-4 text-gray-400" />
+                  <EyeSlashIcon className="h-4 w-4" />
                 ) : (
-                  <EyeIcon className="h-4 w-4 text-gray-400" />
+                  <EyeIcon className="h-4 w-4" />
                 )}
               </button>
-            </div>
-          </div>
+            }
+          />
 
           {errors.form && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
@@ -178,32 +170,36 @@ export default function LoginPage() {
           )}
 
           <div className="space-y-3">
-            <button
+            <Button
               type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              loading={loading}
+              fullWidth
+              size="lg"
             >
-              {loading ? 'Processing...' : isLogin ? 'Sign in' : 'Create Account'}
-            </button>
+              {isLogin ? 'Sign in' : 'Create Account'}
+            </Button>
 
             {isLogin && (
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={handleDemoLogin}
-                disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                loading={loading}
+                fullWidth
+                size="lg"
               >
                 Try Demo Account
-              </button>
+              </Button>
             )}
           </div>
 
-          <div className="text-center">
+          <div className="text-center pt-4">
             <Link to="/" className="text-sm text-gray-600 hover:text-gray-900">
               ← Back to homepage
             </Link>
           </div>
         </form>
+      </Card>
       </div>
     </div>
   );

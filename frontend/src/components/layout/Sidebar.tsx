@@ -5,10 +5,14 @@ import {
   UserGroupIcon,
   QuestionMarkCircleIcon,
   CogIcon,
-  ArrowRightOnRectangleIcon
+  ChartBarIcon,
+  DocumentDuplicateIcon,
+  PuzzlePieceIcon,
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import { useAuthStore } from '../../store/authStore';
 import { classNames } from '../../utils/classNames';
+import Avatar from '../ui/Avatar';
 
 interface NavigationItem {
   name: string;
@@ -20,6 +24,10 @@ interface NavigationItem {
 const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Contracts', href: '/contracts', icon: DocumentTextIcon },
+  { name: 'Analytics', href: '/analytics', icon: ChartBarIcon },
+  { name: 'Templates', href: '/templates', icon: DocumentDuplicateIcon },
+  { name: 'Integrations', href: '/integrations', icon: PuzzlePieceIcon },
+  { name: 'Audit Trail', href: '/audit', icon: ShieldCheckIcon },
   { name: 'Team', href: '/team', icon: UserGroupIcon },
   { name: 'Settings', href: '/settings', icon: CogIcon },
   { name: 'Help', href: '/help', icon: QuestionMarkCircleIcon },
@@ -27,21 +35,17 @@ const navigation: NavigationItem[] = [
 
 export default function Sidebar() {
   const location = useLocation();
-  const { user, logout } = useAuthStore();
-
-  const handleLogout = () => {
-    logout();
-  };
+  const { user } = useAuthStore();
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-gray-200">
+    <div className="flex flex-col h-full bg-white dark:bg-secondary-900 border-r border-neutral-200 dark:border-secondary-700">
       {/* Logo */}
-      <div className="flex items-center h-16 px-6 border-b border-gray-200">
+      <div className="flex items-center h-16 px-6 border-b border-neutral-200 dark:border-secondary-700">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">P</span>
           </div>
-          <span className="text-xl font-bold text-gray-900">Pactoria</span>
+          <span className="text-xl font-bold text-neutral-900 dark:text-secondary-100">Pactoria</span>
         </div>
       </div>
 
@@ -58,14 +62,14 @@ export default function Sidebar() {
               to={item.href}
               className={classNames(
                 isActive
-                  ? 'bg-primary-50 text-primary-700 border-r-2 border-primary-500'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                  ? 'bg-primary-50 dark:bg-primary-950/30 text-primary-700 dark:text-primary-400 border-r-2 border-primary-500'
+                  : 'text-neutral-600 dark:text-secondary-400 hover:bg-neutral-50 dark:hover:bg-secondary-800 hover:text-neutral-900 dark:hover:text-secondary-100',
                 'group flex items-center px-3 py-2 text-sm font-medium rounded-l-lg transition-colors'
               )}
             >
               <Icon
                 className={classNames(
-                  isActive ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500',
+                  isActive ? 'text-primary-500' : 'text-neutral-400 dark:text-secondary-500 group-hover:text-neutral-500 dark:group-hover:text-secondary-400',
                   'mr-3 h-5 w-5 flex-shrink-0'
                 )}
               />
@@ -76,25 +80,18 @@ export default function Sidebar() {
       </nav>
 
       {/* User info and logout */}
-      <div className="border-t border-gray-200 p-4">
+      <div className="border-t border-neutral-200 dark:border-secondary-700 p-4">
         <div className="flex items-center space-x-3 mb-3">
-          <img
-            className="h-8 w-8 rounded-full"
-            src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=3b82f6&color=fff`}
-            alt=""
+          <Avatar
+            src={user?.avatar}
+            name={user?.name}
+            size="sm"
           />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
-            <p className="text-xs text-gray-500 truncate">{user?.company}</p>
+            <p className="text-sm font-medium text-neutral-900 dark:text-secondary-100 truncate">{user?.name}</p>
+            <p className="text-xs text-neutral-500 dark:text-secondary-400 truncate">{user?.company}</p>
           </div>
         </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
-        >
-          <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5" />
-          Sign out
-        </button>
       </div>
     </div>
   );

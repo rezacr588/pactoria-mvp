@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames } from '../../utils/classNames';
+import { textStyles, textColors } from '../../utils/typography';
 
 export interface SelectOption {
   value: string;
@@ -28,13 +29,13 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   }, ref) => {
     const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
     
-    const baseStyles = 'block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm';
-    const errorStyles = 'border-red-300 focus:border-red-500 focus:ring-red-500';
+    const baseStyles = `block w-full rounded-lg border-neutral-300 dark:border-secondary-600 bg-white dark:bg-secondary-800 ${textColors.primary} shadow-sm focus:border-primary-500 focus:ring-primary-500 focus:ring-2 focus:ring-offset-0 dark:focus:ring-offset-secondary-900 sm:text-sm`;
+    const errorStyles = 'border-danger-300 dark:border-danger-500 focus:border-danger-500 focus:ring-danger-500';
 
     return (
       <div className="space-y-1">
         {label && (
-          <label htmlFor={selectId} className="block text-sm font-medium text-gray-700">
+          <label htmlFor={selectId} className={`block ${textStyles.formLabel}`}>
             {label}
           </label>
         )}
@@ -64,10 +65,10 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           ))}
         </select>
         {error && (
-          <p className="text-sm text-red-600">{error}</p>
+          <p className={textStyles.formError}>{error}</p>
         )}
         {helpText && !error && (
-          <p className="text-sm text-gray-500">{helpText}</p>
+          <p className={textStyles.formHelpText}>{helpText}</p>
         )}
       </div>
     );

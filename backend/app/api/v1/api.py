@@ -10,11 +10,13 @@ from app.api.v1.analytics import router as analytics_router
 from app.api.v1.security import router as security_router
 from app.api.v1.status import router as status_router
 from app.api.v1.ai import router as ai_router
+from app.api.v1.health import router as health_router
 
 # Create main API router
 api_router = APIRouter()
 
 # Include all endpoint routers
+api_router.include_router(health_router)
 api_router.include_router(status_router)
 api_router.include_router(auth_router)
 api_router.include_router(contracts_router)

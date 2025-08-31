@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { useContractStore } from '../store/contractStore';
 import { useAuthStore } from '../store/authStore';
 import OnboardingChecklist from '../components/OnboardingChecklist';
+import { Card, CardHeader, CardTitle, CardContent, Button } from '../components/ui';
+import { classNames } from '../utils/classNames';
+import { textStyles, textColors } from '../utils/typography';
 import {
   DocumentTextIcon,
   ClockIcon,
@@ -17,20 +20,17 @@ import {
   BellIcon,
 } from '@heroicons/react/24/outline';
 
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
-}
 
 function getComplianceColor(score: number) {
-  if (score >= 90) return 'text-green-600';
-  if (score >= 80) return 'text-yellow-600';
-  return 'text-red-600';
+  if (score >= 90) return textColors.success;
+  if (score >= 80) return textColors.warning;
+  return textColors.danger;
 }
 
 function getRiskLevel(score: number) {
-  if (score <= 30) return { level: 'Low', color: 'text-green-600' };
-  if (score <= 60) return { level: 'Medium', color: 'text-yellow-600' };
-  return { level: 'High', color: 'text-red-600' };
+  if (score <= 30) return { level: 'Low', color: textColors.success };
+  if (score <= 60) return { level: 'Medium', color: textColors.warning };
+  return { level: 'High', color: textColors.danger };
 }
 
 export default function DashboardPage() {
@@ -120,46 +120,42 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
+    <div className="p-4 sm:p-6">
       {/* Page header */}
-      <div className="sm:flex sm:items-center sm:justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-secondary-100">
             Good morning, {user?.name?.split(' ')[0]}!
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-neutral-600 dark:text-secondary-300">
             Here's what's happening with your contracts today
           </p>
         </div>
-        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <Link
-            to="/contracts/create"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-          >
-            <PlusIcon className="h-4 w-4 mr-2" />
+        <Link to="/contracts/new" className="w-full sm:w-auto">
+          <Button icon={<PlusIcon className="h-4 w-4" />} className="w-full sm:w-auto">
             New Contract
-          </Link>
-        </div>
+          </Button>
+        </Link>
       </div>
 
       {/* Quick stats */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
         {quickStats.map((stat) => (
-          <div key={stat.name} className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className={classNames(stat.bgColor, 'flex-shrink-0 rounded-lg p-3')}>
-                <stat.icon className={classNames(stat.color, 'h-6 w-6')} aria-hidden="true" />
+          <Card key={stat.name} variant="bordered" className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <div className={classNames(stat.bgColor, 'flex-shrink-0 rounded-lg p-2 sm:p-3 mb-2 sm:mb-0')}>
+                <stat.icon className={classNames(stat.color, 'h-5 w-5 sm:h-6 sm:w-6')} aria-hidden="true" />
               </div>
-              <div className="ml-4 w-0 flex-1">
+              <div className="sm:ml-4 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">{stat.name}</dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">{stat.value}</div>
+                  <dt className="text-xs sm:text-sm font-medium text-neutral-500 dark:text-secondary-400 truncate">{stat.name}</dt>
+                  <dd className="flex flex-col sm:flex-row sm:items-baseline">
+                    <div className="text-lg sm:text-2xl font-semibold text-neutral-900 dark:text-secondary-100">{stat.value}</div>
                     <div className={classNames(
                       stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600',
-                      'ml-2 flex items-baseline text-sm font-semibold'
+                      'sm:ml-2 flex items-baseline text-xs sm:text-sm font-semibold'
                     )}>
-                      <TrendingUpIcon className="h-4 w-4 flex-shrink-0 self-center" aria-hidden="true" />
+                      <TrendingUpIcon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0 self-center mr-1" aria-hidden="true" />
                       <span className="sr-only">{stat.changeType === 'increase' ? 'Increased' : 'Decreased'} by</span>
                       {stat.change}
                     </div>
@@ -167,7 +163,7 @@ export default function DashboardPage() {
                 </dl>
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
@@ -178,27 +174,30 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-3">
         {/* Recent Activity */}
-        <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
-            <Link
-              to="/contracts"
-              className="text-sm font-medium text-primary-600 hover:text-primary-500"
-            >
-              View all contracts
-            </Link>
-          </div>
+        <Card className="lg:col-span-2" variant="bordered">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Recent Activity</CardTitle>
+              <Link
+                to="/contracts"
+                className="text-sm font-medium text-primary-600 hover:text-primary-500"
+              >
+                View all contracts
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
 
           {isLoading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="flex items-center space-x-4 animate-pulse">
-                  <div className="h-10 w-10 bg-gray-200 rounded-lg"></div>
+                  <div className="h-10 w-10 bg-neutral-200 dark:bg-secondary-700 rounded-lg"></div>
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    <div className="h-4 bg-neutral-200 dark:bg-secondary-700 rounded w-3/4"></div>
+                    <div className="h-3 bg-neutral-200 dark:bg-secondary-700 rounded w-1/2"></div>
                   </div>
                 </div>
               ))}
@@ -208,19 +207,19 @@ export default function DashboardPage() {
               {recentContracts.map((contract) => {
                 const riskInfo = getRiskLevel(contract.riskAssessment.overall);
                 return (
-                  <div key={contract.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div key={contract.id} className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-secondary-800 rounded-lg hover:bg-neutral-100 dark:hover:bg-secondary-700 transition-colors">
                     <div className="flex items-center space-x-4">
                       <div className="flex-shrink-0">
-                        <DocumentTextIcon className="h-10 w-10 text-gray-400" />
+                        <DocumentTextIcon className="h-10 w-10 text-neutral-400 dark:text-secondary-500" />
                       </div>
                       <div>
                         <Link 
                           to={`/contracts/${contract.id}`}
-                          className="text-sm font-medium text-gray-900 hover:text-primary-600"
+                          className="text-sm font-medium text-neutral-900 dark:text-secondary-100 hover:text-primary-600"
                         >
                           {contract.name}
                         </Link>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-neutral-500 dark:text-secondary-400">
                           {contract.type.name} • Updated {new Date(contract.updatedAt).toLocaleDateString()}
                         </div>
                         <div className="flex items-center space-x-4 mt-2">
@@ -239,26 +238,30 @@ export default function DashboardPage() {
                         </div>
                       </div>
                     </div>
-                    <ArrowRightIcon className="h-5 w-5 text-gray-400" />
+                    <ArrowRightIcon className="h-5 w-5 text-neutral-400 dark:text-secondary-500" />
                   </div>
                 );
               })}
             </div>
           )}
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Sidebar */}
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           {/* Upcoming Deadlines */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-medium text-gray-900">Upcoming Deadlines</h3>
-              <BellIcon className="h-5 w-5 text-gray-400" />
-            </div>
+          <Card variant="bordered">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Upcoming Deadlines</CardTitle>
+                <BellIcon className="h-5 w-5 text-neutral-400 dark:text-secondary-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
 
             <div className="space-y-4">
               {upcomingDeadlines.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">No upcoming deadlines</p>
+                <p className="text-sm text-neutral-500 dark:text-secondary-400 text-center py-4">No upcoming deadlines</p>
               ) : (
                 upcomingDeadlines.map((deadline) => (
                   <div key={`${deadline.contractId}-${deadline.id}`} className="flex items-center justify-between">
@@ -273,13 +276,13 @@ export default function DashboardPage() {
                         )} />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{deadline.title}</p>
-                        <p className="text-xs text-gray-500">{deadline.contractName}</p>
+                        <p className="text-sm font-medium text-neutral-900 dark:text-secondary-100">{deadline.title}</p>
+                        <p className="text-xs text-neutral-500 dark:text-secondary-400">{deadline.contractName}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className={classNames(
-                        deadline.daysUntil <= 7 ? 'text-red-600 font-medium' : 'text-gray-500',
+                        deadline.daysUntil <= 7 ? 'text-red-600 font-medium' : 'text-neutral-500 dark:text-secondary-400',
                         'text-xs'
                       )}>
                         {deadline.daysUntil === 0 ? 'Due today' : 
@@ -291,21 +294,25 @@ export default function DashboardPage() {
                 ))
               )}
             </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Compliance Issues */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-medium text-gray-900">Compliance Alerts</h3>
-              <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />
-            </div>
+          <Card variant="bordered">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Compliance Alerts</CardTitle>
+                <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
 
             <div className="space-y-4">
               {complianceIssues.length === 0 ? (
                 <div className="text-center py-4">
                   <CheckCircleIcon className="mx-auto h-8 w-8 text-green-500 mb-2" />
                   <p className="text-sm text-green-600 font-medium">All contracts compliant</p>
-                  <p className="text-xs text-gray-500">No compliance issues found</p>
+                  <p className="text-xs text-neutral-500 dark:text-secondary-400">No compliance issues found</p>
                 </div>
               ) : (
                 complianceIssues.map((issue, index) => (
@@ -327,11 +334,15 @@ export default function DashboardPage() {
                 ))
               )}
             </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-6">Quick Actions</h3>
+          <Card variant="bordered">
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
             <div className="space-y-3">
               <Link
                 to="/contracts/create"
@@ -339,7 +350,7 @@ export default function DashboardPage() {
               >
                 <div className="flex items-center space-x-3">
                   <DocumentTextIcon className="h-6 w-6 text-primary-600" />
-                  <span className="text-sm font-medium text-gray-900">Create Contract</span>
+                  <span className="text-sm font-medium text-neutral-900 dark:text-secondary-100">Create Contract</span>
                 </div>
                 <ArrowRightIcon className="h-4 w-4 text-primary-600 group-hover:text-primary-700" />
               </Link>
@@ -350,7 +361,7 @@ export default function DashboardPage() {
               >
                 <div className="flex items-center space-x-3">
                   <UsersIcon className="h-6 w-6 text-green-600" />
-                  <span className="text-sm font-medium text-gray-900">Manage Team</span>
+                  <span className="text-sm font-medium text-neutral-900 dark:text-secondary-100">Manage Team</span>
                 </div>
                 <ArrowRightIcon className="h-4 w-4 text-green-600 group-hover:text-green-700" />
               </Link>
@@ -361,58 +372,62 @@ export default function DashboardPage() {
               >
                 <div className="flex items-center space-x-3">
                   <ChartBarIcon className="h-6 w-6 text-purple-600" />
-                  <span className="text-sm font-medium text-gray-900">View Analytics</span>
+                  <span className="text-sm font-medium text-neutral-900 dark:text-secondary-100">View Analytics</span>
                 </div>
                 <ArrowRightIcon className="h-4 w-4 text-purple-600 group-hover:text-purple-700" />
               </Link>
             </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
       {/* Detailed Compliance Dashboard */}
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2">
         {/* Compliance Breakdown */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-6">UK Legal Compliance Breakdown</h3>
+        <Card variant="bordered">
+          <CardHeader>
+            <CardTitle>UK Legal Compliance Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">GDPR Compliance</span>
+              <span className="text-sm text-neutral-600 dark:text-secondary-300">GDPR Compliance</span>
               <div className="flex items-center space-x-3">
-                <div className="w-32 bg-gray-200 rounded-full h-2">
+                <div className="w-32 bg-neutral-200 dark:bg-secondary-700 rounded-full h-2">
                   <div className="bg-green-600 h-2 rounded-full" style={{ width: '96%' }}></div>
                 </div>
-                <span className="text-sm font-medium text-gray-900 w-10">96%</span>
+                <span className="text-sm font-medium text-neutral-900 dark:text-secondary-100 w-10">96%</span>
               </div>
             </div>
             
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Employment Law</span>
+              <span className="text-sm text-neutral-600 dark:text-secondary-300">Employment Law</span>
               <div className="flex items-center space-x-3">
-                <div className="w-32 bg-gray-200 rounded-full h-2">
+                <div className="w-32 bg-neutral-200 dark:bg-secondary-700 rounded-full h-2">
                   <div className="bg-green-600 h-2 rounded-full" style={{ width: '92%' }}></div>
                 </div>
-                <span className="text-sm font-medium text-gray-900 w-10">92%</span>
+                <span className="text-sm font-medium text-neutral-900 dark:text-secondary-100 w-10">92%</span>
               </div>
             </div>
             
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Commercial Terms</span>
+              <span className="text-sm text-neutral-600 dark:text-secondary-300">Commercial Terms</span>
               <div className="flex items-center space-x-3">
-                <div className="w-32 bg-gray-200 rounded-full h-2">
+                <div className="w-32 bg-neutral-200 dark:bg-secondary-700 rounded-full h-2">
                   <div className="bg-green-600 h-2 rounded-full" style={{ width: '94%' }}></div>
                 </div>
-                <span className="text-sm font-medium text-gray-900 w-10">94%</span>
+                <span className="text-sm font-medium text-neutral-900 dark:text-secondary-100 w-10">94%</span>
               </div>
             </div>
             
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Consumer Rights</span>
+              <span className="text-sm text-neutral-600 dark:text-secondary-300">Consumer Rights</span>
               <div className="flex items-center space-x-3">
-                <div className="w-32 bg-gray-200 rounded-full h-2">
+                <div className="w-32 bg-neutral-200 dark:bg-secondary-700 rounded-full h-2">
                   <div className="bg-green-600 h-2 rounded-full" style={{ width: '91%' }}></div>
                 </div>
-                <span className="text-sm font-medium text-gray-900 w-10">91%</span>
+                <span className="text-sm font-medium text-neutral-900 dark:text-secondary-100 w-10">91%</span>
               </div>
             </div>
           </div>
@@ -426,11 +441,15 @@ export default function DashboardPage() {
               </p>
             </div>
           </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Risk Assessment Summary */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-6">Risk Assessment Summary</h3>
+        <Card variant="bordered">
+          <CardHeader>
+            <CardTitle>Risk Assessment Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
           
           <div className="space-y-4">
             {contracts.slice(0, 3).map((contract) => {
@@ -469,11 +488,12 @@ export default function DashboardPage() {
               <ArrowRightIcon className="h-4 w-4 ml-1" />
             </Link>
           </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* AI Insights */}
-      <div className="mt-8 bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg border border-primary-200 p-6">
+      <div className="mt-6 sm:mt-8 bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg border border-primary-200 p-4 sm:p-6">
         <div className="flex items-start space-x-4">
           <div className="flex-shrink-0">
             <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">

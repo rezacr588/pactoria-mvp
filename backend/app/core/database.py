@@ -61,7 +61,10 @@ def get_db():
     try:
         yield db
     finally:
-        db.close()
+        try:
+            db.close()
+        except Exception as e:
+            logger.error(f"Error closing database session: {e}")
 
 
 async def check_database_health():
@@ -89,7 +92,10 @@ class DatabaseManager:
     def close_session(db):
         """Close a database session"""
         if db:
-            db.close()
+            try:
+                db.close()
+            except Exception as e:
+                logger.error(f"Error closing database session: {e}")
     
     @staticmethod
     async def init_database():

@@ -60,7 +60,6 @@ class ContractUpdate(BaseModel):
 
 class ContractGenerate(BaseModel):
     """Contract AI generation request"""
-    contract_id: str
     regenerate: bool = False
 
 
