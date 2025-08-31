@@ -15,6 +15,7 @@ export { default as PageHeader, SectionHeader } from './PageHeader';
 export { default as Select } from './Select';
 export { default as Textarea } from './Textarea';
 export { default as ThemeToggle } from './ThemeToggle';
+export { default as Toggle } from './Toggle';
 export { default as ToastProvider, useToast, useToastHelpers } from './Toast';
 
 // Export types

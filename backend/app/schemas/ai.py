@@ -2,7 +2,7 @@
 AI service schemas for Pactoria MVP
 Pydantic models for AI-powered contract analysis and generation
 """
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Dict, Optional, Any
 from enum import Enum
 
@@ -23,13 +23,14 @@ class ContractAnalysisRequest(BaseModel):
     """Request model for contract analysis"""
     contract_content: str = Field(..., min_length=50, description="Contract content to analyze")
     contract_type: ContractTypeEnum = Field(..., description="Type of contract")
-    focus_areas: Optional[List[str]] = Field(default=None, description="Specific areas to focus analysis on")
+    focus_areas: Optional[List[str]] = Field(default_factory=list, description="Specific areas to focus analysis on")
     
-    @validator('contract_content')
+    @field_validator('contract_content')
+    @classmethod
     def validate_contract_content(cls, v):
         if len(v.strip()) < 50:
             raise ValueError("Contract content must be at least 50 characters long")
-        return v.strip()
+        return v  # Don't strip, preserve original format
 
 
 class ContractAnalysisResponse(BaseModel):
@@ -54,11 +55,12 @@ class TemplateRecommendationRequest(BaseModel):
     contract_value_range: Optional[str] = Field(None, description="Expected contract value range")
     duration: Optional[str] = Field(None, description="Expected contract duration")
     
-    @validator('business_description')
+    @field_validator('business_description')
+    @classmethod
     def validate_business_description(cls, v):
         if len(v.strip()) < 20:
             raise ValueError("Business description must be at least 20 characters long")
-        return v.strip()
+        return v  # Don't strip, preserve original format
 
 
 class TemplateRecommendation(BaseModel):

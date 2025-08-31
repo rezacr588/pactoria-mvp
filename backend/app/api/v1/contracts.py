@@ -13,6 +13,8 @@ from sqlalchemy import and_, or_, func
 from app.core.database import get_db
 from app.core.auth import get_current_user, require_company_access
 from app.core.config import settings
+from app.core.exceptions import APIExceptionFactory, ResourceNotFoundError, CompanyAccessError
+from app.core.validation import ResourceValidator, AuditLogHelper
 from app.infrastructure.database.models import (
     User, Contract, Template, AIGeneration, ComplianceScore, 
     ContractVersion, ContractType, ContractStatus, AuditLog
@@ -38,21 +40,14 @@ async def create_contract(
 ):
     """Create new contract"""
     
-    if not current_user.company_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User must be associated with a company to create contracts"
-        )
+    ResourceValidator.validate_user_has_company(current_user)
     
     # Check if template exists and belongs to company or is public
     template = None
     if contract_data.template_id:
         template = db.query(Template).filter(Template.id == contract_data.template_id).first()
         if not template or not template.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Template not found or inactive"
-            )
+            raise APIExceptionFactory.not_found("Template", contract_data.template_id)
     
     # Create contract
     contract = Contract(
@@ -109,11 +104,7 @@ async def list_contracts(
 ):
     """List contracts for user's company"""
     
-    if not current_user.company_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User must be associated with a company"
-        )
+    ResourceValidator.validate_user_has_company(current_user)
     
     # Build query
     query = db.query(Contract).filter(

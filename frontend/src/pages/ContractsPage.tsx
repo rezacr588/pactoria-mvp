@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
   PlusIcon,
@@ -8,8 +8,9 @@ import {
 } from '@heroicons/react/24/outline';
 import { useContractStore } from '../store/contractStore';
 import { Contract } from '../types';
-import { Button, Card, Badge, Input, Select } from '../components/ui';
+import { Button, Card, Badge, Input, Select, EmptyState } from '../components/ui';
 import { classNames } from '../utils/classNames';
+import { textStyles, textColors } from '../utils/typography';
 
 const statusOptions = [
   { value: '', label: 'All Statuses' },
@@ -55,18 +56,29 @@ export default function ContractsPage() {
   const [typeFilter, setTypeFilter] = useState('');
   const [sortBy, setSortBy] = useState('updatedAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  
+  // Debounced search to improve performance
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
     fetchContracts();
   }, [fetchContracts]);
 
-  // Filter and sort contracts
-  const filteredContracts = contracts
+  // Filter and sort contracts with memoization for performance
+  const filteredContracts = useMemo(() => contracts
     .filter(contract => {
-      const matchesSearch = contract.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           contract.type.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      const matchesSearch = contract.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+                           contract.type.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
                            contract.parties.some(party => 
-                             party.name.toLowerCase().includes(searchQuery.toLowerCase())
+                             party.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
                            );
       const matchesStatus = !statusFilter || contract.status === statusFilter;
       const matchesType = !typeFilter || contract.type.id === typeFilter;
@@ -91,9 +103,9 @@ export default function ContractsPage() {
       } else {
         return aValue < bValue ? 1 : -1;
       }
-    });
+    }), [contracts, debouncedSearchQuery, statusFilter, typeFilter, sortBy, sortOrder]);
 
-  const handleExportCSV = () => {
+  const handleExportCSV = useCallback(() => {
     const headers = ['Name', 'Type', 'Status', 'Created', 'Updated', 'Compliance Score', 'Risk Level'];
     const csvContent = [
       headers.join(','),
@@ -116,15 +128,23 @@ export default function ContractsPage() {
     link.download = `contracts-export-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
     URL.revokeObjectURL(url);
-  };
+  }, [filteredContracts]);
+  
+  const clearFilters = useCallback(() => {
+    setSearchQuery('');
+    setStatusFilter('');
+    setTypeFilter('');
+  }, []);
+  
+  const hasActiveFilters = searchQuery || statusFilter || typeFilter;
 
   return (
     <div className="p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Contracts</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className={textStyles.pageTitle}>Contracts</h1>
+          <p className={`mt-2 ${textStyles.pageSubtitle}`}>
             Manage and track all your contracts in one place
           </p>
         </div>
@@ -181,78 +201,103 @@ export default function ContractsPage() {
       </Card>
 
       {/* Results */}
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-gray-500">
-          Showing {filteredContracts.length} of {contracts.length} contracts
-        </p>
+      <div className="mb-4 flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center space-x-4">
+          <p className={textStyles.metadata}>
+            Showing {filteredContracts.length} of {contracts.length} contracts
+          </p>
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="text-xs"
+            >
+              Clear filters
+            </Button>
+          )}
+        </div>
         <button
           onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-          className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+          className={`inline-flex items-center space-x-1 text-sm ${textColors.interactive} ${textColors.interactiveHover} font-medium px-2 py-1 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-950/20 transition-colors`}
         >
-          {sortOrder === 'asc' ? '↑' : '↓'} {sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+          <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
+          <span>{sortOrder === 'asc' ? 'Ascending' : 'Descending'}</span>
         </button>
       </div>
 
       {/* Contracts List */}
       {isLoading ? (
-        <Card>
-          <div className="animate-pulse space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center space-x-4">
-                <div className="h-10 w-10 bg-gray-200 rounded-lg"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <div className="flex items-center space-x-4 p-4">
+                <div className="h-10 w-10 bg-neutral-200 dark:bg-secondary-700 rounded-xl"></div>
+                <div className="flex-1 space-y-3">
+                  <div className="h-5 bg-neutral-200 dark:bg-secondary-700 rounded-lg w-3/4"></div>
+                  <div className="flex space-x-4">
+                    <div className="h-3 bg-neutral-200 dark:bg-secondary-700 rounded w-16"></div>
+                    <div className="h-3 bg-neutral-200 dark:bg-secondary-700 rounded w-20"></div>
+                    <div className="h-3 bg-neutral-200 dark:bg-secondary-700 rounded w-24"></div>
+                  </div>
+                  <div className="flex space-x-6">
+                    <div className="h-3 bg-neutral-200 dark:bg-secondary-700 rounded w-20"></div>
+                    <div className="h-3 bg-neutral-200 dark:bg-secondary-700 rounded w-16"></div>
+                  </div>
+                </div>
+                <div className="text-right space-y-2">
+                  <div className="h-4 bg-neutral-200 dark:bg-secondary-700 rounded w-16"></div>
+                  <div className="h-3 bg-neutral-200 dark:bg-secondary-700 rounded w-20"></div>
                 </div>
               </div>
-            ))}
-          </div>
-        </Card>
+            </Card>
+          ))}
+        </div>
       ) : filteredContracts.length === 0 ? (
         <Card>
-          <div className="text-center py-12">
-            <FunnelIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No contracts found</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {searchQuery || statusFilter || typeFilter
-                ? 'Try adjusting your search or filter criteria.'
-                : 'Get started by creating your first contract.'}
-            </p>
-            {!searchQuery && !statusFilter && !typeFilter && (
-              <div className="mt-6">
-                <Link to="/contracts/new">
-                  <Button icon={<PlusIcon className="h-4 w-4" />}>
-                    Create Contract
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </div>
+          <EmptyState
+            icon={FunnelIcon}
+            title="No contracts found"
+            description={
+              hasActiveFilters
+                ? 'No contracts match your current filters. Try adjusting your search criteria or clearing filters.'
+                : 'Get started by creating your first contract to begin managing your agreements.'
+            }
+            action={!hasActiveFilters ? {
+              label: 'Create Contract',
+              onClick: () => window.location.href = '/contracts/new',
+              icon: PlusIcon
+            } : undefined}
+            secondaryAction={hasActiveFilters ? {
+              label: 'Clear Filters',
+              onClick: clearFilters
+            } : undefined}
+          />
         </Card>
       ) : (
         <div className="space-y-4">
           {filteredContracts.map((contract) => (
-            <Card key={contract.id} variant="bordered" className="hover:shadow-md transition-shadow">
+            <Card key={contract.id} variant="bordered" className="hover:shadow-md hover:border-primary-200 dark:hover:border-primary-800 transition-all duration-200 group">
               <Link to={`/contracts/${contract.id}`} className="block">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
-                      <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                        <span className="text-primary-600 font-semibold text-sm">
+                      <div className="w-10 h-10 bg-primary-100 dark:bg-primary-950/30 rounded-lg flex items-center justify-center">
+                        <span className={`${textColors.interactive} font-semibold text-sm`}>
                           {contract.name.charAt(0)}
                         </span>
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-3">
-                        <h3 className="text-lg font-medium text-gray-900 truncate">
+                      <div className="flex items-center space-x-3 mb-1">
+                        <h3 className={`${textStyles.cardTitle} truncate group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors`}>
                           {contract.name}
                         </h3>
                         <Badge variant={getStatusBadgeVariant(contract.status)}>
                           {contract.status.charAt(0).toUpperCase() + contract.status.slice(1)}
                         </Badge>
                       </div>
-                      <div className="mt-1 flex items-center space-x-4 text-sm text-gray-500">
+                      <div className={`mt-1 flex items-center space-x-4 ${textStyles.metadata}`}>
                         <span>{contract.type.name}</span>
                         <span>•</span>
                         <span>Version {contract.version}</span>
@@ -263,22 +308,22 @@ export default function ContractsPage() {
                         <div className="flex items-center space-x-2">
                           <div className={classNames(
                             'w-2 h-2 rounded-full',
-                            contract.complianceScore.overall >= 90 ? 'bg-green-500' :
-                            contract.complianceScore.overall >= 80 ? 'bg-yellow-500' :
-                            'bg-red-500'
+                            contract.complianceScore.overall >= 90 ? 'bg-success-500' :
+                            contract.complianceScore.overall >= 80 ? 'bg-warning-500' :
+                            'bg-danger-500'
                           )} />
-                          <span className="text-xs text-gray-500">
+                          <span className={textStyles.timestamp}>
                             {contract.complianceScore.overall}% Compliant
                           </span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <div className={classNames(
                             'w-2 h-2 rounded-full',
-                            contract.riskAssessment.overall <= 30 ? 'bg-green-500' :
-                            contract.riskAssessment.overall <= 60 ? 'bg-yellow-500' :
+                            contract.riskAssessment.overall <= 30 ? 'bg-success-500' :
+                            contract.riskAssessment.overall <= 60 ? 'bg-warning-500' :
                             'bg-red-500'
                           )} />
-                          <span className="text-xs text-gray-500">
+                          <span className={textStyles.timestamp}>
                             {contract.riskAssessment.overall <= 30 ? 'Low' :
                              contract.riskAssessment.overall <= 60 ? 'Medium' : 'High'} Risk
                           </span>
@@ -288,10 +333,10 @@ export default function ContractsPage() {
                   </div>
                   <div className="flex items-center space-x-4">
                     <div className="text-right hidden sm:block">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className={`text-sm font-medium ${textColors.primary}`}>
                         {contract.parties.length} {contract.parties.length === 1 ? 'Party' : 'Parties'}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className={textStyles.metadata}>
                         {contract.deadlines.length} {contract.deadlines.length === 1 ? 'Deadline' : 'Deadlines'}
                       </div>
                     </div>

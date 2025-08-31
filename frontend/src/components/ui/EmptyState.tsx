@@ -29,46 +29,52 @@ export default function EmptyState({
   className
 }: EmptyStateProps) {
   return (
-    <div className={classNames('text-center py-12', className)}>
+    <div className={classNames('text-center py-12 px-4', className)}>
       {Icon && (
-        <Icon className="mx-auto h-12 w-12 text-neutral-400 dark:text-secondary-500 mb-4" />
+        <div className="mx-auto w-16 h-16 bg-neutral-100 dark:bg-secondary-800 rounded-full flex items-center justify-center mb-6">
+          <Icon className="h-8 w-8 text-neutral-400 dark:text-secondary-500" />
+        </div>
       )}
       
-      <h3 className="text-lg font-medium text-neutral-900 dark:text-secondary-100 mb-2">
+      <h3 className="text-xl font-semibold text-neutral-900 dark:text-secondary-100 mb-3">
         {title}
       </h3>
       
       {description && (
-        <p className="text-sm text-neutral-500 dark:text-secondary-400 max-w-sm mx-auto mb-6">
+        <p className="text-base text-neutral-500 dark:text-secondary-400 max-w-md mx-auto mb-8 leading-relaxed">
           {description}
         </p>
       )}
       
       {children && (
-        <div className="mb-6">
+        <div className="mb-8">
           {children}
         </div>
       )}
       
-      <div className="flex items-center justify-center space-x-3">
-        {action && (
-          <Button
-            onClick={action.onClick}
-            icon={action.icon && <action.icon className="h-4 w-4" />}
-          >
-            {action.label}
-          </Button>
-        )}
-        
-        {secondaryAction && (
-          <Button
-            variant="outline"
-            onClick={secondaryAction.onClick}
-          >
-            {secondaryAction.label}
-          </Button>
-        )}
-      </div>
+      {(action || secondaryAction) && (
+        <div className="flex items-center justify-center space-x-3 flex-wrap gap-3">
+          {action && (
+            <Button
+              onClick={action.onClick}
+              icon={action.icon && <action.icon className="h-4 w-4" />}
+              size="md"
+            >
+              {action.label}
+            </Button>
+          )}
+          
+          {secondaryAction && (
+            <Button
+              variant="secondary"
+              onClick={secondaryAction.onClick}
+              size="md"
+            >
+              {secondaryAction.label}
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

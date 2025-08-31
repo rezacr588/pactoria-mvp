@@ -13,6 +13,7 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.core.database import create_tables
 from app.api.v1.api import api_router
+from fastapi.security import HTTPBearer
 
 # Configure logging
 logging.basicConfig(
@@ -40,15 +41,121 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down Pactoria MVP Backend...")
 
 
-# Create FastAPI application
+# Create FastAPI application with comprehensive OpenAPI configuration
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="AI-Powered Contract Management Platform for UK SMEs",
+    description="""
+# Pactoria Contract Management API
+
+**AI-Powered Contract Management Platform for UK SMEs**
+
+## Features
+
+- **AI-Driven Contract Generation**: Leverage advanced AI to create legally compliant UK contracts
+- **Compliance Analysis**: Real-time UK legal compliance scoring and validation
+- **Template Management**: 20+ pre-built UK legal templates for SMEs
+- **Security & Audit**: Enterprise-grade security with comprehensive audit trails
+- **Analytics Dashboard**: Contract performance and compliance analytics
+
+## Authentication
+
+This API uses **JWT Bearer token authentication**. To authenticate:
+
+1. Register or login to get an access token
+2. Include the token in the Authorization header: `Authorization: Bearer {token}`
+3. Tokens expire in 24 hours and need to be refreshed
+
+## Support
+
+For technical support or business inquiries, contact us at support@pactoria.com
+
+## Legal
+
+This API is proprietary software. Unauthorized access or use is prohibited.
+    """,
     docs_url="/docs" if settings.DEBUG else None,
     redoc_url="/redoc" if settings.DEBUG else None,
-    lifespan=lifespan
+    lifespan=lifespan,
+    # OpenAPI metadata
+    terms_of_service="https://pactoria.com/terms",
+    contact={
+        "name": "Pactoria Support",
+        "email": "support@pactoria.com",
+        "url": "https://pactoria.com/support"
+    },
+    license_info={
+        "name": "Proprietary",
+        "identifier": "Proprietary"
+    },
+    # API tags for organization
+    tags_metadata=[
+        {
+            "name": "Health",
+            "description": "Health check and system status endpoints"
+        },
+        {
+            "name": "Root",
+            "description": "Root endpoint with API information"
+        },
+        {
+            "name": "Authentication",
+            "description": "User authentication, registration, and profile management"
+        },
+        {
+            "name": "Contracts", 
+            "description": "Contract CRUD operations, AI generation, and compliance analysis"
+        },
+        {
+            "name": "AI Services",
+            "description": "AI-powered contract generation and legal analysis"
+        },
+        {
+            "name": "Security",
+            "description": "Security scanning and vulnerability assessment"
+        },
+        {
+            "name": "Analytics",
+            "description": "Contract analytics, compliance metrics, and reporting"
+        }
+    ],
+    # Servers for different environments
+    servers=[
+        {
+            "url": "http://localhost:8000",
+            "description": "Development server"
+        },
+        {
+            "url": "https://api.pactoria.com", 
+            "description": "Production server"
+        }
+    ]
 )
+
+# Configure JWT Authentication in OpenAPI
+security = HTTPBearer()
+
+# Add security scheme to OpenAPI
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    
+    openapi_schema = app.openapi()
+    
+    # Add security scheme
+    openapi_schema["components"]["securitySchemes"] = {
+        "bearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+            "description": "JWT token obtained from login endpoint"
+        }
+    }
+    
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
 
 # Security middleware
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
@@ -126,75 +233,14 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# Health check endpoints
+# Basic root-level health check for load balancers
 @app.get("/health", tags=["Health"])
 async def health_check():
-    """Basic health check endpoint"""
+    """Basic health check endpoint for load balancers"""
     return {
         "status": "healthy",
         "timestamp": time.time(),
-        "version": settings.APP_VERSION,
-        "environment": settings.ENVIRONMENT
-    }
-
-
-@app.get("/ready", tags=["Health"])
-async def readiness_check():
-    """Readiness check for production deployment"""
-    checks = {
-        "database": {"status": "pass", "message": "Database connection healthy"},
-        "ai_service": {"status": "pass", "message": "AI service available"},
-        "configuration": {"status": "pass", "message": "Configuration loaded"}
-    }
-    
-    # TODO: Add actual health checks for each component
-    all_passed = all(check["status"] == "pass" for check in checks.values())
-    
-    return {
-        "ready": all_passed,
-        "checks": checks,
-        "timestamp": time.time()
-    }
-
-
-@app.get("/health/detailed", tags=["Health"])
-async def detailed_health_check():
-    """Detailed health check with component status"""
-    components = {
-        "database": {
-            "status": "healthy",
-            "response_time_ms": 15.2,
-            "connections": {"active": 2, "idle": 8}
-        },
-        "ai_service": {
-            "status": "healthy", 
-            "response_time_ms": 245.8,
-            "model": settings.GROQ_MODEL
-        },
-        "redis_cache": {
-            "status": "healthy",
-            "response_time_ms": 3.1,
-            "memory_usage": "45MB"
-        }
-    }
-    
-    performance = {
-        "uptime_seconds": 86400,  # TODO: Track actual uptime
-        "requests_per_minute": 125,
-        "average_response_time_ms": 89.5
-    }
-    
-    dependencies = {
-        "groq_api": {"status": "healthy", "last_check": time.time()},
-        "external_apis": {"status": "healthy", "last_check": time.time()}
-    }
-    
-    return {
-        "status": "healthy",
-        "timestamp": time.time(),
-        "components": components,
-        "performance": performance,
-        "dependencies": dependencies
+        "version": settings.APP_VERSION
     }
 
 

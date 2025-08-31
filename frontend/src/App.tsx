@@ -1,7 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
 import { AppLayout } from './components/layout';
 import ThemeProvider from './contexts/ThemeContext';
+import { ToastProvider } from './contexts/ToastContext';
+import ToastContainer from './components/ui/ToastContainer';
 import DashboardPage from './pages/DashboardPage';
 import ContractsPage from './pages/ContractsPage';
 import ContractCreatePage from './pages/ContractCreatePage';
@@ -16,45 +19,168 @@ import AuditTrailPage from './pages/AuditTrailPage';
 import LoginPage from './pages/LoginPage';
 import LandingPage from './pages/LandingPage';
 import HelpPage from './pages/HelpPage';
+import CommandPalette from './components/ui/CommandPalette';
+import KeyboardShortcutsHelp from './components/ui/KeyboardShortcutsHelp';
+import SkipLinks from './components/ui/SkipLinks';
+import ErrorBoundary from './components/ui/ErrorBoundary';
+import { useGlobalKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuthStore();
   return user ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
+// Component that handles keyboard shortcuts within Router context
+function KeyboardShortcutsProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuthStore();
+  
+  // Always call the hook but only enable for authenticated users
+  useGlobalKeyboardShortcuts(!!user);
+  
+  return <>{children}</>;
+}
+
 function App() {
   const { user } = useAuthStore();
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isKeyboardHelpOpen, setIsKeyboardHelpOpen] = useState(false);
+
+  // Listen for global events
+  useEffect(() => {
+    const handleOpenCommandPalette = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(true);
+      }
+    };
+
+    const handleShowKeyboardHelp = () => {
+      setIsKeyboardHelpOpen(true);
+    };
+
+    const handleCloseModals = () => {
+      setIsCommandPaletteOpen(false);
+      setIsKeyboardHelpOpen(false);
+    };
+
+    // Add keyboard event listener for command palette
+    document.addEventListener('keydown', handleOpenCommandPalette);
+    
+    // Add custom event listeners
+    document.addEventListener('showKeyboardHelp', handleShowKeyboardHelp);
+    document.addEventListener('closeModals', handleCloseModals);
+
+    return () => {
+      document.removeEventListener('keydown', handleOpenCommandPalette);
+      document.removeEventListener('showKeyboardHelp', handleShowKeyboardHelp);
+      document.removeEventListener('closeModals', handleCloseModals);
+    };
+  }, []);
 
   return (
-    <ThemeProvider>
-      <Router>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          
-          {/* Protected routes with layout */}
-          <Route path="/" element={
-            <ProtectedRoute>
-              <AppLayout />
-            </ProtectedRoute>
-          }>
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="contracts" element={<ContractsPage />} />
-            <Route path="contracts/new" element={<ContractCreatePage />} />
-            <Route path="contracts/:id" element={<ContractViewPage />} />
-            <Route path="analytics" element={<AnalyticsPage />} />
-            <Route path="templates" element={<TemplatesPage />} />
-            <Route path="integrations" element={<IntegrationsPage />} />
-            <Route path="audit" element={<AuditTrailPage />} />
-            <Route path="team" element={<TeamPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="notifications" element={<NotificationsPage />} />
-            <Route path="help" element={<HelpPage />} />
-          </Route>
-        </Routes>
-      </Router>
-    </ThemeProvider>
+    <ErrorBoundary level="critical" showErrorDetails={process.env.NODE_ENV === 'development'}>
+      <ThemeProvider>
+        <ToastProvider>
+          <Router>
+            <KeyboardShortcutsProvider>
+              {/* Skip Links for accessibility */}
+              <SkipLinks />
+              
+              <Routes>
+              {/* Public routes - Landing page accessible to all users */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              
+              {/* Protected routes with layout */}
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <ErrorBoundary level="page">
+                    <AppLayout />
+                  </ErrorBoundary>
+                </ProtectedRoute>
+              }>
+                <Route path="dashboard" element={
+                  <ErrorBoundary level="component">
+                    <DashboardPage />
+                  </ErrorBoundary>
+                } />
+                <Route path="contracts" element={
+                  <ErrorBoundary level="component">
+                    <ContractsPage />
+                  </ErrorBoundary>
+                } />
+                <Route path="contracts/new" element={
+                  <ErrorBoundary level="component">
+                    <ContractCreatePage />
+                  </ErrorBoundary>
+                } />
+                <Route path="contracts/:id" element={
+                  <ErrorBoundary level="component">
+                    <ContractViewPage />
+                  </ErrorBoundary>
+                } />
+                <Route path="analytics" element={
+                  <ErrorBoundary level="component">
+                    <AnalyticsPage />
+                  </ErrorBoundary>
+                } />
+                <Route path="templates" element={
+                  <ErrorBoundary level="component">
+                    <TemplatesPage />
+                  </ErrorBoundary>
+                } />
+                <Route path="integrations" element={
+                  <ErrorBoundary level="component">
+                    <IntegrationsPage />
+                  </ErrorBoundary>
+                } />
+                <Route path="audit" element={
+                  <ErrorBoundary level="component">
+                    <AuditTrailPage />
+                  </ErrorBoundary>
+                } />
+                <Route path="team" element={
+                  <ErrorBoundary level="component">
+                    <TeamPage />
+                  </ErrorBoundary>
+                } />
+                <Route path="settings" element={
+                  <ErrorBoundary level="component">
+                    <SettingsPage />
+                  </ErrorBoundary>
+                } />
+                <Route path="notifications" element={
+                  <ErrorBoundary level="component">
+                    <NotificationsPage />
+                  </ErrorBoundary>
+                } />
+                <Route path="help" element={
+                  <ErrorBoundary level="component">
+                    <HelpPage />
+                  </ErrorBoundary>
+                } />
+              </Route>
+            </Routes>
+
+            {/* Global Modals and Components - Only show for authenticated users */}
+            {user && (
+              <>
+                <CommandPalette
+                  isOpen={isCommandPaletteOpen}
+                  onClose={() => setIsCommandPaletteOpen(false)}
+                />
+                <KeyboardShortcutsHelp
+                  isOpen={isKeyboardHelpOpen}
+                  onClose={() => setIsKeyboardHelpOpen(false)}
+                />
+                <ToastContainer />
+              </>
+            )}
+            </KeyboardShortcutsProvider>
+          </Router>
+        </ToastProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

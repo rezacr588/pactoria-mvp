@@ -4,8 +4,9 @@ import { useContractStore } from '../store/contractStore';
 import { useAuthStore } from '../store/authStore';
 import OnboardingChecklist from '../components/OnboardingChecklist';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '../components/ui';
+import { SkeletonDashboard, SkeletonStats, SkeletonList } from '../components/ui/Skeleton';
 import { classNames } from '../utils/classNames';
-import { textStyles, textColors } from '../utils/typography';
+import { textColors } from '../utils/typography';
 import {
   DocumentTextIcon,
   ClockIcon,
@@ -41,6 +42,15 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchContracts();
   }, [fetchContracts]);
+
+  // Show skeleton while loading
+  if (isLoading && contracts.length === 0) {
+    return (
+      <div className="p-4 sm:p-6">
+        <SkeletonDashboard />
+      </div>
+    );
+  }
 
   // Calculate metrics
   const totalContracts = contracts.length;
@@ -140,19 +150,32 @@ export default function DashboardPage() {
 
       {/* Quick stats */}
       <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
-        {quickStats.map((stat) => (
-          <Card key={stat.name} variant="bordered" className="p-3 sm:p-4">
+        {quickStats.map((stat, index) => (
+          <Card 
+            key={stat.name} 
+            variant="elevated" 
+            className="p-3 sm:p-4 hover:scale-[1.02] transition-transform duration-200"
+            style={{
+              animationDelay: `${index * 100}ms`
+            }}
+          >
             <div className="flex flex-col sm:flex-row sm:items-center">
-              <div className={classNames(stat.bgColor, 'flex-shrink-0 rounded-lg p-2 sm:p-3 mb-2 sm:mb-0')}>
+              <div className={classNames(
+                stat.bgColor, 
+                'flex-shrink-0 rounded-xl p-2 sm:p-3 mb-2 sm:mb-0',
+                'transition-transform duration-200 hover:scale-110'
+              )}>
                 <stat.icon className={classNames(stat.color, 'h-5 w-5 sm:h-6 sm:w-6')} aria-hidden="true" />
               </div>
               <div className="sm:ml-4 w-0 flex-1">
                 <dl>
                   <dt className="text-xs sm:text-sm font-medium text-neutral-500 dark:text-secondary-400 truncate">{stat.name}</dt>
                   <dd className="flex flex-col sm:flex-row sm:items-baseline">
-                    <div className="text-lg sm:text-2xl font-semibold text-neutral-900 dark:text-secondary-100">{stat.value}</div>
+                    <div className="text-lg sm:text-2xl font-bold text-neutral-900 dark:text-secondary-100 tabular-nums">
+                      {stat.value}
+                    </div>
                     <div className={classNames(
-                      stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600',
+                      stat.changeType === 'increase' ? 'text-success-600' : 'text-danger-600',
                       'sm:ml-2 flex items-baseline text-xs sm:text-sm font-semibold'
                     )}>
                       <TrendingUpIcon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0 self-center mr-1" aria-hidden="true" />

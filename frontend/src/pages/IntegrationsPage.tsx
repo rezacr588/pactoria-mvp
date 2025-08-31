@@ -6,7 +6,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   ClockIcon,
-  CogIcon,
+  Cog6ToothIcon,
   LinkIcon,
   CloudIcon,
 } from '@heroicons/react/24/outline';
@@ -564,7 +564,7 @@ export default function IntegrationsPage() {
                         variant="primary"
                         size="sm"
                         className="flex-1"
-                        icon={<CogIcon className="h-4 w-4" />}
+                        icon={<Cog6ToothIcon className="h-4 w-4" />}
                       >
                         Configure
                       </Button>

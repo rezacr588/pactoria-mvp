@@ -81,8 +81,9 @@ class TestJWTTokens:
             
             token = create_access_token(subject, expires_delta)
         
-        from app.core.config import settings
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            # Decode within the same mock context to avoid expiration
+            from app.core.config import settings
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM], options={"verify_exp": False})
         
         expected_exp = mock_now + expires_delta
         actual_exp = datetime.fromtimestamp(payload["exp"])
@@ -99,9 +100,10 @@ class TestJWTTokens:
             mock_utc.return_value = mock_now
             
             token = create_access_token(subject)
-        
-        from app.core.config import settings
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            
+            # Decode within the same mock context to avoid expiration
+            from app.core.config import settings
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM], options={"verify_exp": False})
         
         expected_exp = mock_now + timedelta(hours=settings.JWT_EXPIRATION_HOURS)
         actual_exp = datetime.fromtimestamp(payload["exp"])
@@ -152,7 +154,8 @@ class TestJWTTokens:
     def test_verify_token_no_subject(self):
         """Test verifying token without subject"""
         from app.core.config import settings
-        token = jwt.encode({"exp": datetime.utcnow() + timedelta(hours=1)}, 
+        from app.core.datetime_utils import get_current_utc
+        token = jwt.encode({"exp": (get_current_utc() + timedelta(hours=1)).timestamp()}, 
                           settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
         
         result = verify_token(token)
@@ -177,15 +180,15 @@ class TestPasswordResetTokens:
             
             token = create_password_reset_token(email)
         
-        assert token is not None
-        assert isinstance(token, str)
-        assert len(token) > 0
-        
-        # Verify token structure
-        from app.core.config import settings
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
-        assert payload["sub"] == email
-        assert payload["type"] == "password_reset"
+            assert token is not None
+            assert isinstance(token, str)
+            assert len(token) > 0
+            
+            # Verify token structure within mock context
+            from app.core.config import settings
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM], options={"verify_exp": False})
+            assert payload["sub"] == email
+            assert payload["type"] == "password_reset"
     
     def test_verify_password_reset_token_valid(self):
         """Test verifying valid password reset token"""
@@ -201,8 +204,9 @@ class TestPasswordResetTokens:
         
         # Create regular access token instead of reset token
         from app.core.config import settings
+        from app.core.datetime_utils import get_current_utc
         token = jwt.encode(
-            {"sub": email, "type": "access", "exp": datetime.utcnow() + timedelta(hours=1)},
+            {"sub": email, "type": "access", "exp": (get_current_utc() + timedelta(hours=1)).timestamp()},
             settings.SECRET_KEY, 
             algorithm=settings.JWT_ALGORITHM
         )
@@ -215,8 +219,9 @@ class TestPasswordResetTokens:
         email = "test@example.com"
         
         from app.core.config import settings
+        from app.core.datetime_utils import get_current_utc
         token = jwt.encode(
-            {"sub": email, "exp": datetime.utcnow() + timedelta(hours=1)},
+            {"sub": email, "exp": (get_current_utc() + timedelta(hours=1)).timestamp()},
             settings.SECRET_KEY, 
             algorithm=settings.JWT_ALGORITHM
         )
@@ -230,8 +235,9 @@ class TestPasswordResetTokens:
         
         # Mock time to create expired token
         with patch('app.core.security.get_current_utc') as mock_utc:
+            from app.core.datetime_utils import get_current_utc
             # Set time 2 hours ago so token expires 1 hour ago
-            mock_utc.return_value = datetime.utcnow() - timedelta(hours=2)
+            mock_utc.return_value = get_current_utc() - timedelta(hours=2)
             token = create_password_reset_token(email)
         
         result = verify_password_reset_token(token)
@@ -303,7 +309,8 @@ class TestErrorHandling:
         from pydantic import ValidationError
         
         with patch('app.core.security.jwt.decode') as mock_decode:
-            mock_decode.side_effect = ValidationError([], str)
+            # Create a proper ValidationError for Pydantic v2
+            mock_decode.side_effect = ValidationError.from_exception_data('ValidationError', [])
             
             result = verify_token("some_token")
             assert result is None

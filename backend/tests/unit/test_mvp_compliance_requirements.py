@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from app.main import app
 from app.core.config import settings
 from app.services.ai_service import GroqAIService
-from app.services.contract_service import ContractService
+# Removed duplicate contract service import - using ContractApplicationService instead
 
 
 class TestMVPComplianceRequirements:

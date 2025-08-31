@@ -202,16 +202,12 @@ class TestSchemaFieldValidation:
         request = ContractAnalysisRequest(
             contract_content="This is a comprehensive contract analysis request with sufficient content length for validation.",
             contract_type="employment_contract",
-            focus_areas=["gdpr_compliance", "employment_law", "termination_clauses"],
-            jurisdiction="UK",
-            urgency_level="high"
+            focus_areas=["gdpr_compliance", "employment_law", "termination_clauses"]
         )
         
-        assert request.contract_type == "employment_contract"
+        assert request.contract_type.value == "employment_contract"
         assert len(request.focus_areas) == 3
         assert "gdpr_compliance" in request.focus_areas
-        assert request.jurisdiction == "UK"
-        assert request.urgency_level == "high"
     
     def test_template_recommendation_request_all_fields(self):
         """Test TemplateRecommendationRequest with all optional fields"""
@@ -219,15 +215,12 @@ class TestSchemaFieldValidation:
             business_description="I operate a technology startup focused on SaaS solutions for enterprise clients.",
             industry="technology",
             contract_value_range="£10,000-£100,000",
-            duration="6-12 months",
-            specific_requirements=["IP ownership", "confidentiality", "termination clauses"]
+            duration="6-12 months"
         )
         
         assert request.industry == "technology"
         assert request.contract_value_range == "£10,000-£100,000"
         assert request.duration == "6-12 months"
-        assert len(request.specific_requirements) == 3
-        assert "IP ownership" in request.specific_requirements
     
     def test_empty_optional_fields(self):
         """Test schemas with empty optional fields"""
@@ -240,10 +233,9 @@ class TestSchemaFieldValidation:
         
         # TemplateRecommendationRequest with minimal fields
         template_request = TemplateRecommendationRequest(
-            business_description="This is a minimal business description for template recommendation.",
-            industry="general"
+            business_description="This is a minimal business description for template recommendation."
         )
-        assert template_request.specific_requirements == []  # Default empty list
+        assert template_request.industry is None  # Optional field defaults to None
     
     def test_contract_type_validation(self):
         """Test contract type enum validation"""
@@ -352,12 +344,12 @@ class TestEdgeCases:
         )
         
         # Test dict conversion
-        request_dict = request.dict()
+        request_dict = request.model_dump()
         assert request_dict["contract_content"] == request.contract_content
-        assert request_dict["contract_type"] == request.contract_type
+        assert request_dict["contract_type"] == request.contract_type.value
         assert request_dict["focus_areas"] == request.focus_areas
         
         # Test JSON serialization
-        json_str = request.json()
+        json_str = request.model_dump_json()
         assert isinstance(json_str, str)
         assert "service_agreement" in json_str

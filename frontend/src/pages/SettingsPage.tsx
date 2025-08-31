@@ -5,10 +5,11 @@ import {
   BuildingOfficeIcon,
   BellIcon,
   ShieldCheckIcon,
-  CogIcon,
+  Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
-import { Card, CardHeader, CardTitle, CardContent, Button, Input, Select, Textarea } from '../components/ui';
+import { Card, CardHeader, CardTitle, CardContent, Button, Input, Select, Textarea, Avatar, Toggle } from '../components/ui';
 import { classNames } from '../utils/classNames';
+import { textStyles, textColors } from '../utils/typography';
 
 interface TabItem {
   id: string;
@@ -21,7 +22,7 @@ const tabs: TabItem[] = [
   { id: 'company', name: 'Company', icon: BuildingOfficeIcon },
   { id: 'notifications', name: 'Notifications', icon: BellIcon },
   { id: 'security', name: 'Security', icon: ShieldCheckIcon },
-  { id: 'preferences', name: 'Preferences', icon: CogIcon },
+  { id: 'preferences', name: 'Preferences', icon: Cog6ToothIcon },
 ];
 
 export default function SettingsPage() {
@@ -103,14 +104,14 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center space-x-4">
-            <img
-              className="h-20 w-20 rounded-full"
-              src={user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=3b82f6&color=fff`}
-              alt=""
+            <Avatar
+              src={user?.avatar}
+              name={user?.name}
+              size="2xl"
             />
             <div>
               <Button variant="secondary" size="sm">Change Avatar</Button>
-              <p className="text-sm text-gray-500 mt-1">JPG, GIF or PNG. Max size 1MB.</p>
+              <p className={`${textStyles.formHelpText} mt-1`}>JPG, GIF or PNG. Max size 1MB.</p>
             </div>
           </div>
           
@@ -190,7 +191,7 @@ export default function SettingsPage() {
           </div>
           
           <div className="space-y-4">
-            <h4 className="text-sm font-medium text-gray-900">Address</h4>
+            <h4 className={`text-sm font-medium ${textColors.primary}`}>Address</h4>
             <Input
               label="Street Address"
               value={companyForm.address}
@@ -247,35 +248,18 @@ export default function SettingsPage() {
             { key: 'marketingEmails', label: 'Marketing Emails', description: 'Product updates and marketing communications' },
             { key: 'weeklyDigest', label: 'Weekly Digest', description: 'Weekly summary of your contract activity' }
           ].map((item) => (
-            <div key={item.key} className="flex items-center justify-between py-4 border-b border-gray-200 last:border-0">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">{item.label}</h4>
-                <p className="text-sm text-gray-500">{item.description}</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only"
-                  checked={notificationPrefs[item.key as keyof typeof notificationPrefs]}
-                  onChange={(e) => setNotificationPrefs(prev => ({
-                    ...prev,
-                    [item.key]: e.target.checked
-                  }))}
-                />
-                <div className={classNames(
-                  'w-11 h-6 rounded-full transition-colors',
-                  notificationPrefs[item.key as keyof typeof notificationPrefs]
-                    ? 'bg-primary-600'
-                    : 'bg-gray-200'
-                )}>
-                  <div className={classNames(
-                    'dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform',
-                    notificationPrefs[item.key as keyof typeof notificationPrefs]
-                      ? 'translate-x-5'
-                      : 'translate-x-0'
-                  )} />
-                </div>
-              </label>
+            <div key={item.key} className="py-4 border-b border-neutral-200 dark:border-secondary-700 last:border-0">
+              <Toggle
+                id={item.key}
+                checked={notificationPrefs[item.key as keyof typeof notificationPrefs]}
+                onChange={(checked) => setNotificationPrefs(prev => ({
+                  ...prev,
+                  [item.key]: checked
+                }))}
+                label={item.label}
+                description={item.description}
+                size="md"
+              />
             </div>
           ))}
         </CardContent>
@@ -327,8 +311,8 @@ export default function SettingsPage() {
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-sm font-medium text-gray-900">Two-Factor Authentication</h4>
-              <p className="text-sm text-gray-500">Add an extra layer of security to your account</p>
+              <h4 className={`text-sm font-medium ${textColors.primary}`}>Two-Factor Authentication</h4>
+              <p className={`text-sm ${textColors.muted}`}>Add an extra layer of security to your account</p>
             </div>
             <Button variant="secondary">
               {securityForm.twoFactorEnabled ? 'Disable' : 'Enable'} 2FA
@@ -483,8 +467,8 @@ export default function SettingsPage() {
     <div className="p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className={textStyles.pageTitle}>Settings</h1>
+        <p className={`mt-2 ${textStyles.pageSubtitle}`}>
           Manage your account settings and preferences
         </p>
       </div>
@@ -501,14 +485,14 @@ export default function SettingsPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={classNames(
                     activeTab === tab.id
-                      ? 'bg-primary-50 text-primary-700 border-r-2 border-primary-500'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                    'group flex items-center px-3 py-2 text-sm font-medium rounded-l-lg transition-colors w-full text-left'
+                      ? 'bg-primary-50 dark:bg-primary-950/20 text-primary-700 dark:text-primary-400 border-r-2 border-primary-500'
+                      : `${textColors.secondary} hover:bg-neutral-50 dark:hover:bg-secondary-800 hover:text-neutral-900 dark:hover:text-secondary-100`,
+                    'group flex items-center px-3 py-2 text-sm font-medium rounded-l-lg transition-colors w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900'
                   )}
                 >
                   <Icon
                     className={classNames(
-                      activeTab === tab.id ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500',
+                      activeTab === tab.id ? 'text-primary-500 dark:text-primary-400' : 'text-neutral-400 dark:text-secondary-500 group-hover:text-neutral-500 dark:group-hover:text-secondary-400',
                       'mr-3 h-5 w-5 flex-shrink-0'
                     )}
                   />

@@ -57,15 +57,6 @@ async def get_api_status():
     }
 
 
-@router.get("/health")
-async def health_check():
-    """Simple health check"""
-    return {
-        "status": "healthy",
-        "timestamp": get_current_utc().isoformat()
-    }
-
-
 @router.get("/features")
 async def list_features():
     """List all available API features"""

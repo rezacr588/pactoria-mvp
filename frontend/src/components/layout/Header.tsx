@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   BellIcon,
@@ -10,11 +10,12 @@ import {
   QuestionMarkCircleIcon,
   BellAlertIcon,
   ChartBarIcon,
+  GlobeAltIcon,
 } from '@heroicons/react/24/outline';
 import { useAuthStore } from '../../store/authStore';
 import Button from '../ui/Button';
 import ThemeToggle from '../ui/ThemeToggle';
-import DropdownMenu, { DropdownSection } from '../ui/DropdownMenu';
+import DropdownMenu from '../ui/DropdownMenu';
 import Avatar from '../ui/Avatar';
 import { NotificationBadge } from '../ui/Badge';
 
@@ -26,6 +27,25 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = useCallback((query: string) => {
+    if (query.trim()) {
+      // Navigate to search results or trigger search
+      navigate(`/search?q=${encodeURIComponent(query.trim())}`);
+    }
+  }, [navigate]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSearch(searchQuery);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearch(searchQuery);
+    }
+  };
 
   // Mock notifications - in real app would come from store
   const notifications = [
@@ -61,18 +81,30 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
         {/* Search */}
         <div className="flex-1 max-w-lg ml-4 lg:ml-0">
-          <div className="relative">
+          <form onSubmit={handleSearchSubmit} className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <MagnifyingGlassIcon className="h-5 w-5 text-neutral-400 dark:text-secondary-500" />
             </div>
             <input
               type="text"
-              className="block w-full pl-10 pr-3 py-2 border border-neutral-300 dark:border-secondary-600 rounded-xl leading-5 bg-white dark:bg-secondary-800 placeholder-neutral-500 dark:placeholder-secondary-500 text-neutral-900 dark:text-secondary-100 focus:outline-none focus:placeholder-neutral-400 dark:focus:placeholder-secondary-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-sm"
+              className="block w-full pl-10 pr-10 py-2 border border-neutral-300 dark:border-secondary-600 rounded-xl leading-5 bg-white dark:bg-secondary-800 placeholder-neutral-500 dark:placeholder-secondary-500 text-neutral-900 dark:text-secondary-100 focus:outline-none focus:placeholder-neutral-400 dark:focus:placeholder-secondary-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm transition-all"
               placeholder="Search contracts, templates, or team members..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              aria-label="Search contracts, templates, or team members"
             />
-          </div>
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 dark:text-secondary-500 hover:text-neutral-600 dark:hover:text-secondary-300"
+                aria-label="Clear search"
+              >
+                <span className="h-4 w-4">✕</span>
+              </button>
+            )}
+          </form>
         </div>
 
         {/* Actions */}
@@ -185,6 +217,12 @@ export default function Header({ onMenuClick }: HeaderProps) {
                     label: 'Dashboard',
                     icon: ChartBarIcon,
                     onClick: () => navigate('/dashboard')
+                  },
+                  {
+                    id: 'landing',
+                    label: 'Landing Page',
+                    icon: GlobeAltIcon,
+                    onClick: () => navigate('/')
                   },
                   {
                     id: 'notifications',

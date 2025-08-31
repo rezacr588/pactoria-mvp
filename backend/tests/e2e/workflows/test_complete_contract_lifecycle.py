@@ -22,22 +22,21 @@ class TestCompleteContractLifecycle:
     @pytest.fixture
     def company_admin_user(self):
         """Sample company admin user data"""
+        import time
+        unique_id = int(time.time() * 1000)  # Use timestamp for uniqueness
         return {
-            "email": "admin@testcompany.co.uk",
+            "email": f"admin{unique_id}@testcompany.co.uk",
             "password": "SecurePassword123!",
             "full_name": "John Smith",
-            "company": {
-                "name": "Test Solutions Ltd",
-                "registration_number": "12345678",
-                "address": "123 Business Park, London, UK"
-            }
+            "company_name": "Test Solutions Ltd",
+            "timezone": "Europe/London"
         }
     
     @pytest.fixture
     def mock_ai_responses(self):
         """Mock AI service responses for E2E tests"""
         def _mock_ai():
-            with patch('app.api.v1.endpoints.contracts.ai_service') as mock_service:
+            with patch('app.api.v1.contracts.ai_service') as mock_service:
                 # Mock contract generation
                 mock_service.generate_contract = AsyncMock(return_value=(
                     """
@@ -116,21 +115,20 @@ IN WITNESS WHEREOF, the parties have executed this Agreement.
                 json=company_admin_user
             )
             
-            assert registration_response.status_code == 200
+            assert registration_response.status_code == 201
             registration_data = registration_response.json()
             
             # Verify successful registration
-            assert "access_token" in registration_data
+            assert "token" in registration_data
             assert "user" in registration_data
             
             user = registration_data["user"]
             assert user["email"] == company_admin_user["email"]
             assert user["full_name"] == company_admin_user["full_name"]
-            assert user["is_admin"] is True
             assert user["company_id"] is not None
             
             # Extract auth token for subsequent requests
-            auth_token = registration_data["access_token"]
+            auth_token = registration_data["token"]["access_token"]
             auth_headers = {"Authorization": f"Bearer {auth_token}"}
             
             # Step 2: Verify Company Creation

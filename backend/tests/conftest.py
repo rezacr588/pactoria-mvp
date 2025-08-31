@@ -9,7 +9,7 @@ from typing import Dict, Any
 
 from app.main import app
 from app.services.ai_service import GroqAIService
-from app.services.contract_service import ContractService
+# Removed duplicate contract service import
 from app.core.config import settings
 
 
@@ -94,30 +94,33 @@ def sample_user_data():
 
 @pytest.fixture
 def mock_contract_service():
-    """Mock contract service for testing"""
-    service = Mock(spec=ContractService)
+    """Mock contract application service for testing"""
+    from app.application.services.contract_application_service import ContractApplicationService
+    service = Mock(spec=ContractApplicationService)
     
     # Mock contract creation
-    service.create_contract = AsyncMock(return_value={
-        "id": "test-contract-id",
-        "title": "Test Contract",
-        "contract_type": "service_agreement",
-        "status": "draft",
-        "version": 1,
-        "plain_english_input": "Test input",
-        "generated_content": "Test generated content",
-        "created_by_id": "test-user-id",
-        "company_id": "test-company-id"
-    })
+    from app.domain.entities.contract import Contract, ContractId
+    from app.domain.value_objects import ContractType, ContractStatus
     
-    # Mock contract listing
-    service.list_contracts = AsyncMock(return_value={
-        "contracts": [],
-        "total": 0,
-        "page": 1,
-        "per_page": 20,
-        "pages": 0
-    })
+    mock_contract = Mock(spec=Contract)
+    mock_contract.id = ContractId("test-contract-id")
+    mock_contract.title = "Test Contract"
+    mock_contract.contract_type = ContractType.SERVICE_AGREEMENT
+    mock_contract.status = ContractStatus.DRAFT
+    mock_contract.version = 1
+    
+    service.create_contract = AsyncMock(return_value=mock_contract)
+    
+    # Mock contract listing with PageResult
+    from app.domain.repositories.contract_repository import PageResult
+    mock_page_result = Mock(spec=PageResult)
+    mock_page_result.items = []
+    mock_page_result.total = 0
+    mock_page_result.page = 1
+    mock_page_result.size = 20
+    mock_page_result.pages = 0
+    
+    service.get_contracts_by_company = AsyncMock(return_value=mock_page_result)
     
     return service
 

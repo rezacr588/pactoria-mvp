@@ -27,7 +27,7 @@ def create_access_token(subject: Union[str, int], expires_delta: Optional[timede
     else:
         expire = get_current_utc() + timedelta(hours=settings.JWT_EXPIRATION_HOURS)
     
-    to_encode = {"exp": expire, "sub": str(subject)}
+    to_encode = {"exp": expire.timestamp(), "sub": str(subject)}
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
@@ -51,7 +51,12 @@ def get_password_hash(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify password against hash"""
-    return pwd_context.verify(plain_password, hashed_password)
+    if not hashed_password or not plain_password:
+        return False
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception:
+        return False
 
 
 def create_password_reset_token(email: str) -> str:
