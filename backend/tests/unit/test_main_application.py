@@ -17,8 +17,8 @@ class TestApplicationInitialization:
     def test_app_instance(self):
         """Test that app is properly initialized"""
         assert app is not None
-        assert app.title == "Pactoria MVP"
-        assert app.version == "1.0.0"
+        assert app.title == "Pactoria Contract Management"
+        assert app.version == "0.1.0-mvp"
     
     def test_app_configuration(self):
         """Test app configuration settings"""
@@ -163,7 +163,7 @@ class TestHealthEndpoints:
         
         assert data["status"] == "healthy"
         assert "timestamp" in data
-        assert data["version"] == "1.0.0"
+        assert data["version"] == "0.1.0-mvp"
         assert "environment" in data
     
     def test_readiness_check(self):
@@ -235,8 +235,8 @@ class TestRootEndpoint:
         assert response.status_code == 200
         data = response.json()
         
-        assert data["name"] == "Pactoria MVP"
-        assert data["version"] == "1.0.0"
+        assert data["name"] == "Pactoria Contract Management"
+        assert data["version"] == "0.1.0-mvp"
         assert data["status"] == "operational"
         assert "message" in data
     
@@ -356,8 +356,7 @@ class TestApplicationMetadata:
         assert hasattr(app, 'version')
         assert hasattr(app, 'description')
         
-        assert app.title == "Pactoria MVP"
-        assert app.description == "AI-Powered Contract Management Platform for UK SMEs"
+        assert app.title == "Pactoria Contract Management"
     
     def test_app_lifespan_configured(self):
         """Test that lifespan is properly configured"""

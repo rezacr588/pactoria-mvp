@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from fastapi import Request, HTTPException, status
 import hashlib
 import json
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,9 @@ class SecurityEvent:
         self.severity = severity  # low, medium, high, critical
         self.details = details
         self.timestamp = timestamp or datetime.utcnow()
-        self.id = hashlib.md5(f"{event_type}{timestamp}".encode()).hexdigest()
+        # Generate truly unique ID using UUID and timestamp
+        unique_data = f"{event_type}{self.timestamp.isoformat()}{uuid.uuid4().hex}"
+        self.id = hashlib.md5(unique_data.encode()).hexdigest()
 
 
 class RateLimiter:
@@ -59,7 +62,7 @@ class RateLimiter:
             return False
         
         # Add current request
-        self.requests[identifier] = []
+        self.requests[identifier].append(now)
         
         return True
     

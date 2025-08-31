@@ -116,6 +116,7 @@ class Contract(Base):
     client_name = Column(String, nullable=True)
     client_email = Column(String, nullable=True)
     supplier_name = Column(String, nullable=True)
+    supplier_email = Column(String, nullable=True)
     
     contract_value = Column(Float, nullable=True)
     currency = Column(String, default="GBP")

@@ -19,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Button } from '../components/ui';
 import { useAuthStore } from '../store/authStore';
+import { textColors, textStyles, typography } from '../utils/typography';
 
 const stats = [
   { id: 1, name: 'Hours Saved Weekly', value: '6+' },
@@ -119,35 +120,66 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Handle scroll effect for navbar
+  // Handle scroll effect for navbar and smooth scrolling
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 10;
       setScrolled(isScrolled);
     };
 
+    // Add smooth scrolling behavior
+    document.documentElement.style.scrollBehavior = 'smooth';
+
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.documentElement.style.scrollBehavior = 'auto';
+    };
   }, []);
 
+  // Handle smooth scrolling to sections
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 80; // Account for fixed header
+      const elementPosition = element.offsetTop - offset;
+      window.scrollTo({
+        top: elementPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent, action: () => void) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      action();
+    }
+  };
+
   return (
-    <div className="bg-white">
+    <div className="bg-white" role="main">
       {/* Navbar */}
       <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         scrolled 
-          ? 'bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm' 
+          ? 'bg-white/95 backdrop-blur-md border-b border-neutral-200/50 shadow-sm' 
           : 'bg-transparent'
       }`}>
         <nav className="flex items-center justify-between p-6 lg:px-8 max-w-7xl mx-auto" aria-label="Global">
           <div className="flex lg:flex-1">
             <Link to="/" className="-m-1.5 p-1.5">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">P</span>
-                </div>
-                <span className={`text-xl font-bold transition-colors ${
-                  scrolled ? 'text-primary-600' : 'text-primary-600'
-                }`}>Pactoria</span>
+              <div className="flex items-center space-x-3">
+                <img
+                  src="/pactoria-logo-96.png"
+                  srcSet="/pactoria-logo-48.png 1x, /pactoria-logo-96.png 2x, /pactoria-logo-128.png 3x"
+                  alt="Pactoria - UK Contract Management"
+                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain pactoria-logo"
+                  loading="lazy"
+                  width="40"
+                  height="40"
+                />
+                <span className={`${typography.heading.h3} sm:${typography.heading.h2} font-bold transition-colors text-primary-600`}>Pactoria</span>
               </div>
             </Link>
           </div>
@@ -162,30 +194,35 @@ export default function LandingPage() {
             </button>
           </div>
           <div className="hidden lg:flex lg:gap-x-8">
-            <a href="#features" className={`text-sm font-semibold leading-6 transition-colors hover:text-primary-600 ${
-              scrolled ? 'text-gray-900' : 'text-gray-900'
-            }`}>
+            <button
+              onClick={() => scrollToSection('features')}
+              onKeyDown={(e) => handleKeyDown(e, () => scrollToSection('features'))}
+              className={`${typography.body.medium} font-semibold leading-6 transition-colors ${textColors.secondary} ${textStyles.link} focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded px-2 py-1`}
+              aria-label="Navigate to Features section"
+            >
               Features
-            </a>
-            <a href="#use-cases" className={`text-sm font-semibold leading-6 transition-colors hover:text-primary-600 ${
-              scrolled ? 'text-gray-900' : 'text-gray-900'
-            }`}>
+            </button>
+            <button
+              onClick={() => scrollToSection('use-cases')}
+              onKeyDown={(e) => handleKeyDown(e, () => scrollToSection('use-cases'))}
+              className={`${typography.body.medium} font-semibold leading-6 transition-colors ${textColors.secondary} ${textStyles.link} focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded px-2 py-1`}
+              aria-label="Navigate to Use Cases section"
+            >
               Use Cases
-            </a>
-            <a href="#testimonials" className={`text-sm font-semibold leading-6 transition-colors hover:text-primary-600 ${
-              scrolled ? 'text-gray-900' : 'text-gray-900'
-            }`}>
+            </button>
+            <button
+              onClick={() => scrollToSection('testimonials')}
+              onKeyDown={(e) => handleKeyDown(e, () => scrollToSection('testimonials'))}
+              className={`${typography.body.medium} font-semibold leading-6 transition-colors ${textColors.secondary} ${textStyles.link} focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded px-2 py-1`}
+              aria-label="Navigate to Testimonials section"
+            >
               Testimonials
-            </a>
-            <Link to="/login" className={`text-sm font-semibold leading-6 transition-colors hover:text-primary-600 ${
-              scrolled ? 'text-gray-900' : 'text-gray-900'
-            }`}>
+            </button>
+            <Link to="/login" className={`${typography.body.medium} font-semibold leading-6 transition-colors ${textStyles.link}`}>
               Pricing
             </Link>
             {user && (
-              <Link to="/dashboard" className={`text-sm font-semibold leading-6 transition-colors hover:text-primary-600 flex items-center gap-1 ${
-                scrolled ? 'text-gray-900' : 'text-gray-900'
-              }`}>
+              <Link to="/dashboard" className={`${typography.body.medium} font-semibold leading-6 transition-colors ${textStyles.link} flex items-center gap-1`}>
                 <HomeIcon className="h-4 w-4" />
                 Back to App
               </Link>
@@ -201,9 +238,7 @@ export default function LandingPage() {
               </Link>
             ) : (
               <>
-                <Link to="/login" className={`text-sm font-semibold leading-6 transition-colors hover:text-primary-600 ${
-                  scrolled ? 'text-gray-900' : 'text-gray-900'
-                }`}>
+                <Link to="/login" className={`${typography.body.medium} font-semibold leading-6 transition-colors ${textStyles.link}`}>
                   Sign In
                 </Link>
                 <Link to="/login">
@@ -223,7 +258,18 @@ export default function LandingPage() {
             <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
               <div className="flex items-center justify-between">
                 <Link to="/" className="-m-1.5 p-1.5">
-                  <span className="text-xl font-bold text-primary-600">Pactoria</span>
+                  <div className="flex items-center space-x-3">
+                    <img
+                      src="/pactoria-logo-96.png"
+                      srcSet="/pactoria-logo-48.png 1x, /pactoria-logo-96.png 2x, /pactoria-logo-128.png 3x"
+                      alt="Pactoria - UK Contract Management"
+                      className="w-8 h-8 sm:w-10 sm:h-10 object-contain pactoria-logo"
+                      loading="lazy"
+                      width="40"
+                      height="40"
+                    />
+                    <span className="text-xl sm:text-2xl font-bold text-primary-600">Pactoria</span>
+                  </div>
                 </Link>
                 <button
                   type="button"
@@ -237,27 +283,36 @@ export default function LandingPage() {
               <div className="mt-6 flow-root">
                 <div className="-my-6 divide-y divide-gray-500/10">
                   <div className="space-y-2 py-6">
-                    <a
-                      href="#features"
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
-                      onClick={() => setMobileMenuOpen(false)}
+                    <button
+                      onClick={() => {
+                        scrollToSection('features');
+                        setMobileMenuOpen(false);
+                      }}
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50 w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                      aria-label="Navigate to Features section"
                     >
                       Features
-                    </a>
-                    <a
-                      href="#use-cases"
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
-                      onClick={() => setMobileMenuOpen(false)}
+                    </button>
+                    <button
+                      onClick={() => {
+                        scrollToSection('use-cases');
+                        setMobileMenuOpen(false);
+                      }}
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50 w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                      aria-label="Navigate to Use Cases section"
                     >
                       Use Cases
-                    </a>
-                    <a
-                      href="#testimonials"
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
-                      onClick={() => setMobileMenuOpen(false)}
+                    </button>
+                    <button
+                      onClick={() => {
+                        scrollToSection('testimonials');
+                        setMobileMenuOpen(false);
+                      }}
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50 w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                      aria-label="Navigate to Testimonials section"
                     >
                       Testimonials
-                    </a>
+                    </button>
                     <Link
                       to="/login"
                       className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
@@ -330,12 +385,12 @@ export default function LandingPage() {
                   <span className="sm:hidden">AI-Powered • UK-Compliant</span>
                 </div>
                 
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-gray-900 leading-tight">
+                <h1 className={`${typography.display.large} font-bold tracking-tight ${textColors.primary} leading-tight`}>
                   UK Contract Management
                   <span className="bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent"> Made Simple</span>
                 </h1>
                 
-                <p className="mt-6 sm:mt-8 text-lg sm:text-xl leading-8 sm:leading-9 text-gray-600 max-w-2xl">
+                <p className={`mt-6 sm:mt-8 ${typography.body.large} leading-8 sm:leading-9 ${textColors.secondary} max-w-2xl`}>
                   Generate legally binding, UK-compliant contracts in seconds. 
                   Save £8,000+ annually on legal fees while ensuring 95% compliance accuracy 
                   with our AI-powered platform built specifically for UK SMEs.
@@ -358,14 +413,14 @@ export default function LandingPage() {
                     </Button>
                   </Link>
                   {!user && (
-                    <Link to="/login" className="text-base font-semibold leading-6 text-gray-700 hover:text-primary-600 transition-colors duration-200 flex items-center justify-center sm:justify-start">
+                    <Link to="/login" className={`${typography.body.large} font-semibold leading-6 ${textStyles.linkMuted} transition-colors duration-200 flex items-center justify-center sm:justify-start`}>
                       View Demo <span aria-hidden="true" className="ml-1">→</span>
                     </Link>
                   )}
                 </div>
 
                 {!user && (
-                  <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-x-8 text-sm text-gray-600">
+                  <div className={`mt-8 sm:mt-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-x-8 ${typography.body.small} ${textColors.secondary}`}>
                     <div className="flex items-center">
                       <CheckCircleIcon className="h-5 w-5 text-green-600 mr-2 flex-shrink-0" />
                       No credit card required
@@ -414,7 +469,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-none">
           <div className="text-center mb-12">
             <p className="text-base font-semibold text-primary-600 mb-2">Trusted by hundreds of UK SMEs</p>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Proven results that speak for themselves</h2>
+            <h2 className={`${typography.heading.h2} font-bold ${textColors.primary}`}>Proven results that speak for themselves</h2>
           </div>
           <div className="grid grid-cols-2 gap-8 sm:gap-12 text-center lg:grid-cols-4">
             {stats.map((stat) => (
@@ -434,10 +489,10 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center">
             <h2 className="text-base font-semibold leading-7 text-primary-600">The Challenge</h2>
-            <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <p className={`mt-2 ${typography.heading.h1} font-bold tracking-tight ${textColors.primary}`}>
               UK SMEs waste £12,000+ annually on contract management
             </p>
-            <p className="mt-6 text-lg leading-8 text-gray-600 max-w-3xl mx-auto">
+            <p className={`mt-6 ${typography.body.large} leading-8 ${textColors.secondary} max-w-3xl mx-auto`}>
               Traditional legal services are expensive, slow, and complex. Most contract software 
               isn't built for UK law. SMEs risk non-compliance, costly disputes, and missed opportunities.
             </p>
@@ -445,8 +500,8 @@ export default function LandingPage() {
 
           <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
             <div className="text-center mb-12">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Solution</h3>
-              <p className="text-lg text-gray-600">Transform your contract management with measurable results</p>
+              <h3 className={`${typography.heading.h2} font-bold ${textColors.primary} mb-4`}>Our Solution</h3>
+              <p className={`${typography.body.large} ${textColors.secondary}`}>Transform your contract management with measurable results</p>
             </div>
             <dl className="grid max-w-xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-3">
               {benefits.map((benefit) => (
@@ -454,10 +509,10 @@ export default function LandingPage() {
                   <div className="flex items-center justify-center w-12 h-12 bg-primary-100 rounded-xl mb-6 group-hover:bg-primary-200 transition-colors duration-200">
                     <benefit.icon className="h-6 w-6 text-primary-600" aria-hidden="true" />
                   </div>
-                  <dt className="text-xl font-semibold leading-7 text-gray-900 mb-4">
+                  <dt className={`${typography.heading.h4} font-semibold leading-7 ${textColors.primary} mb-4`}>
                     {benefit.title}
                   </dt>
-                  <dd className="text-base leading-7 text-gray-600">
+                  <dd className={`${typography.body.medium} leading-7 ${textColors.secondary}`}>
                     {benefit.description}
                   </dd>
                 </div>
@@ -472,10 +527,10 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center">
             <h2 className="text-base font-semibold leading-7 text-primary-600">Everything you need</h2>
-            <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <p className={`mt-2 ${typography.heading.h1} font-bold tracking-tight ${textColors.primary}`}>
               Enterprise-grade features for SME budgets
             </p>
-            <p className="mt-6 text-lg leading-8 text-gray-600 max-w-3xl mx-auto">
+            <p className={`mt-6 ${typography.body.large} leading-8 ${textColors.secondary} max-w-3xl mx-auto`}>
               Built specifically for UK businesses, Pactoria combines cutting-edge AI with deep legal expertise 
               to deliver a contract management platform that actually works for you.
             </p>
@@ -513,10 +568,10 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center">
             <h2 className="text-base font-semibold leading-7 text-primary-600">Use Cases</h2>
-            <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <p className={`mt-2 ${typography.heading.h1} font-bold tracking-tight ${textColors.primary}`}>
               One platform, endless possibilities
             </p>
-            <p className="mt-6 text-lg leading-8 text-gray-600 max-w-3xl mx-auto">
+            <p className={`mt-6 ${typography.body.large} leading-8 ${textColors.secondary} max-w-3xl mx-auto`}>
               From employment contracts to supplier agreements, Pactoria handles every type of business contract with UK legal precision.
             </p>
           </div>
@@ -543,10 +598,10 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center">
             <h2 className="text-base font-semibold leading-7 text-primary-600">Customer Stories</h2>
-            <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <p className={`mt-2 ${typography.heading.h1} font-bold tracking-tight ${textColors.primary}`}>
               Trusted by UK's fastest-growing SMEs
             </p>
-            <p className="mt-6 text-lg leading-8 text-gray-600 max-w-3xl mx-auto">
+            <p className={`mt-6 ${typography.body.large} leading-8 ${textColors.secondary} max-w-3xl mx-auto`}>
               See how businesses like yours are transforming their contract management and saving thousands of pounds annually.
             </p>
           </div>
@@ -669,11 +724,17 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             {/* Company Info */}
             <div className="md:col-span-2">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">P</span>
-                </div>
-                <span className="text-xl font-bold text-gray-900">Pactoria</span>
+              <div className="flex items-center space-x-4 mb-6">
+                <img
+                  src="/pactoria-logo-128.png"
+                  srcSet="/pactoria-logo-64.png 1x, /pactoria-logo-128.png 2x, /pactoria-logo-256.png 3x"
+                  alt="Pactoria - UK Contract Management"
+                  className="w-10 h-10 sm:w-12 sm:h-12 object-contain pactoria-logo"
+                  loading="lazy"
+                  width="48"
+                  height="48"
+                />
+                <span className="text-xl sm:text-2xl font-bold text-gray-900">Pactoria</span>
               </div>
               <p className="text-base text-gray-600 mb-6 max-w-md">
                 AI-powered contract management platform built specifically for UK SMEs. 
@@ -699,10 +760,10 @@ export default function LandingPage() {
             <div>
               <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Product</h3>
               <ul className="space-y-3 text-sm">
-                <li><a href="#features" className="text-gray-600 hover:text-primary-600 transition-colors duration-200">Features</a></li>
-                <li><a href="#use-cases" className="text-gray-600 hover:text-primary-600 transition-colors duration-200">Use Cases</a></li>
-                <li><Link to="/login" className="text-gray-600 hover:text-primary-600 transition-colors duration-200">Pricing</Link></li>
-                <li><a href="#testimonials" className="text-gray-600 hover:text-primary-600 transition-colors duration-200">Reviews</a></li>
+                <li><button onClick={() => scrollToSection('features')} className="text-gray-600 hover:text-primary-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded">Features</button></li>
+                <li><button onClick={() => scrollToSection('use-cases')} className="text-gray-600 hover:text-primary-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded">Use Cases</button></li>
+                <li><Link to="/login" className="text-gray-600 hover:text-primary-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded">Pricing</Link></li>
+                <li><button onClick={() => scrollToSection('testimonials')} className="text-gray-600 hover:text-primary-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded">Reviews</button></li>
               </ul>
             </div>
 

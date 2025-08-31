@@ -25,6 +25,14 @@ from app.schemas.contracts import (
     ContractVersionResponse, ContractAnalysisRequest, TemplateResponse,
     ContractSearchParams
 )
+from app.schemas.common import (
+    ErrorResponse, ValidationError, UnauthorizedError, NotFoundError, 
+    ForbiddenError
+)
+from fastapi.security import HTTPBearer
+
+# Security scheme for OpenAPI documentation
+security = HTTPBearer()
 from app.services.ai_service import (
     ai_service, ContractGenerationRequest, ComplianceAnalysisRequest
 )
@@ -32,7 +40,55 @@ from app.services.ai_service import (
 router = APIRouter(prefix="/contracts", tags=["Contracts"])
 
 
-@router.post("/", response_model=ContractResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/", 
+    response_model=ContractResponse, 
+    status_code=status.HTTP_201_CREATED,
+    summary="Create New Contract",
+    description="""
+    Create a new contract for the authenticated user's company.
+    
+    **Key Features:**
+    - Creates contract in DRAFT status for editing
+    - Associates contract with user's company
+    - Optional template-based contract creation
+    - Comprehensive contract metadata tracking
+    - Automatic version control (starts at version 1)
+    - Full audit trail creation
+    
+    **Business Rules:**
+    - User must be associated with a company
+    - Template (if specified) must exist and be active
+    - Contract value and currency are optional but recommended
+    - Start and end dates help with compliance tracking
+    - All contracts start in DRAFT status
+    
+    **Requires Authentication:** JWT Bearer token
+    """,
+    responses={
+        201: {
+            "description": "Contract created successfully",
+            "model": ContractResponse
+        },
+        400: {
+            "description": "Invalid contract data or template not found",
+            "model": ErrorResponse
+        },
+        401: {
+            "description": "Authentication required",
+            "model": UnauthorizedError
+        },
+        403: {
+            "description": "User not associated with company",
+            "model": ForbiddenError
+        },
+        422: {
+            "description": "Validation error in contract data",
+            "model": ValidationError
+        }
+    },
+    dependencies=[Depends(security)]
+)
 async def create_contract(
     contract_data: ContractCreate,
     current_user: User = Depends(get_current_user),

@@ -12,6 +12,7 @@ import {
   ChevronRightIcon,
   ChevronDownIcon,
 } from '@heroicons/react/24/outline';
+import { textColors } from '../utils/typography';
 
 interface FAQItem {
   id: string;
@@ -183,14 +184,14 @@ export default function HelpPage() {
   const categories = ['all', ...Array.from(new Set(faqs.map(faq => faq.category)))];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-neutral-50 dark:bg-secondary-950">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white dark:bg-secondary-900 border-b border-neutral-200 dark:border-secondary-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Help & Documentation</h1>
-              <p className="mt-2 text-gray-600">
+              <h1 className={`text-3xl font-bold ${textColors.primary}`}>Help & Documentation</h1>
+              <p className={`mt-2 ${textColors.secondary}`}>
                 Find answers and learn how to make the most of Pactoria
               </p>
             </div>
@@ -205,11 +206,11 @@ export default function HelpPage() {
           {/* Search Bar */}
           <div className="mt-8 relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+              <MagnifyingGlassIcon className={`h-5 w-5 ${textColors.subtle}`} />
             </div>
             <input
               type="text"
-              className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+              className={`block w-full pl-10 pr-3 py-3 border border-neutral-300 dark:border-secondary-600 rounded-lg leading-5 bg-white dark:bg-secondary-800 ${textColors.placeholder} ${textColors.primary} focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
               placeholder="Search help articles and FAQs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -227,16 +228,16 @@ export default function HelpPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <Link
                   to="/contracts/new"
-                  className="flex items-center p-3 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-colors"
+                  className="flex items-center p-3 bg-white dark:bg-secondary-800 bg-opacity-20 dark:bg-opacity-20 rounded-lg hover:bg-opacity-30 dark:hover:bg-opacity-30 transition-colors"
                 >
                   <DocumentTextIcon className="h-6 w-6 mr-3" />
                   <span className="font-medium">Create Contract</span>
                 </Link>
-                <div className="flex items-center p-3 bg-white bg-opacity-20 rounded-lg">
+                <div className="flex items-center p-3 bg-white dark:bg-secondary-800 bg-opacity-20 dark:bg-opacity-20 rounded-lg">
                   <VideoCameraIcon className="h-6 w-6 mr-3" />
                   <span className="font-medium">Watch Tutorial</span>
                 </div>
-                <div className="flex items-center p-3 bg-white bg-opacity-20 rounded-lg">
+                <div className="flex items-center p-3 bg-white dark:bg-secondary-800 bg-opacity-20 dark:bg-opacity-20 rounded-lg">
                   <ChatBubbleLeftRightIcon className="h-6 w-6 mr-3" />
                   <span className="font-medium">Contact Support</span>
                 </div>
@@ -247,12 +248,12 @@ export default function HelpPage() {
           {/* Help Sections */}
           <div className="lg:col-span-2">
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900">Help Topics</h2>
+              <h2 className={`text-2xl font-bold ${textColors.primary}`}>Help Topics</h2>
               
               {helpSections.map((section) => {
                 const IconComponent = section.icon;
                 return (
-                  <div key={section.id} className="bg-white rounded-lg border border-gray-200 p-6">
+                  <div key={section.id} className="bg-white dark:bg-secondary-900 rounded-lg border border-neutral-200 dark:border-secondary-700 p-6">
                     <div className="flex items-start space-x-4">
                       <div className="flex-shrink-0">
                         <IconComponent className="h-8 w-8 text-primary-600" />
@@ -281,15 +282,15 @@ export default function HelpPage() {
           {/* FAQs Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-8">
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Frequently Asked Questions</h2>
+              <div className="bg-white dark:bg-secondary-900 rounded-lg border border-neutral-200 dark:border-secondary-700 p-6">
+                <h2 className={`text-xl font-semibold ${textColors.primary} mb-4`}>Frequently Asked Questions</h2>
                 
                 {/* Category Filter */}
                 <div className="mb-6">
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                    className={`block w-full rounded-lg border-neutral-300 dark:border-secondary-600 bg-white dark:bg-secondary-800 ${textColors.primary} shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm`}
                   >
                     {categories.map(category => (
                       <option key={category} value={category}>

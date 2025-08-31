@@ -10,6 +10,7 @@ import {
   ExclamationTriangleIcon,
   ClockIcon,
 } from '@heroicons/react/24/outline';
+import { textColors } from '../utils/typography';
 
 const UK_CONTRACT_TEMPLATES = [
   {
@@ -218,8 +219,8 @@ export default function ContractCreatePage() {
     <div className="px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Create New Contract</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className={`text-3xl font-bold ${textColors.primary}`}>Create New Contract</h1>
+        <p className={`mt-2 ${textColors.secondary}`}>
           Generate UK-compliant contracts with AI assistance in 3 simple steps
         </p>
       </div>
@@ -231,21 +232,21 @@ export default function ContractCreatePage() {
             <li key={step.name} className={`relative ${stepIdx !== steps.length - 1 ? 'pr-8 sm:pr-20' : ''}`}>
               {stepIdx !== steps.length - 1 && (
                 <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                  <div className={`h-0.5 w-full ${currentStep > step.id ? 'bg-primary-600' : 'bg-gray-200'}`} />
+                  <div className={`h-0.5 w-full ${currentStep > step.id ? 'bg-primary-600' : 'bg-neutral-200 dark:bg-secondary-700'}`} />
                 </div>
               )}
-              <div className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 bg-white">
+              <div className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 bg-white dark:bg-secondary-800 border-neutral-300 dark:border-secondary-600">
                 {currentStep > step.id ? (
                   <CheckCircleIcon className="h-5 w-5 text-primary-600" />
                 ) : (
-                  <span className={`h-2.5 w-2.5 rounded-full ${currentStep === step.id ? 'bg-primary-600' : 'bg-gray-300'}`} />
+                  <span className={`h-2.5 w-2.5 rounded-full ${currentStep === step.id ? 'bg-primary-600' : 'bg-neutral-300 dark:bg-secondary-600'}`} />
                 )}
               </div>
               <div className="mt-3 text-center">
-                <div className={`text-sm font-medium ${currentStep >= step.id ? 'text-primary-600' : 'text-gray-500'}`}>
+                <div className={`text-sm font-medium ${currentStep >= step.id ? 'text-primary-600 dark:text-primary-400' : textColors.muted}`}>
                   {step.name}
                 </div>
-                <div className="text-xs text-gray-500">{step.description}</div>
+                <div className={`text-xs ${textColors.muted}`}>{step.description}</div>
               </div>
             </li>
           ))}
@@ -256,7 +257,7 @@ export default function ContractCreatePage() {
       <div className="max-w-4xl mx-auto">
         {currentStep === 1 && (
           <div className="card">
-            <h3 className="text-lg font-medium text-gray-900 mb-6">Choose Your Contract Template</h3>
+            <h3 className={`text-lg font-medium ${textColors.primary} mb-6`}>Choose Your Contract Template</h3>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {UK_CONTRACT_TEMPLATES.map((template) => {
                 const isSelected = formData.templateId === template.id;
@@ -265,22 +266,22 @@ export default function ContractCreatePage() {
                     key={template.id}
                     className={`relative rounded-lg border-2 p-6 cursor-pointer transition-all ${
                       isSelected
-                        ? 'border-primary-600 bg-primary-50'
-                        : 'border-gray-200 hover:border-primary-300'
+                        ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20'
+                        : 'border-neutral-200 dark:border-secondary-700 hover:border-primary-300 dark:hover:border-primary-600'
                     }`}
                     onClick={() => handleTemplateSelect(template.id)}
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <template.icon className={`h-8 w-8 ${isSelected ? 'text-primary-600' : 'text-gray-400'}`} />
+                      <template.icon className={`h-8 w-8 ${isSelected ? 'text-primary-600 dark:text-primary-400' : textColors.subtle}`} />
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        template.complexity === 'Simple' ? 'bg-green-100 text-green-800' :
-                        template.complexity === 'Complex' ? 'bg-red-100 text-red-800' :
-                        'bg-yellow-100 text-yellow-800'
+                        template.complexity === 'Simple' ? 'bg-success-100 dark:bg-success-900/20 text-success-800 dark:text-success-300' :
+                        template.complexity === 'Complex' ? 'bg-danger-100 dark:bg-danger-900/20 text-danger-800 dark:text-danger-300' :
+                        'bg-warning-100 dark:bg-warning-900/20 text-warning-800 dark:text-warning-300'
                       }`}>
                         {template.complexity}
                       </span>
                     </div>
-                    <h4 className="text-base font-medium text-gray-900 mb-2">{template.name}</h4>
+                    <h4 className={`text-base font-medium ${textColors.primary} mb-2`}>{template.name}</h4>
                     <p className="text-sm text-gray-500 mb-4">{template.description}</p>
                     
                     <div className="flex items-center justify-between text-xs text-gray-500">
@@ -545,31 +546,31 @@ export default function ContractCreatePage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <div className="bg-white rounded-lg p-4">
+                  <div className="bg-white dark:bg-secondary-800 rounded-lg p-4">
                     <div className="flex items-center">
-                      <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />
-                      <span className="text-sm font-medium text-gray-900">Compliance Score</span>
+                      <CheckCircleIcon className="h-5 w-5 text-success-500 dark:text-success-400 mr-2" />
+                      <span className={`text-sm font-medium ${textColors.primary}`}>Compliance Score</span>
                     </div>
-                    <p className="text-2xl font-bold text-green-600 mt-1">94%</p>
-                    <p className="text-xs text-gray-500">UK Legal Standards</p>
+                    <p className="text-2xl font-bold text-success-600 dark:text-success-400 mt-1">94%</p>
+                    <p className={`text-xs ${textColors.muted}`}>UK Legal Standards</p>
                   </div>
                   
-                  <div className="bg-white rounded-lg p-4">
+                  <div className="bg-white dark:bg-secondary-800 rounded-lg p-4">
                     <div className="flex items-center">
-                      <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500 mr-2" />
-                      <span className="text-sm font-medium text-gray-900">Risk Level</span>
+                      <ExclamationTriangleIcon className="h-5 w-5 text-warning-500 dark:text-warning-400 mr-2" />
+                      <span className={`text-sm font-medium ${textColors.primary}`}>Risk Level</span>
                     </div>
-                    <p className="text-2xl font-bold text-yellow-600 mt-1">Low</p>
-                    <p className="text-xs text-gray-500">Risk Assessment</p>
+                    <p className="text-2xl font-bold text-warning-600 dark:text-warning-400 mt-1">Low</p>
+                    <p className={`text-xs ${textColors.muted}`}>Risk Assessment</p>
                   </div>
                   
-                  <div className="bg-white rounded-lg p-4">
+                  <div className="bg-white dark:bg-secondary-800 rounded-lg p-4">
                     <div className="flex items-center">
                       <ClockIcon className="h-5 w-5 text-blue-500 mr-2" />
-                      <span className="text-sm font-medium text-gray-900">Est. Generation</span>
+                      <span className={`text-sm font-medium ${textColors.primary}`}>Est. Generation</span>
                     </div>
                     <p className="text-2xl font-bold text-blue-600 mt-1">2min</p>
-                    <p className="text-xs text-gray-500">Processing Time</p>
+                    <p className={`text-xs ${textColors.muted}`}>Processing Time</p>
                   </div>
                 </div>
               </div>

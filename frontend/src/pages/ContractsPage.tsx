@@ -321,7 +321,7 @@ export default function ContractsPage() {
                             'w-2 h-2 rounded-full',
                             contract.riskAssessment.overall <= 30 ? 'bg-success-500' :
                             contract.riskAssessment.overall <= 60 ? 'bg-warning-500' :
-                            'bg-red-500'
+'bg-danger-500'
                           )} />
                           <span className={textStyles.timestamp}>
                             {contract.riskAssessment.overall <= 30 ? 'Low' :

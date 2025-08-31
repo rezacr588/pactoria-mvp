@@ -81,7 +81,12 @@ function App() {
     <ErrorBoundary level="critical" showErrorDetails={process.env.NODE_ENV === 'development'}>
       <ThemeProvider>
         <ToastProvider>
-          <Router>
+          <Router 
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true
+            }}
+          >
             <KeyboardShortcutsProvider>
               {/* Skip Links for accessibility */}
               <SkipLinks />

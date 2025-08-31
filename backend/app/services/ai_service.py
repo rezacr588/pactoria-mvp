@@ -33,6 +33,11 @@ class AIGenerationResponse(BaseModel):
     confidence_score: Optional[float]
 
 
+class ContractGenerationResponse(AIGenerationResponse):
+    """Contract-specific generation response model"""
+    pass
+
+
 class ContractGenerationRequest(BaseModel):
     """Contract generation request model"""
     plain_english_input: str
@@ -129,7 +134,7 @@ class GroqAIService:
             logger.error(f"AI generation failed: {str(e)}")
             raise Exception(f"AI service error: {str(e)}")
     
-    async def generate_contract(self, request: ContractGenerationRequest) -> AIGenerationResponse:
+    async def generate_contract(self, request: ContractGenerationRequest) -> ContractGenerationResponse:
         """Generate contract from plain English input"""
         
         # Build comprehensive prompt for contract generation
@@ -148,7 +153,17 @@ class GroqAIService:
             temperature=0.3  # Lower temperature for legal documents
         )
         
-        return await self.generate_content(ai_request)
+        response = await self.generate_content(ai_request)
+        
+        # Convert to ContractGenerationResponse
+        return ContractGenerationResponse(
+            content=response.content,
+            model_name=response.model_name,
+            model_version=response.model_version,
+            processing_time_ms=response.processing_time_ms,
+            token_usage=response.token_usage,
+            confidence_score=response.confidence_score
+        )
     
     async def analyze_compliance(self, request: ComplianceAnalysisRequest) -> ComplianceAnalysisResponse:
         """Analyze contract for legal compliance"""

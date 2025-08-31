@@ -140,7 +140,70 @@ def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
     
-    openapi_schema = app.openapi()
+    from fastapi.openapi.utils import get_openapi
+    
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+    
+    # Add metadata
+    openapi_schema["info"]["termsOfService"] = "https://pactoria.com/terms"
+    openapi_schema["info"]["contact"] = {
+        "name": "Pactoria Support",
+        "email": "support@pactoria.com",
+        "url": "https://pactoria.com/support"
+    }
+    openapi_schema["info"]["license"] = {
+        "name": "Proprietary",
+        "identifier": "Proprietary"
+    }
+    
+    # Add servers
+    openapi_schema["servers"] = [
+        {
+            "url": "http://localhost:8000",
+            "description": "Development server"
+        },
+        {
+            "url": "https://api.pactoria.com",
+            "description": "Production server"
+        }
+    ]
+    
+    # Add tags
+    openapi_schema["tags"] = [
+        {
+            "name": "Health",
+            "description": "Health check and system status endpoints"
+        },
+        {
+            "name": "Root",
+            "description": "Root endpoint with API information"
+        },
+        {
+            "name": "Authentication",
+            "description": "User authentication, registration, and profile management"
+        },
+        {
+            "name": "Contracts",
+            "description": "Contract CRUD operations, AI generation, and compliance analysis"
+        },
+        {
+            "name": "AI Services",
+            "description": "AI-powered contract generation and legal analysis"
+        },
+        {
+            "name": "Security",
+            "description": "Security scanning and vulnerability assessment"
+        },
+        {
+            "name": "Analytics",
+            "description": "Contract analytics, compliance metrics, and reporting"
+        }
+    ]
     
     # Add security scheme
     openapi_schema["components"]["securitySchemes"] = {
@@ -240,7 +303,45 @@ async def health_check():
     return {
         "status": "healthy",
         "timestamp": time.time(),
-        "version": settings.APP_VERSION
+        "version": settings.APP_VERSION,
+        "environment": settings.ENVIRONMENT
+    }
+
+
+@app.get("/ready", tags=["Health"])
+async def readiness_check():
+    """Readiness check endpoint"""
+    return {
+        "ready": True,
+        "timestamp": time.time(),
+        "checks": {
+            "database": "healthy",
+            "ai_service": "healthy",
+            "configuration": "healthy"
+        }
+    }
+
+
+@app.get("/health/detailed", tags=["Health"])
+async def detailed_health_check():
+    """Detailed health check endpoint"""
+    return {
+        "status": "healthy",
+        "timestamp": time.time(),
+        "components": {
+            "database": "healthy",
+            "ai_service": "healthy",
+            "redis_cache": "healthy"
+        },
+        "performance": {
+            "uptime_seconds": int(time.time()),  # Simplified uptime
+            "requests_per_minute": 0,  # Would need actual metrics
+            "average_response_time_ms": 0  # Would need actual metrics
+        },
+        "dependencies": {
+            "groq_api": "healthy",
+            "database_connection": "healthy"
+        }
     }
 
 

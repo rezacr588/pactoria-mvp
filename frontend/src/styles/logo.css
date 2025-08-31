@@ -1,0 +1,120 @@
+/* Logo optimization styles */
+.pactoria-logo {
+  /* Modern image rendering for sharp logos */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  
+  /* Prevent blurry scaling on different pixel densities */
+  -webkit-backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  
+  /* Smooth transitions */
+  transition: all 0.2s ease-in-out;
+  
+  /* Layout fixes */
+  flex-shrink: 0;
+  display: block;
+  
+  /* Ensure crisp rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.pactoria-logo:hover {
+  filter: brightness(1.1) contrast(1.05);
+  transform: scale(1.02);
+}
+
+/* Logo sizing variants for different contexts */
+.pactoria-logo--small {
+  width: 2rem; /* 32px */
+  height: 2rem; /* 32px */
+}
+
+.pactoria-logo--medium {
+  width: 2.5rem; /* 40px */
+  height: 2.5rem; /* 40px */
+}
+
+.pactoria-logo--large {
+  width: 3rem; /* 48px */
+  height: 3rem; /* 48px */
+}
+
+/* Responsive logo sizing */
+@media (max-width: 640px) {
+  .pactoria-logo--responsive {
+    width: 2rem; /* 32px on mobile */
+    height: 2rem; /* 32px on mobile */
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .pactoria-logo--responsive {
+    width: 2.5rem; /* 40px on tablet */
+    height: 2.5rem; /* 40px on tablet */
+  }
+}
+
+@media (min-width: 1025px) {
+  .pactoria-logo--responsive {
+    width: 3rem; /* 48px on desktop */
+    height: 3rem; /* 48px on desktop */
+  }
+}
+
+/* Dark theme logo adjustments */
+@media (prefers-color-scheme: dark) {
+  .pactoria-logo {
+    filter: brightness(0.9) contrast(1.1);
+  }
+  
+  .pactoria-logo:hover {
+    filter: brightness(1) contrast(1.15);
+    transform: scale(1.02);
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), 
+       (-moz-min-device-pixel-ratio: 2), 
+       (min-device-pixel-ratio: 2), 
+       (min-resolution: 192dpi), 
+       (min-resolution: 2dppx) {
+  .pactoria-logo {
+    /* Use smooth rendering for high-DPI displays */
+    image-rendering: auto;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: -moz-crisp-edges;
+    
+    /* Enhanced sharpening for retina displays */
+    -webkit-filter: contrast(1.1) brightness(0.98);
+    filter: contrast(1.1) brightness(0.98);
+  }
+}
+
+/* Logo container alignment fixes */
+.pactoria-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Always left-align logos */
+  gap: 1rem;
+}
+
+.pactoria-logo-container--centered {
+  justify-content: center;
+}
+
+/* Additional logo quality enhancements */
+.pactoria-logo {
+  /* Force hardware acceleration for smoother rendering */
+  will-change: transform;
+  
+  /* Ensure consistent object-fit behavior */
+  object-fit: contain;
+  object-position: center;
+}

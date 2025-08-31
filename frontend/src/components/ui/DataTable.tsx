@@ -190,10 +190,10 @@ export default function DataTable<T extends Record<string, any>>({
   const totalColumns = columns.length + (showSelection ? 1 : 0);
 
   return (
-    <div className={classNames('bg-white rounded-2xl shadow-soft border border-neutral-100', className)}>
+    <div className={classNames('bg-white dark:bg-secondary-900 rounded-2xl shadow-soft border border-neutral-100 dark:border-secondary-700', className)}>
       {/* Search and filters */}
       {searchable && (
-        <div className="p-6 border-b border-neutral-100 bg-gradient-to-r from-neutral-50/50 to-white">
+        <div className="p-6 border-b border-neutral-100 dark:border-secondary-700 bg-gradient-to-r from-neutral-50/50 to-white dark:from-secondary-800/50 dark:to-secondary-900">
           <div className="flex items-center justify-between space-x-6">
             <div className="flex-1 max-w-md">
               <Input
@@ -206,7 +206,7 @@ export default function DataTable<T extends Record<string, any>>({
             </div>
             {selectedRows.length > 0 && (
               <div className="flex items-center space-x-3">
-                <div className="px-3 py-1.5 bg-primary-100 text-primary-700 rounded-full text-sm font-medium">
+                <div className="px-3 py-1.5 bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 rounded-full text-sm font-medium">
                   {selectedRows.length} selected
                 </div>
                 <Button variant="ghost" size="sm">
@@ -222,7 +222,7 @@ export default function DataTable<T extends Record<string, any>>({
       <div className="overflow-x-auto">
         <table className={classNames('w-full', sizeClasses[size])}>
           {/* Header */}
-          <thead className="bg-gradient-to-r from-neutral-50 to-neutral-25 border-b border-neutral-150">
+          <thead className="bg-gradient-to-r from-neutral-50 to-neutral-25 dark:from-secondary-800 dark:to-secondary-850 border-b border-neutral-150 dark:border-secondary-700">
             <tr>
               {showSelection && (
                 <th className={classNames('w-12', cellPadding[size])}>
@@ -239,8 +239,8 @@ export default function DataTable<T extends Record<string, any>>({
                   key={column.key}
                   className={classNames(
                     cellPadding[size],
-                    'font-semibold text-neutral-700 text-left tracking-tight',
-                    column.sortable && 'cursor-pointer hover:bg-neutral-100/60 select-none transition-colors duration-150',
+                    'font-semibold text-neutral-700 dark:text-secondary-300 text-left tracking-tight',
+                    column.sortable && 'cursor-pointer hover:bg-neutral-100/60 dark:hover:bg-secondary-700/60 select-none transition-colors duration-150',
                     column.align === 'center' && 'text-center',
                     column.align === 'right' && 'text-right'
                   )}
@@ -276,10 +276,10 @@ export default function DataTable<T extends Record<string, any>>({
           </thead>
 
           {/* Body */}
-          <tbody className="divide-y divide-neutral-100 bg-white">
+          <tbody className="divide-y divide-neutral-100 dark:divide-secondary-700 bg-white dark:bg-secondary-900">
             {loading ? (
               <tr>
-                <td colSpan={totalColumns} className={classNames('text-center text-neutral-500', cellPadding[size])}>
+                <td colSpan={totalColumns} className={classNames('text-center text-neutral-500 dark:text-secondary-400', cellPadding[size])}>
                   <div className="flex items-center justify-center py-12">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500 border-t-2 border-t-transparent"></div>
                     <span className="ml-3 text-sm font-medium">Loading...</span>
@@ -288,13 +288,13 @@ export default function DataTable<T extends Record<string, any>>({
               </tr>
             ) : paginatedData.length === 0 ? (
               <tr>
-                <td colSpan={totalColumns} className={classNames('text-center text-neutral-500', cellPadding[size])}>
+                <td colSpan={totalColumns} className={classNames('text-center text-neutral-500 dark:text-secondary-400', cellPadding[size])}>
                   <div className="py-12">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-neutral-100 rounded-2xl flex items-center justify-center">
-                      <FunnelIcon className="h-8 w-8 text-neutral-400" />
+                    <div className="w-16 h-16 mx-auto mb-4 bg-neutral-100 dark:bg-secondary-800 rounded-2xl flex items-center justify-center">
+                      <FunnelIcon className="h-8 w-8 text-neutral-400 dark:text-secondary-500" />
                     </div>
-                    <h3 className="text-sm font-medium text-neutral-700 mb-1">No results found</h3>
-                    <p className="text-sm text-neutral-500">{emptyText}</p>
+                    <h3 className="text-sm font-medium text-neutral-700 dark:text-secondary-300 mb-1">No results found</h3>
+                    <p className="text-sm text-neutral-500 dark:text-secondary-400">{emptyText}</p>
                   </div>
                 </td>
               </tr>
@@ -308,8 +308,8 @@ export default function DataTable<T extends Record<string, any>>({
                   <tr
                     key={recordKey}
                     className={classNames(
-                      'hover:bg-neutral-25 transition-all duration-150 group',
-                      isSelected && 'bg-primary-50/50 hover:bg-primary-50',
+                      'hover:bg-neutral-25 dark:hover:bg-secondary-800/50 transition-all duration-150 group',
+                      isSelected && 'bg-primary-50/50 dark:bg-primary-900/20 hover:bg-primary-50 dark:hover:bg-primary-900/30',
                       rowProps?.className,
                       rowProps?.onClick && 'cursor-pointer hover:shadow-soft'
                     )}
@@ -338,11 +338,11 @@ export default function DataTable<T extends Record<string, any>>({
 
       {/* Pagination */}
       {pagination && !loading && (
-        <div className="flex items-center justify-between px-6 py-4 border-t border-neutral-100 bg-gradient-to-r from-neutral-25/50 to-white rounded-b-2xl">
-          <div className="text-sm text-neutral-600 font-medium">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-neutral-100 dark:border-secondary-700 bg-gradient-to-r from-neutral-25/50 to-white dark:from-secondary-800/50 dark:to-secondary-900 rounded-b-2xl">
+          <div className="text-sm text-neutral-600 dark:text-secondary-400 font-medium">
             Showing {Math.min((pagination.current - 1) * pagination.pageSize + 1, pagination.total)} to{' '}
             {Math.min(pagination.current * pagination.pageSize, pagination.total)} of{' '}
-            <span className="font-semibold text-neutral-800">{pagination.total.toLocaleString()}</span> results
+            <span className="font-semibold text-neutral-800 dark:text-secondary-200">{pagination.total.toLocaleString()}</span> results
           </div>
           
           <div className="flex items-center space-x-1">
@@ -351,7 +351,7 @@ export default function DataTable<T extends Record<string, any>>({
               size="sm"
               onClick={() => pagination.onChange(pagination.current - 1, pagination.pageSize)}
               disabled={pagination.current <= 1}
-              className="px-3 py-1.5 hover:bg-neutral-100 disabled:hover:bg-transparent"
+              className="px-3 py-1.5 hover:bg-neutral-100 dark:hover:bg-secondary-800 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent"
             >
               <ChevronLeftIcon className="h-4 w-4 mr-1" />
               Previous
@@ -371,7 +371,7 @@ export default function DataTable<T extends Record<string, any>>({
                       'min-w-[2.5rem] h-9',
                       isActive 
                         ? 'bg-primary-600 hover:bg-primary-700 text-white shadow-sm' 
-                        : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800'
+                        : 'text-neutral-600 dark:text-secondary-400 hover:bg-neutral-100 dark:hover:bg-secondary-800 hover:text-neutral-800 dark:hover:text-secondary-200'
                     )}
                   >
                     {pageNumber}
@@ -385,7 +385,7 @@ export default function DataTable<T extends Record<string, any>>({
               size="sm"
               onClick={() => pagination.onChange(pagination.current + 1, pagination.pageSize)}
               disabled={pagination.current >= Math.ceil(pagination.total / pagination.pageSize)}
-              className="px-3 py-1.5 hover:bg-neutral-100 disabled:hover:bg-transparent"
+              className="px-3 py-1.5 hover:bg-neutral-100 dark:hover:bg-secondary-800 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent"
             >
               Next
               <ChevronRightIcon className="h-4 w-4 ml-1" />

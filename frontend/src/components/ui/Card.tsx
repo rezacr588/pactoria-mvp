@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames } from '../../utils/classNames';
+import { textStyles } from '../../utils/typography';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'bordered' | 'elevated' | 'glass' | 'gradient';
@@ -25,13 +26,13 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     ...props 
   }, ref) => {
     const baseStyles = classNames(
-      'rounded-2xl relative overflow-hidden',
-      'transition-all duration-300 ease-out transform-gpu',
+      'rounded-xl relative overflow-hidden',
+      'transition-all duration-200 ease-out transform-gpu',
       loading && 'pointer-events-none',
       pulse && 'animate-pulse',
       glow && 'ring-1 ring-primary-200 dark:ring-primary-800',
       (hover || interactive) && 'group cursor-pointer',
-      !loading && 'hover:scale-[1.01] active:scale-[0.99]'
+      !loading && (hover || interactive) && 'hover:scale-[1.005] active:scale-[0.995]'
     );
     
     const variants = {
@@ -40,15 +41,15 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       bordered: classNames(
         'bg-white dark:bg-secondary-900',
         'border border-neutral-200 dark:border-secondary-700',
-        'hover:border-neutral-300 dark:hover:border-secondary-600',
-        'hover:shadow-sm dark:hover:shadow-secondary-950/20'
+        (hover || interactive) && 'hover:border-neutral-300 dark:hover:border-secondary-600',
+        (hover || interactive) && 'hover:shadow-sm dark:hover:shadow-secondary-950/20'
       ),
       
       elevated: classNames(
         'bg-white dark:bg-secondary-900',
-        'shadow-soft hover:shadow-medium dark:shadow-secondary-950/40',
+        'shadow-sm dark:shadow-secondary-950/20',
         'ring-1 ring-neutral-100 dark:ring-secondary-800',
-        'hover:ring-neutral-200 dark:hover:ring-secondary-700'
+        (hover || interactive) && 'hover:shadow-md hover:ring-neutral-200 dark:hover:ring-secondary-700'
       ),
       
       glass: classNames(
@@ -114,7 +115,7 @@ export const CardHeader: React.FC<{ className?: string; children: React.ReactNod
   className, 
   children 
 }) => (
-  <div className={classNames('pb-5 mb-6 border-b border-neutral-200 dark:border-secondary-700', className)}>
+  <div className={classNames('pb-4 mb-5 border-b border-neutral-200 dark:border-secondary-700', className)}>
     {children}
   </div>
 );
@@ -123,7 +124,7 @@ export const CardTitle: React.FC<{ className?: string; children: React.ReactNode
   className, 
   children 
 }) => (
-  <h3 className={classNames('text-xl font-bold text-neutral-900 dark:text-secondary-100 tracking-tight', className)}>
+  <h3 className={classNames(textStyles.cardTitle, 'tracking-tight', className)}>
     {children}
   </h3>
 );

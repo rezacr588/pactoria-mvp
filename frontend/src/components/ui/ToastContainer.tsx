@@ -203,42 +203,44 @@ const ToastContainer: React.FC = () => {
       ))}
       
       {/* CSS for animations */}
-      <style jsx>{`
-        @keyframes shrink {
-          from { width: 100%; }
-          to { width: 0%; }
-        }
-        
-        .animate-slide-in-right {
-          animation: slideInRight 0.3s ease-out forwards;
-        }
-        
-        .animate-slide-out-right {
-          animation: slideOutRight 0.3s ease-in forwards;
-        }
-        
-        @keyframes slideInRight {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes shrink {
+            from { width: 100%; }
+            to { width: 0%; }
           }
-          to {
-            transform: translateX(0);
-            opacity: 1;
+          
+          .animate-slide-in-right {
+            animation: slideInRight 0.3s ease-out forwards;
           }
-        }
-        
-        @keyframes slideOutRight {
-          from {
-            transform: translateX(0);
-            opacity: 1;
+          
+          .animate-slide-out-right {
+            animation: slideOutRight 0.3s ease-in forwards;
           }
-          to {
-            transform: translateX(100%);
-            opacity: 0;
+          
+          @keyframes slideInRight {
+            from {
+              transform: translateX(100%);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0);
+              opacity: 1;
+            }
           }
-        }
-      `}</style>
+          
+          @keyframes slideOutRight {
+            from {
+              transform: translateX(0);
+              opacity: 1;
+            }
+            to {
+              transform: translateX(100%);
+              opacity: 0;
+            }
+          }
+        `
+      }} />
     </>
   );
 };

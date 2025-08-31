@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames } from '../../utils/classNames';
+import { textColors, textStyles } from '../../utils/typography';
 import Input, { InputProps } from './Input';
 import Textarea from './Textarea';
 import Select from './Select';
@@ -79,8 +80,7 @@ const FormField: React.FC<FormFieldProps> = ({
           <Textarea
             {...commonProps}
             rows={rows}
-            error={hasError ? error : undefined}
-            success={showSuccess}
+            className={hasError ? 'border-danger-300 dark:border-danger-600' : showSuccess ? 'border-success-300 dark:border-success-600' : ''}
           />
         );
 
@@ -88,8 +88,7 @@ const FormField: React.FC<FormFieldProps> = ({
         return (
           <Select
             {...commonProps}
-            error={hasError ? error : undefined}
-            success={showSuccess}
+            className={hasError ? 'border-danger-300 dark:border-danger-600' : showSuccess ? 'border-success-300 dark:border-success-600' : ''}
           >
             {children || options.map(option => (
               <option key={option.value} value={option.value}>
@@ -113,16 +112,17 @@ const FormField: React.FC<FormFieldProps> = ({
   };
 
   return (
-    <div className={classNames('space-y-1', className)}>
+    <div className={classNames('space-y-2', className)}>
       {label && (
         <label 
           htmlFor={name}
           className={classNames(
-            'block text-sm font-medium transition-colors',
-            hasError ? 'text-danger-700 dark:text-danger-400' 
-            : showSuccess ? 'text-success-700 dark:text-success-400'
-            : 'text-neutral-700 dark:text-secondary-300',
-            disabled && 'text-neutral-400 dark:text-secondary-600'
+            'block transition-colors',
+            textStyles.formLabel,
+            hasError ? textColors.danger 
+            : showSuccess ? textColors.success
+            : textColors.primary,
+            disabled && textColors.disabled
           )}
         >
           {label}
@@ -140,7 +140,7 @@ const FormField: React.FC<FormFieldProps> = ({
       {hasError && (
         <div 
           id={`${name}-error`}
-          className="flex items-start space-x-2 text-sm text-danger-600 dark:text-danger-400 animate-slide-in-down"
+          className={`flex items-start space-x-2 ${textStyles.formError} animate-slide-in-down`}
           role="alert"
           aria-live="polite"
         >
@@ -153,7 +153,7 @@ const FormField: React.FC<FormFieldProps> = ({
       
       {/* Success Message */}
       {showSuccess && (
-        <div className="flex items-center space-x-2 text-sm text-success-600 dark:text-success-400 animate-slide-in-down">
+        <div className={`flex items-center space-x-2 ${textStyles.formSuccess} animate-slide-in-down`}>
           <svg className="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
@@ -165,7 +165,7 @@ const FormField: React.FC<FormFieldProps> = ({
       {helpText && !hasError && !showSuccess && (
         <p 
           id={`${name}-help`}
-          className="text-sm text-neutral-500 dark:text-secondary-400"
+          className={textStyles.formHelpText}
         >
           {helpText}
         </p>

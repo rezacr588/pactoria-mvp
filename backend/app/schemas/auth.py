@@ -9,8 +9,8 @@ from datetime import datetime
 
 class UserLogin(BaseModel):
     """User login request"""
-    email: EmailStr = Field(..., description="User email address", example="john.doe@smecompany.co.uk")
-    password: str = Field(..., min_length=8, description="User password (minimum 8 characters)", example="SecurePass123!")
+    email: EmailStr = Field(..., description="User email address", json_schema_extra={"example": "john.doe@smecompany.co.uk"})
+    password: str = Field(..., min_length=8, description="User password (minimum 8 characters)", json_schema_extra={"example": "SecurePass123!"})
     
     class Config:
         json_schema_extra = {

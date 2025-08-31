@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAuthStore } from '../../store/authStore';
 import { classNames } from '../../utils/classNames';
+import { textColors, textStyles, typography } from '../../utils/typography';
 import Avatar from '../ui/Avatar';
 
 interface NavigationItem {
@@ -46,11 +47,17 @@ export default function Sidebar() {
     <div className="flex flex-col h-full bg-white dark:bg-secondary-900 border-r border-neutral-200 dark:border-secondary-700">
       {/* Logo */}
       <div className="flex items-center h-16 px-6 border-b border-neutral-200 dark:border-secondary-700">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">P</span>
-          </div>
-          <span className="text-xl font-bold text-neutral-900 dark:text-secondary-100">Pactoria</span>
+        <div className="flex items-center space-x-4">
+          <img
+            src="/pactoria-logo-128.png"
+            srcSet="/pactoria-logo-64.png 1x, /pactoria-logo-128.png 2x, /pactoria-logo-256.png 3x"
+            alt="Pactoria - UK Contract Management"
+            className="w-10 h-10 lg:w-12 lg:h-12 object-contain pactoria-logo"
+            loading="lazy"
+            width="48"
+            height="48"
+          />
+          <span className={`text-xl lg:text-2xl font-bold ${textColors.primary}`}>Pactoria</span>
         </div>
       </div>
 
@@ -89,7 +96,7 @@ export default function Sidebar() {
         {/* Secondary Navigation */}
         <div className="pt-6 mt-6 border-t border-neutral-200 dark:border-secondary-700">
           <div className="mb-3">
-            <h3 className="px-3 text-xs font-semibold text-neutral-500 dark:text-secondary-500 uppercase tracking-wider">Quick Access</h3>
+            <h3 className={`px-3 ${typography.label.small} ${textColors.muted} uppercase tracking-wider`}>Quick Access</h3>
           </div>
           <div className="space-y-1">
             {secondaryNavigation.map((item) => {
@@ -130,8 +137,8 @@ export default function Sidebar() {
             size="sm"
           />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-neutral-900 dark:text-secondary-100 truncate">{user?.name}</p>
-            <p className="text-xs text-neutral-500 dark:text-secondary-400 truncate">{user?.company}</p>
+            <p className={`${textStyles.listTitle} truncate`}>{user?.name}</p>
+            <p className={`${textStyles.metadata} truncate`}>{user?.company}</p>
           </div>
         </div>
       </div>

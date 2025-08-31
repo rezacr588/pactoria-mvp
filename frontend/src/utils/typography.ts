@@ -1,79 +1,90 @@
 // Typography utility classes following our design system
 
-// Text Colors - Primary Content
+// Text Colors - Comprehensive semantic color system
 export const textColors = {
-  // Primary text
+  // Primary text hierarchy
   primary: 'text-neutral-900 dark:text-secondary-100',
-  
-  // Secondary text
   secondary: 'text-neutral-600 dark:text-secondary-300',
-  
-  // Muted/disabled text
   muted: 'text-neutral-500 dark:text-secondary-400',
-  
-  // Subtle text (captions, timestamps)
   subtle: 'text-neutral-400 dark:text-secondary-500',
+  disabled: 'text-neutral-300 dark:text-secondary-600',
   
   // Interactive elements
   interactive: 'text-primary-600 dark:text-primary-400',
   interactiveHover: 'hover:text-primary-700 dark:hover:text-primary-300',
+  interactivePressed: 'active:text-primary-800 dark:active:text-primary-200',
   
-  // Status colors
+  // Status colors with proper contrast
   success: 'text-success-600 dark:text-success-400',
+  successMuted: 'text-success-500 dark:text-success-500',
   warning: 'text-warning-600 dark:text-warning-400',
+  warningMuted: 'text-warning-500 dark:text-warning-500',
   danger: 'text-danger-600 dark:text-danger-400',
-  info: 'text-blue-600 dark:text-blue-400',
+  dangerMuted: 'text-danger-500 dark:text-danger-500',
+  info: 'text-primary-600 dark:text-primary-400',
+  infoMuted: 'text-primary-500 dark:text-primary-500',
   
   // Special contexts
-  onPrimary: 'text-white',
-  onDark: 'text-white',
-  placeholder: 'placeholder-neutral-500 dark:placeholder-secondary-400'
+  onPrimary: 'text-white dark:text-white',
+  onSecondary: 'text-secondary-900 dark:text-secondary-100',
+  onSuccess: 'text-white dark:text-white',
+  onWarning: 'text-warning-900 dark:text-warning-100',
+  onDanger: 'text-white dark:text-white',
+  onDark: 'text-white dark:text-white',
+  
+  // Form elements
+  placeholder: 'placeholder-neutral-400 dark:placeholder-secondary-500',
+  placeholderMuted: 'placeholder-neutral-300 dark:placeholder-secondary-600',
+  
+  // Inverse colors for dark backgrounds
+  inverse: 'text-white dark:text-secondary-900',
+  inverseMuted: 'text-neutral-200 dark:text-secondary-700',
 };
 
 // Typography Scale
 export const typography = {
   // Display text (hero sections, main headings)
   display: {
-    large: 'text-4xl sm:text-5xl font-bold tracking-tight',
-    medium: 'text-3xl sm:text-4xl font-bold tracking-tight',
-    small: 'text-2xl sm:text-3xl font-bold tracking-tight'
+    large: 'text-4xl sm:text-5xl font-bold tracking-tight leading-tight',
+    medium: 'text-3xl sm:text-4xl font-bold tracking-tight leading-tight',
+    small: 'text-2xl sm:text-3xl font-bold tracking-tight leading-tight'
   },
   
   // Headings
   heading: {
-    h1: 'text-3xl font-bold',
-    h2: 'text-2xl font-bold', 
-    h3: 'text-xl font-semibold',
-    h4: 'text-lg font-semibold',
-    h5: 'text-base font-semibold',
-    h6: 'text-sm font-semibold'
+    h1: 'text-3xl font-bold leading-tight tracking-tight',
+    h2: 'text-2xl font-bold leading-tight tracking-tight', 
+    h3: 'text-xl font-semibold leading-snug tracking-tight',
+    h4: 'text-lg font-semibold leading-snug',
+    h5: 'text-base font-semibold leading-snug',
+    h6: 'text-sm font-semibold leading-normal'
   },
   
   // Body text
   body: {
-    large: 'text-lg',
-    medium: 'text-base',
-    small: 'text-sm'
+    large: 'text-lg leading-relaxed',
+    medium: 'text-base leading-normal',
+    small: 'text-sm leading-normal'
   },
   
   // Caption text
   caption: {
-    large: 'text-sm',
-    medium: 'text-xs',
-    small: 'text-xs'
+    large: 'text-sm leading-normal',
+    medium: 'text-xs leading-normal',
+    small: 'text-xs leading-tight'
   },
   
   // Labels
   label: {
-    large: 'text-sm font-medium',
-    medium: 'text-sm font-medium',
-    small: 'text-xs font-medium'
+    large: 'text-sm font-medium leading-normal',
+    medium: 'text-sm font-medium leading-normal',
+    small: 'text-xs font-medium leading-normal'
   },
   
   // Code text
   code: {
-    inline: 'font-mono text-sm',
-    block: 'font-mono text-sm'
+    inline: 'font-mono text-sm leading-normal',
+    block: 'font-mono text-sm leading-relaxed'
   }
 };
 
@@ -91,29 +102,53 @@ export const textStyles = {
   cardTitle: `${typography.heading.h3} ${textColors.primary}`,
   cardSubtitle: `${typography.body.small} ${textColors.muted}`,
   
+  // List item headers
+  listTitle: `${typography.heading.h4} ${textColors.primary}`,
+  listSubtitle: `${typography.body.small} ${textColors.secondary}`,
+  
   // Form elements
   formLabel: `${typography.label.medium} ${textColors.primary}`,
   formHelpText: `${typography.body.small} ${textColors.muted}`,
   formError: `${typography.body.small} ${textColors.danger}`,
+  formSuccess: `${typography.body.small} ${textColors.success}`,
+  formWarning: `${typography.body.small} ${textColors.warning}`,
   
   // Data display
   dataLabel: `${typography.label.small} ${textColors.muted}`,
   dataValue: `${typography.body.medium} ${textColors.primary}`,
+  dataLarge: `${typography.body.large} ${textColors.primary}`,
   
   // Navigation
   navItem: `${typography.body.medium} ${textColors.secondary}`,
   navItemActive: `${typography.body.medium} ${textColors.primary}`,
+  navItemHover: `${typography.body.medium} ${textColors.interactive} ${textColors.interactiveHover}`,
   
   // Status and badges
   statusText: `${typography.caption.medium} font-medium`,
+  badgeText: `${typography.caption.small} font-medium`,
   
   // Interactive elements
-  link: `${textColors.interactive} ${textColors.interactiveHover}`,
+  link: `${textColors.interactive} ${textColors.interactiveHover} ${textColors.interactivePressed}`,
+  linkMuted: `${textColors.secondary} ${textColors.interactiveHover}`,
   button: `font-medium`,
+  
+  // Content text
+  bodyText: `${typography.body.medium} ${textColors.primary}`,
+  bodyTextSecondary: `${typography.body.medium} ${textColors.secondary}`,
+  captionText: `${typography.caption.medium} ${textColors.muted}`,
+  
+  // Empty states
+  emptyStateTitle: `${typography.heading.h3} ${textColors.primary}`,
+  emptyStateDescription: `${typography.body.medium} ${textColors.secondary}`,
   
   // Timestamps and metadata
   timestamp: `${typography.caption.small} ${textColors.subtle}`,
-  metadata: `${typography.caption.medium} ${textColors.muted}`
+  metadata: `${typography.caption.medium} ${textColors.muted}`,
+  metadataLarge: `${typography.body.small} ${textColors.muted}`,
+  
+  // Loading and placeholder text
+  placeholder: `${typography.body.medium} ${textColors.muted}`,
+  skeletonText: `${typography.body.medium} animate-pulse`,
 };
 
 // Helper function to combine classes

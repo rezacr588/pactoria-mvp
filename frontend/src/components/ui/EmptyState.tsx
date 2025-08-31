@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { classNames } from '../../utils/classNames';
+import { textStyles, textColors } from '../../utils/typography';
 import Button from './Button';
 
 interface EmptyStateProps {
@@ -32,16 +33,16 @@ export default function EmptyState({
     <div className={classNames('text-center py-12 px-4', className)}>
       {Icon && (
         <div className="mx-auto w-16 h-16 bg-neutral-100 dark:bg-secondary-800 rounded-full flex items-center justify-center mb-6">
-          <Icon className="h-8 w-8 text-neutral-400 dark:text-secondary-500" />
+          <Icon className={`h-8 w-8 ${textColors.subtle}`} />
         </div>
       )}
       
-      <h3 className="text-xl font-semibold text-neutral-900 dark:text-secondary-100 mb-3">
+      <h3 className={`${textStyles.emptyStateTitle} mb-3`}>
         {title}
       </h3>
       
       {description && (
-        <p className="text-base text-neutral-500 dark:text-secondary-400 max-w-md mx-auto mb-8 leading-relaxed">
+        <p className={`${textStyles.emptyStateDescription} max-w-md mx-auto mb-8 leading-relaxed`}>
           {description}
         </p>
       )}

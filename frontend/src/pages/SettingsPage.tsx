@@ -486,7 +486,7 @@ export default function SettingsPage() {
                   className={classNames(
                     activeTab === tab.id
                       ? 'bg-primary-50 dark:bg-primary-950/20 text-primary-700 dark:text-primary-400 border-r-2 border-primary-500'
-                      : `${textColors.secondary} hover:bg-neutral-50 dark:hover:bg-secondary-800 hover:text-neutral-900 dark:hover:text-secondary-100`,
+                      : `${textColors.secondary} hover:bg-neutral-50 dark:hover:bg-secondary-800 ${textColors.interactiveHover}`,
                     'group flex items-center px-3 py-2 text-sm font-medium rounded-l-lg transition-colors w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900'
                   )}
                 >

@@ -241,8 +241,11 @@ class TestGroqAIService:
         mock_client.chat.completions.create.side_effect = Exception("API Error")
         ai_service.client = mock_client
         
-        with pytest.raises(Exception, match="API Error"):
-            await ai_service.health_check()
+        result = await ai_service.health_check()
+        
+        assert result["status"] == "unhealthy"
+        assert "API Error" in result["error"]
+        assert result["model"] == "openai/gpt-oss-120b"
     
     @pytest.mark.asyncio
     async def test_generate_content_api_error(self, ai_service):
@@ -315,8 +318,14 @@ class TestGroqAIService:
             contract_type="service_agreement"
         )
         
-        with pytest.raises(Exception):
-            await ai_service.analyze_compliance(request)
+        result = await ai_service.analyze_compliance(request)
+        
+        # Should return fallback response with default values when JSON parsing fails
+        assert result.overall_score == 0.8
+        assert result.gdpr_compliance == 0.8
+        assert "Analysis parsing failed - manual review required" in result.risk_factors
+        assert "Please review contract manually for compliance" in result.recommendations
+        assert result.analysis_raw == "Invalid JSON content"
     
     def test_prompt_building_with_special_characters(self, ai_service):
         """Test prompt building with special characters"""

@@ -98,6 +98,9 @@ class TestSQLAlchemyContractRepository:
         # Modify contract to trigger update
         sample_contract.set_contract_value(Money(1000, "GBP"))
         
+        # Update mock model version to match the contract version after modification
+        mock_contract_model.version = sample_contract.version
+        
         # When
         result = await repository.save(sample_contract)
         
@@ -242,6 +245,8 @@ class TestSQLAlchemyContractRepository:
         mock_db_session.query.return_value = mock_query
         mock_query.filter.return_value = mock_query
         mock_query.order_by.return_value = mock_query
+        mock_query.offset.return_value = mock_query
+        mock_query.limit.return_value = mock_query
         mock_query.all.return_value = [mock_contract_model]
         mock_query.count.return_value = 1
         

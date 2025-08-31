@@ -73,10 +73,7 @@ class TestRateLimiter:
         # Make requests up to limit
         for _ in range(5):
             result = rate_limiter.is_allowed(identifier, 5, 60)
-            if result:  # Only add to requests if allowed
-                if identifier not in rate_limiter.requests:
-                    rate_limiter.requests[identifier] = []
-                rate_limiter.requests[identifier].append(datetime.utcnow())
+            assert result is True  # All should be allowed initially
         
         # Next request should be blocked
         result = rate_limiter.is_allowed(identifier, 5, 60)

@@ -7,6 +7,9 @@ from app.core.datetime_utils import get_current_utc
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
+
+# Security scheme for OpenAPI documentation
+security = HTTPBearer()
 from typing import Optional
 
 from app.core.database import get_db
@@ -25,11 +28,49 @@ from app.schemas.auth import (
     PasswordChange, UserProfile, UserUpdate, CompanyCreate, CompanyResponse,
     AuthResponse
 )
+from app.schemas.common import (
+    ErrorResponse, ValidationError, UnauthorizedError, NotFoundError, 
+    ConflictError, SuccessResponse
+)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", 
+    response_model=AuthResponse, 
+    status_code=status.HTTP_201_CREATED,
+    summary="Register New User",
+    description="""
+    Register a new user account with optional company creation.
+    
+    **Features:**
+    - Creates user account with secure password hashing
+    - Optionally creates company with STARTER subscription
+    - Returns JWT token for immediate authentication
+    - Sets user timezone (defaults to Europe/London for UK SMEs)
+    
+    **Business Rules:**
+    - Email must be unique across all users
+    - Password must be at least 8 characters
+    - Company gets STARTER tier with 5 user limit
+    - User is immediately activated and logged in
+    """,
+    responses={
+        201: {
+            "description": "User registered successfully",
+            "model": AuthResponse
+        },
+        400: {
+            "description": "Registration failed - email already exists or invalid data",
+            "model": ConflictError
+        },
+        422: {
+            "description": "Validation error in request data",
+            "model": ValidationError
+        }
+    }
+)
 async def register_user(
     user_data: UserRegister,
     db: Session = Depends(get_db)
@@ -88,7 +129,40 @@ async def register_user(
     )
 
 
-@router.post("/login", response_model=AuthResponse)
+@router.post(
+    "/login", 
+    response_model=AuthResponse,
+    summary="User Login",
+    description="""
+    Authenticate user and return JWT access token.
+    
+    **Authentication Process:**
+    - Validates email and password
+    - Checks if user account is active
+    - Updates last login timestamp
+    - Returns JWT token with 24-hour expiration
+    - Includes user profile and company information
+    
+    **Security:**
+    - Uses secure password hashing (bcrypt)
+    - Rate limiting applied (configured at middleware level)
+    - Tokens are stateless and contain user ID
+    """,
+    responses={
+        200: {
+            "description": "Login successful",
+            "model": AuthResponse
+        },
+        401: {
+            "description": "Invalid credentials or inactive account",
+            "model": UnauthorizedError
+        },
+        422: {
+            "description": "Validation error in login data",
+            "model": ValidationError
+        }
+    }
+)
 async def login_user(
     login_data: UserLogin,
     db: Session = Depends(get_db)
@@ -142,7 +216,33 @@ async def login_user(
     )
 
 
-@router.get("/me", response_model=UserProfile)
+@router.get(
+    "/me", 
+    response_model=UserProfile,
+    summary="Get Current User Profile",
+    description="""
+    Get the current authenticated user's profile information.
+    
+    **Requires Authentication:** JWT Bearer token
+    
+    **Returns:**
+    - User ID and email
+    - Full name and timezone
+    - Account status and company association
+    - Creation and last login timestamps
+    """,
+    responses={
+        200: {
+            "description": "User profile retrieved successfully",
+            "model": UserProfile
+        },
+        401: {
+            "description": "Authentication required",
+            "model": UnauthorizedError
+        }
+    },
+    dependencies=[Depends(security)]
+)
 async def get_current_user_profile(
     current_user: User = Depends(get_current_user)
 ):

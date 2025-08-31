@@ -37,7 +37,10 @@ class SQLAlchemyContractRepository(ContractRepository):
             # Check optimistic locking
             if model.version != contract.version:
                 raise ConcurrencyError(
-                    f"Contract version mismatch. Expected {contract.version}, got {model.version}"
+                    f"Contract version mismatch. Expected {contract.version}, got {model.version}",
+                    entity_id=contract.id.value,
+                    expected_version=contract.version,
+                    actual_version=model.version
                 )
             
             # Update existing model

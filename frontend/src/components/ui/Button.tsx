@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames } from '../../utils/classNames';
+import { textColors, typography } from '../../utils/typography';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'warning' | 'ghost' | 'success';
@@ -31,12 +32,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   }, ref) => {
     const baseStyles = classNames(
       'inline-flex items-center justify-center font-semibold relative overflow-hidden',
-      'transition-all duration-300 ease-out transform-gpu',
+      'transition-all duration-200 ease-out transform-gpu',
       'focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-secondary-900',
-      'disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none',
-      'hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg',
+      'disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none',
+      'hover:scale-[1.01] active:scale-[0.99] hover:shadow-md',
       'before:absolute before:inset-0 before:bg-gradient-to-r before:opacity-0',
-      'hover:before:opacity-10 before:transition-opacity before:duration-300',
+      'hover:before:opacity-5 before:transition-opacity before:duration-200',
       pulse && !loading && 'animate-pulse',
       !disabled && !loading && 'group'
     );
@@ -46,7 +47,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ? 'bg-gradient-to-r from-primary-600 via-primary-600 to-primary-700 text-white hover:from-primary-700 hover:via-primary-700 hover:to-primary-800 focus:ring-primary-300 dark:focus:ring-primary-700 shadow-lg hover:shadow-xl before:from-white before:to-white'
         : 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-300 dark:focus:ring-primary-700 shadow-md hover:shadow-lg',
       
-      secondary: 'bg-white dark:bg-secondary-800 text-neutral-700 dark:text-secondary-200 border border-neutral-300 dark:border-secondary-600 hover:bg-neutral-50 dark:hover:bg-secondary-700 hover:border-neutral-400 dark:hover:border-secondary-500 focus:ring-primary-300 dark:focus:ring-primary-700 shadow-sm hover:shadow-md before:from-primary-500 before:to-primary-600',
+      secondary: `bg-white dark:bg-secondary-800 ${textColors.secondary} border border-neutral-300 dark:border-secondary-600 hover:bg-neutral-50 dark:hover:bg-secondary-700 hover:border-neutral-400 dark:hover:border-secondary-500 focus:ring-primary-300 dark:focus:ring-primary-700 shadow-sm hover:shadow-md before:from-primary-500 before:to-primary-600`,
       
       danger: gradient
         ? 'bg-gradient-to-r from-danger-600 via-danger-600 to-danger-700 text-white hover:from-danger-700 hover:via-danger-700 hover:to-danger-800 focus:ring-danger-300 dark:focus:ring-danger-700 shadow-lg hover:shadow-xl before:from-white before:to-white'
@@ -60,15 +61,15 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ? 'bg-gradient-to-r from-warning-600 via-warning-600 to-warning-700 text-white hover:from-warning-700 hover:via-warning-700 hover:to-warning-800 focus:ring-warning-300 dark:focus:ring-warning-700 shadow-lg hover:shadow-xl before:from-white before:to-white'
         : 'bg-warning-600 text-white hover:bg-warning-700 focus:ring-warning-300 dark:focus:ring-warning-700 shadow-md hover:shadow-lg',
       
-      ghost: 'text-neutral-600 dark:text-secondary-300 hover:text-neutral-900 dark:hover:text-secondary-100 hover:bg-neutral-100 dark:hover:bg-secondary-800 focus:ring-primary-300 dark:focus:ring-primary-700 hover:shadow-sm before:from-primary-500 before:to-primary-600'
+      ghost: `${textColors.secondary} hover:text-neutral-900 dark:hover:text-secondary-100 hover:bg-neutral-100 dark:hover:bg-secondary-800 focus:ring-primary-300 dark:focus:ring-primary-700 hover:shadow-sm before:from-primary-500 before:to-primary-600`
     };
 
     const sizes = {
-      xs: 'px-2.5 py-1.5 text-xs gap-1 min-h-[24px]',
-      sm: 'px-3 py-2 text-sm gap-1.5 min-h-[32px]',
-      md: 'px-4 py-2.5 text-sm gap-2 min-h-[36px]',
-      lg: 'px-6 py-3 text-base gap-2.5 min-h-[44px]',
-      xl: 'px-8 py-4 text-lg gap-3 min-h-[52px]'
+      xs: `px-2.5 py-1.5 ${typography.caption.medium} gap-1 min-h-[28px]`,
+      sm: `px-3 py-2 ${typography.body.small} gap-1.5 min-h-[36px]`,
+      md: `px-4 py-2.5 ${typography.body.medium} gap-2 min-h-[40px]`,
+      lg: `px-6 py-3 ${typography.body.large} gap-2.5 min-h-[48px]`,
+      xl: `px-8 py-4 ${typography.heading.h6} gap-3 min-h-[56px]`
     };
 
     const roundedStyles = {

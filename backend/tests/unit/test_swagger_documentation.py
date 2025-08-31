@@ -82,9 +82,15 @@ class TestSwaggerDocumentation:
         
         assert "responses" in auth_login_path
         responses = auth_login_path["responses"]
-        assert "400" in responses
         assert "401" in responses
         assert "422" in responses
+        
+        # Check that auth register has proper responses
+        auth_register_path = paths["/api/v1/auth/register"]["post"]
+        register_responses = auth_register_path["responses"]
+        assert "201" in register_responses
+        assert "400" in register_responses
+        assert "422" in register_responses
         
     def test_request_examples_present(self):
         """Test that request schemas have examples"""

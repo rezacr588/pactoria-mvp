@@ -6,11 +6,16 @@ import asyncio
 from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock, Mock
 from typing import Dict, Any
+import os
+import tempfile
 
 from app.main import app
 from app.services.ai_service import GroqAIService
 # Removed duplicate contract service import
 from app.core.config import settings
+from app.core.database import Base, create_tables
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 
 @pytest.fixture(scope="session")
@@ -19,6 +24,34 @@ def event_loop():
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_database():
+    """Set up test database with all tables using in-memory SQLite"""
+    # Create a test engine with in-memory database
+    test_engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    
+    # Create all tables for testing
+    Base.metadata.create_all(bind=test_engine)
+    
+    # Override the database dependency for testing
+    from app.core.database import get_db
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+    
+    def override_get_db():
+        try:
+            db = TestingSessionLocal()
+            yield db
+        finally:
+            db.close()
+    
+    app.dependency_overrides[get_db] = override_get_db
+    
+    yield test_engine
+    
+    # Cleanup
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture

@@ -18,6 +18,7 @@ import ThemeToggle from '../ui/ThemeToggle';
 import DropdownMenu from '../ui/DropdownMenu';
 import Avatar from '../ui/Avatar';
 import { NotificationBadge } from '../ui/Badge';
+import { textStyles, textColors, typography } from '../../utils/typography';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -70,10 +71,24 @@ export default function Header({ onMenuClick }: HeaderProps) {
   return (
     <header className="bg-white dark:bg-secondary-900 border-b border-neutral-200 dark:border-secondary-700 h-16">
       <div className="flex items-center justify-between h-full px-4 sm:px-6">
+        {/* Logo for mobile */}
+        <div className="flex items-center space-x-3 lg:hidden">
+          <img
+            src="/pactoria-logo-96.png"
+            srcSet="/pactoria-logo-48.png 1x, /pactoria-logo-96.png 2x, /pactoria-logo-128.png 3x"
+            alt="Pactoria - UK Contract Management"
+            className="h-8 w-8 sm:h-10 sm:w-10 object-contain pactoria-logo"
+            loading="lazy"
+            width="40"
+            height="40"
+          />
+          <span className={textStyles.pageTitle}>Pactoria</span>
+        </div>
+
         {/* Mobile menu button */}
         <button
           onClick={onMenuClick}
-          className="p-2 rounded-md text-neutral-400 dark:text-secondary-500 hover:text-neutral-500 dark:hover:text-secondary-400 hover:bg-neutral-100 dark:hover:bg-secondary-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 lg:hidden"
+          className={`p-2 rounded-md ${textColors.subtle} hover:text-neutral-500 dark:hover:text-secondary-400 hover:bg-neutral-100 dark:hover:bg-secondary-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 lg:hidden`}
         >
           <span className="sr-only">Open sidebar</span>
           <Bars3Icon className="h-6 w-6" aria-hidden="true" />
@@ -83,11 +98,11 @@ export default function Header({ onMenuClick }: HeaderProps) {
         <div className="flex-1 max-w-lg ml-4 lg:ml-0">
           <form onSubmit={handleSearchSubmit} className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <MagnifyingGlassIcon className="h-5 w-5 text-neutral-400 dark:text-secondary-500" />
+              <MagnifyingGlassIcon className={`h-5 w-5 ${textColors.subtle}`} />
             </div>
             <input
               type="text"
-              className="block w-full pl-10 pr-10 py-2 border border-neutral-300 dark:border-secondary-600 rounded-xl leading-5 bg-white dark:bg-secondary-800 placeholder-neutral-500 dark:placeholder-secondary-500 text-neutral-900 dark:text-secondary-100 focus:outline-none focus:placeholder-neutral-400 dark:focus:placeholder-secondary-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm transition-all"
+              className={`block w-full pl-10 pr-10 py-2.5 border border-neutral-300 dark:border-secondary-600 rounded-xl leading-5 bg-white dark:bg-secondary-800 ${textColors.placeholder} ${textColors.primary} focus:outline-none focus:placeholder-neutral-400 dark:focus:placeholder-secondary-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${typography.body.medium} transition-all`}
               placeholder="Search contracts, templates, or team members..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -98,7 +113,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 dark:text-secondary-500 hover:text-neutral-600 dark:hover:text-secondary-300"
+                className={`absolute inset-y-0 right-0 pr-3 flex items-center ${textColors.subtle} hover:text-neutral-600 dark:hover:text-secondary-300`}
                 aria-label="Clear search"
               >
                 <span className="h-4 w-4">✕</span>
@@ -128,14 +143,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
           <DropdownMenu
             width="lg"
             trigger={
-              <button className="relative p-2 text-neutral-400 dark:text-secondary-500 hover:text-neutral-500 dark:hover:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900 rounded-xl">
+              <button className={`relative p-2 ${textColors.subtle} hover:text-neutral-500 dark:hover:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900 rounded-xl`}>
                 <BellIcon className="h-6 w-6" />
                 <NotificationBadge count={unreadCount} />
               </button>
             }
             header={
               <div className="p-4">
-                <h3 className="text-sm font-medium text-neutral-900 dark:text-secondary-100 mb-3">Notifications</h3>
+                <h3 className={`${textStyles.sectionTitle} mb-3`}>Notifications</h3>
                 <div className="space-y-3">
                   {notifications.length > 0 ? (
                     notifications.map((notification) => (
@@ -144,27 +159,27 @@ export default function Header({ onMenuClick }: HeaderProps) {
                           notification.unread ? 'bg-primary-500' : 'bg-neutral-300 dark:bg-secondary-600'
                         }`} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-neutral-900 dark:text-secondary-100">
+                          <p className={`${textStyles.listTitle}`}>
                             {notification.title}
                           </p>
-                          <p className="text-sm text-neutral-500 dark:text-secondary-400 truncate">
+                          <p className={`${textStyles.listSubtitle} truncate`}>
                             {notification.message}
                           </p>
-                          <p className="text-xs text-neutral-400 dark:text-secondary-500 mt-1">
+                          <p className={`${textStyles.timestamp} mt-1`}>
                             {notification.time}
                           </p>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-neutral-500 dark:text-secondary-400">No new notifications</p>
+                    <p className={textStyles.bodyTextSecondary}>No new notifications</p>
                   )}
                 </div>
               </div>
             }
             footer={
               <div className="p-4 border-t border-neutral-200 dark:border-secondary-700">
-                <Link to="/notifications" className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium">
+                <Link to="/notifications" className={`text-sm font-medium ${textStyles.link}`}>
                   View all notifications
                 </Link>
               </div>
@@ -193,14 +208,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
                     size="md"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-neutral-900 dark:text-secondary-100 truncate">
+                    <p className={`${textStyles.listTitle} truncate`}>
                       {user?.name}
                     </p>
-                    <p className="text-xs text-neutral-500 dark:text-secondary-400 truncate">
+                    <p className={`${textStyles.metadata} truncate`}>
                       {user?.email}
                     </p>
                     {user?.company && (
-                      <p className="text-xs text-neutral-400 dark:text-secondary-500 truncate">
+                      <p className={`${textStyles.timestamp} truncate`}>
                         {user?.company}
                       </p>
                     )}

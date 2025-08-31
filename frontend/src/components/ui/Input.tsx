@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames } from '../../utils/classNames';
+import { textColors, textStyles, typography } from '../../utils/typography';
 
 export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string;
@@ -33,9 +34,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     
     // Size variants
     const sizeStyles = {
-      sm: 'px-3 py-2 text-sm',
-      md: 'px-3 py-2.5 text-sm',
-      lg: 'px-4 py-3 text-base'
+      sm: `px-3 py-2 ${typography.body.small}`,
+      md: `px-3 py-2.5 ${typography.body.medium}`,
+      lg: `px-4 py-3 ${typography.body.large}`
     };
 
     // Variant styles
@@ -53,11 +54,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       : variantStyles[variant];
 
     const baseStyles = classNames(
-      'block w-full rounded-xl transition-colors duration-200',
-      'placeholder:text-neutral-400 dark:placeholder:text-secondary-500',
-      'text-neutral-900 dark:text-secondary-100',
+      'block w-full rounded-xl transition-all duration-200',
+      textColors.placeholder,
+      textColors.primary,
       'focus:outline-none focus:ring-2 focus:ring-offset-0',
-      'disabled:cursor-not-allowed disabled:bg-neutral-50 dark:disabled:bg-secondary-800 disabled:text-neutral-500 dark:disabled:text-secondary-500 disabled:border-neutral-200 dark:disabled:border-secondary-700',
+      `disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-neutral-50 dark:disabled:bg-secondary-800 ${textColors.disabled} disabled:border-neutral-200 dark:disabled:border-secondary-700`,
       sizeStyles[size],
       stateStyles
     );
@@ -82,8 +83,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             htmlFor={inputId} 
             className={classNames(
               'block text-sm font-medium',
-              error ? 'text-danger-700 dark:text-danger-400' : success ? 'text-success-700 dark:text-success-400' : 'text-neutral-700 dark:text-secondary-300',
-              disabled && 'text-neutral-400 dark:text-secondary-600'
+              error ? textColors.danger : success ? textColors.success : textColors.secondary,
+              disabled && textColors.disabled
             )}
           >
             {label}
@@ -98,7 +99,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             )}>
               <div className={classNames(
                 iconSize[size],
-                error ? 'text-danger-400 dark:text-danger-500' : success ? 'text-success-400 dark:text-success-500' : 'text-neutral-400 dark:text-secondary-500'
+                error ? textColors.dangerMuted : success ? textColors.successMuted : textColors.subtle
               )}>
                 {leftIcon}
               </div>
@@ -137,7 +138,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               ) : rightIcon ? (
                 <div className={classNames(
                   iconSize[size],
-                  error ? 'text-danger-400 dark:text-danger-500' : success ? 'text-success-400 dark:text-success-500' : 'text-neutral-400 dark:text-secondary-500'
+                  error ? textColors.dangerMuted : success ? textColors.successMuted : textColors.subtle
                 )}>
                   {rightIcon}
                 </div>
@@ -146,7 +147,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <p className="text-sm text-danger-600 dark:text-danger-400 flex items-center">
+          <p className={`${textStyles.formError} flex items-center mt-2`}>
             <svg className="h-4 w-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -154,7 +155,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
         {success && !error && (
-          <p className="text-sm text-success-600 dark:text-success-400 flex items-center">
+          <p className={`${textStyles.formSuccess} flex items-center mt-2`}>
             <svg className="h-4 w-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
@@ -162,7 +163,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
         {helpText && !error && !success && (
-          <p className="text-sm text-neutral-500 dark:text-secondary-400">{helpText}</p>
+          <p className={`${textStyles.formHelpText} mt-1`}>{helpText}</p>
         )}
       </div>
     );

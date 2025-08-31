@@ -3,6 +3,7 @@ Health check endpoint for Pactoria MVP
 """
 from fastapi import APIRouter
 from datetime import datetime
+from app.core.config import settings
 
 router = APIRouter(prefix="/health", tags=["Health"])
 
@@ -13,8 +14,8 @@ async def health_check():
     return {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
-        "service": "Pactoria MVP Backend",
-        "version": "1.0.0"
+        "service": settings.APP_NAME,
+        "version": settings.APP_VERSION
     }
 
 
@@ -24,8 +25,8 @@ async def detailed_health_check():
     return {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
-        "service": "Pactoria MVP Backend", 
-        "version": "1.0.0",
+        "service": settings.APP_NAME, 
+        "version": settings.APP_VERSION,
         "components": {
             "database": "healthy",
             "ai_service": "healthy",

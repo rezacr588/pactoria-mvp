@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { classNames } from '../../utils/classNames';
+import { textColors, textStyles } from '../../utils/typography';
 
 interface PageHeaderProps {
   title: string;
@@ -26,7 +27,7 @@ export default function PageHeader({
                 <li key={index} className="flex items-center">
                   {index > 0 && (
                     <svg
-                      className="flex-shrink-0 h-4 w-4 text-neutral-400 dark:text-secondary-500 mx-2"
+                      className={`flex-shrink-0 h-4 w-4 ${textColors.subtle} mx-2`}
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -36,12 +37,12 @@ export default function PageHeader({
                   {item.href ? (
                     <a
                       href={item.href}
-                      className="text-neutral-500 dark:text-secondary-400 hover:text-neutral-700 dark:hover:text-secondary-200 transition-colors"
+                      className={`${textColors.muted} hover:text-neutral-700 dark:hover:text-secondary-200 transition-colors`}
                     >
                       {item.label}
                     </a>
                   ) : (
-                    <span className="text-neutral-900 dark:text-secondary-100 font-medium">
+                    <span className={`${textColors.primary} font-medium`}>
                       {item.label}
                     </span>
                   )}
@@ -53,11 +54,11 @@ export default function PageHeader({
 
         <div className="py-6 md:flex md:items-center md:justify-between">
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold leading-7 text-neutral-900 dark:text-secondary-100 sm:text-3xl sm:truncate">
+            <h1 className={`text-2xl font-bold leading-7 ${textColors.primary} sm:text-3xl sm:truncate`}>
               {title}
             </h1>
             {description && (
-              <p className="mt-2 text-sm text-neutral-500 dark:text-secondary-400">
+              <p className={`mt-2 ${textStyles.bodyTextSecondary}`}>
                 {description}
               </p>
             )}
@@ -90,11 +91,11 @@ export function SectionHeader({
   return (
     <div className={classNames('flex items-center justify-between', className)}>
       <div>
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-secondary-100">
+        <h2 className={`${textStyles.sectionTitle}`}>
           {title}
         </h2>
         {description && (
-          <p className="mt-1 text-sm text-neutral-500 dark:text-secondary-400">
+          <p className={`mt-1 ${textStyles.bodyTextSecondary}`}>
             {description}
           </p>
         )}
