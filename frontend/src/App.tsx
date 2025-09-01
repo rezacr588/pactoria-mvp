@@ -1,24 +1,27 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useAuthStore } from './store/authStore';
 import { AppLayout } from './components/layout';
 import ThemeProvider from './contexts/ThemeContext';
 import { ToastProvider } from './contexts/ToastContext';
 import ToastContainer from './components/ui/ToastContainer';
-import DashboardPage from './pages/DashboardPage';
-import ContractsPage from './pages/ContractsPage';
-import ContractCreatePage from './pages/ContractCreatePage';
-import ContractViewPage from './pages/ContractViewPage';
-import TeamPage from './pages/TeamPage';
-import SettingsPage from './pages/SettingsPage';
-import NotificationsPage from './pages/NotificationsPage';
-import AnalyticsPage from './pages/AnalyticsPage';
-import TemplatesPage from './pages/TemplatesPage';
-import IntegrationsPage from './pages/IntegrationsPage';
-import AuditTrailPage from './pages/AuditTrailPage';
-import LoginPage from './pages/LoginPage';
-import LandingPage from './pages/LandingPage';
-import HelpPage from './pages/HelpPage';
+import LoadingSpinner from './components/ui/LoadingSpinner';
+
+// Lazy load pages for better performance
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const ContractsPage = lazy(() => import('./pages/ContractsPage'));
+const ContractCreatePage = lazy(() => import('./pages/ContractCreatePage'));
+const ContractViewPage = lazy(() => import('./pages/ContractViewPage'));
+const TeamPage = lazy(() => import('./pages/TeamPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
+const TemplatesPage = lazy(() => import('./pages/TemplatesPage'));
+const IntegrationsPage = lazy(() => import('./pages/IntegrationsPage'));
+const AuditTrailPage = lazy(() => import('./pages/AuditTrailPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const HelpPage = lazy(() => import('./pages/HelpPage'));
 import CommandPalette from './components/ui/CommandPalette';
 import KeyboardShortcutsHelp from './components/ui/KeyboardShortcutsHelp';
 import SkipLinks from './components/ui/SkipLinks';
@@ -81,20 +84,16 @@ function App() {
     <ErrorBoundary level="critical" showErrorDetails={process.env.NODE_ENV === 'development'}>
       <ThemeProvider>
         <ToastProvider>
-          <Router 
-            future={{
-              v7_startTransition: true,
-              v7_relativeSplatPath: true
-            }}
-          >
+          <Router>
             <KeyboardShortcutsProvider>
               {/* Skip Links for accessibility */}
               <SkipLinks />
               
-              <Routes>
-              {/* Public routes - Landing page accessible to all users */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<LoginPage />} />
+              <Suspense fallback={<LoadingSpinner />}>
+                <Routes>
+                {/* Public routes - Landing page accessible to all users */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<LoginPage />} />
               
               {/* Protected routes with layout */}
               <Route path="/" element={
@@ -165,7 +164,8 @@ function App() {
                   </ErrorBoundary>
                 } />
               </Route>
-            </Routes>
+                </Routes>
+              </Suspense>
 
             {/* Global Modals and Components - Only show for authenticated users */}
             {user && (

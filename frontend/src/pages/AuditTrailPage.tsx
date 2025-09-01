@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Card, Button, Input, Select, Badge } from '../components/ui';
 import { classNames } from '../utils/classNames';
+import { textColors, textStyles } from '../utils/typography';
 
 interface AuditEntry {
   id: string;
@@ -253,40 +254,40 @@ function getActionIcon(action: AuditEntry['action']) {
 function getActionColor(action: AuditEntry['action']) {
   switch (action) {
     case 'create':
-      return 'text-green-700 bg-green-100';
+      return 'text-success-700 dark:text-success-300 bg-success-100 dark:bg-success-900/20';
     case 'view':
-      return 'text-blue-700 bg-blue-100';
+      return 'text-primary-700 dark:text-primary-300 bg-primary-100 dark:bg-primary-900/20';
     case 'edit':
-      return 'text-yellow-700 bg-yellow-100';
+      return 'text-warning-700 dark:text-warning-300 bg-warning-100 dark:bg-warning-900/20';
     case 'delete':
-      return 'text-red-700 bg-red-100';
+      return 'text-danger-700 dark:text-danger-300 bg-danger-100 dark:bg-danger-900/20';
     case 'sign':
-      return 'text-green-700 bg-green-100';
+      return 'text-success-700 dark:text-success-300 bg-success-100 dark:bg-success-900/20';
     case 'export':
-      return 'text-purple-700 bg-purple-100';
+      return 'text-primary-700 dark:text-primary-300 bg-primary-100 dark:bg-primary-900/20';
     case 'share':
-      return 'text-indigo-700 bg-indigo-100';
+      return 'text-primary-700 dark:text-primary-300 bg-primary-100 dark:bg-primary-900/20';
     case 'approve':
-      return 'text-green-700 bg-green-100';
+      return 'text-success-700 dark:text-success-300 bg-success-100 dark:bg-success-900/20';
     case 'reject':
-      return 'text-red-700 bg-red-100';
+      return 'text-danger-700 dark:text-danger-300 bg-danger-100 dark:bg-danger-900/20';
     case 'archive':
-      return 'text-gray-700 bg-gray-100';
+      return 'text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800';
     default:
-      return 'text-gray-700 bg-gray-100';
+      return 'text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800';
   }
 }
 
 function getRiskLevelColor(riskLevel: AuditEntry['riskLevel']) {
   switch (riskLevel) {
     case 'low':
-      return 'text-green-600 bg-green-50 border-green-200';
+      return 'text-success-600 dark:text-success-400 bg-success-50 dark:bg-success-900/20 border-success-200 dark:border-success-700';
     case 'medium':
-      return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      return 'text-warning-600 dark:text-warning-400 bg-warning-50 dark:bg-warning-900/20 border-warning-200 dark:border-warning-700';
     case 'high':
-      return 'text-red-600 bg-red-50 border-red-200';
+      return 'text-danger-600 dark:text-danger-400 bg-danger-50 dark:bg-danger-900/20 border-danger-200 dark:border-danger-700';
     default:
-      return 'text-gray-600 bg-gray-50 border-gray-200';
+      return 'text-neutral-600 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700';
   }
 }
 
@@ -370,8 +371,8 @@ export default function AuditTrailPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Audit Trail</h1>
-          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">
+          <h1 className={textStyles.pageTitle}>Audit Trail</h1>
+          <p className={classNames('mt-1 sm:mt-2 text-sm sm:text-base', textColors.secondary)}>
             Complete activity log for compliance and security monitoring
           </p>
         </div>
@@ -396,8 +397,8 @@ export default function AuditTrailPage() {
         <Card variant="bordered" className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-500">Total Events</p>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{auditEntries.length}</p>
+              <p className={classNames('text-xs sm:text-sm font-medium', textColors.muted)}>Total Events</p>
+              <p className={classNames('text-xl sm:text-2xl font-bold mt-1', textColors.primary)}>{auditEntries.length}</p>
             </div>
             <DocumentTextIcon className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600" />
           </div>
@@ -405,8 +406,8 @@ export default function AuditTrailPage() {
         <Card variant="bordered" className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-500">High Risk</p>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{highRiskEntries.length}</p>
+              <p className={classNames('text-xs sm:text-sm font-medium', textColors.muted)}>High Risk</p>
+              <p className={classNames('text-xl sm:text-2xl font-bold mt-1', textColors.primary)}>{highRiskEntries.length}</p>
             </div>
             <ExclamationTriangleIcon className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />
           </div>
@@ -414,8 +415,8 @@ export default function AuditTrailPage() {
         <Card variant="bordered" className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-500">Compliance Flags</p>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{complianceFlags.length}</p>
+              <p className={classNames('text-xs sm:text-sm font-medium', textColors.muted)}>Compliance Flags</p>
+              <p className={classNames('text-xl sm:text-2xl font-bold mt-1', textColors.primary)}>{complianceFlags.length}</p>
             </div>
             <ShieldCheckIcon className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600" />
           </div>
@@ -423,8 +424,8 @@ export default function AuditTrailPage() {
         <Card variant="bordered" className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-500">Last 24h</p>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{recentEntries.length}</p>
+              <p className={classNames('text-xs sm:text-sm font-medium', textColors.muted)}>Last 24h</p>
+              <p className={classNames('text-xl sm:text-2xl font-bold mt-1', textColors.primary)}>{recentEntries.length}</p>
             </div>
             <ClockIcon className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
           </div>
@@ -463,7 +464,7 @@ export default function AuditTrailPage() {
 
       {/* Results Summary */}
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-gray-500">
+        <p className={classNames('text-sm', textColors.muted)}>
           Showing {filteredEntries.length} of {auditEntries.length} audit entries
         </p>
       </div>
@@ -473,8 +474,8 @@ export default function AuditTrailPage() {
         <Card>
           <div className="text-center py-12">
             <FunnelIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No audit entries found</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <h3 className={classNames('mt-2 text-sm font-medium', textColors.primary)}>No audit entries found</h3>
+            <p className={classNames('mt-1 text-sm', textColors.secondary)}>
               Try adjusting your search or filter criteria.
             </p>
           </div>
@@ -489,8 +490,8 @@ export default function AuditTrailPage() {
                 variant="bordered" 
                 className={classNames(
                   'transition-all duration-200 hover:shadow-md',
-                  entry.complianceFlag && 'ring-2 ring-yellow-200 bg-yellow-50/20',
-                  entry.riskLevel === 'high' && 'ring-2 ring-red-200 bg-red-50/20'
+                  entry.complianceFlag && 'ring-2 ring-warning-200 dark:ring-warning-700 bg-warning-50/20 dark:bg-warning-900/10',
+                  entry.riskLevel === 'high' && 'ring-2 ring-danger-200 dark:ring-danger-700 bg-danger-50/20 dark:bg-danger-900/10'
                 )}
               >
                 <div className="p-4">
@@ -498,13 +499,13 @@ export default function AuditTrailPage() {
                     <div className="flex items-start space-x-4 flex-1">
                       <div className={classNames(
                         'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center',
-                        entry.riskLevel === 'high' ? 'bg-red-100' : 
-                        entry.riskLevel === 'medium' ? 'bg-yellow-100' : 'bg-gray-100'
+                        entry.riskLevel === 'high' ? 'bg-danger-100 dark:bg-danger-900/20' : 
+                        entry.riskLevel === 'medium' ? 'bg-warning-100 dark:bg-warning-900/20' : 'bg-neutral-100 dark:bg-neutral-800'
                       )}>
                         <ActionIcon className={classNames(
                           'h-5 w-5',
-                          entry.riskLevel === 'high' ? 'text-red-600' : 
-                          entry.riskLevel === 'medium' ? 'text-yellow-600' : 'text-gray-600'
+                          entry.riskLevel === 'high' ? 'text-danger-600 dark:text-danger-400' : 
+                          entry.riskLevel === 'medium' ? 'text-warning-600 dark:text-warning-400' : 'text-neutral-600 dark:text-neutral-400'
                         )} />
                       </div>
                       
@@ -513,7 +514,7 @@ export default function AuditTrailPage() {
                           <Badge className={classNames('text-xs', getActionColor(entry.action))}>
                             {entry.action.charAt(0).toUpperCase() + entry.action.slice(1)}
                           </Badge>
-                          <Badge variant="default" className="text-xs text-gray-600 bg-gray-100">
+                          <Badge variant="default" className={classNames('text-xs', textColors.secondary, 'bg-neutral-100 dark:bg-neutral-800')}>
                             {entry.resourceType.charAt(0).toUpperCase() + entry.resourceType.slice(1)}
                           </Badge>
                           <span className={classNames(
@@ -529,15 +530,15 @@ export default function AuditTrailPage() {
                           )}
                         </div>
                         
-                        <h3 className="text-sm font-medium text-gray-900 mb-1">
+                        <h3 className={classNames('text-sm font-medium mb-1', textColors.primary)}>
                           {entry.userName} {entry.action}d {entry.resourceName}
                         </h3>
                         
-                        <p className="text-sm text-gray-600 mb-3">
+                        <p className={classNames('text-sm mb-3', textColors.secondary)}>
                           {entry.details}
                         </p>
                         
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-500">
+                        <div className={classNames('grid grid-cols-2 md:grid-cols-4 gap-4 text-xs', textColors.muted)}>
                           <div className="flex items-center space-x-1">
                             <UserIcon className="h-3 w-3" />
                             <span>{entry.userRole}</span>
@@ -559,15 +560,15 @@ export default function AuditTrailPage() {
                         </div>
 
                         {entry.metadata && Object.keys(entry.metadata).length > 0 && (
-                          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                            <h4 className="text-xs font-medium text-gray-700 mb-2">Additional Details</h4>
+                          <div className="mt-3 p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
+                            <h4 className={classNames('text-xs font-medium mb-2', textColors.secondary)}>Additional Details</h4>
                             <div className="space-y-1">
                               {Object.entries(entry.metadata).map(([key, value]) => (
                                 <div key={key} className="flex justify-between text-xs">
-                                  <span className="text-gray-500 capitalize">
+                                  <span className={classNames('capitalize', textColors.muted)}>
                                     {key.replace(/([A-Z])/g, ' $1').toLowerCase()}:
                                   </span>
-                                  <span className="text-gray-700">
+                                  <span className={textColors.secondary}>
                                     {Array.isArray(value) ? value.join(', ') : String(value)}
                                   </span>
                                 </div>

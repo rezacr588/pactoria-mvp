@@ -13,14 +13,21 @@ from datetime import datetime, timedelta
 from app.main import app
 from app.core.config import settings
 from app.services.ai_service import GroqAIService
+from tests.conftest import test_database
 # Removed duplicate contract service import - using ContractApplicationService instead
 
 
 class TestMVPComplianceRequirements:
     """Test MVP Plan compliance requirements"""
     
+    @pytest.fixture(autouse=True)
+    def setup_test_db(self, test_database):
+        """Ensure test database is set up"""
+        pass
+    
     @pytest.fixture
     def client(self):
+        """Test client fixture"""
         return TestClient(app)
     
     def test_mvp_core_features_availability(self, client):
@@ -104,7 +111,6 @@ This Agreement shall be governed by and construed in accordance with the laws of
                 "email": f"uktest-{uuid.uuid4().hex[:8]}@example.com",
                 "password": "UKTest123!",
                 "full_name": "UK Test User",
-                "company_name": "UK Test Company Ltd",
                 "company_name": "UK Test Company Ltd"
             }
             response = client.post("/api/v1/auth/register", json=user_data)

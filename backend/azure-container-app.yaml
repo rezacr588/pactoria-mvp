@@ -1,0 +1,42 @@
+# Azure Container Apps Configuration - Ultra Low Cost
+apiVersion: 2022-03-01
+location: East US  # Cheapest region
+name: pactoria-backend
+properties:
+  managedEnvironmentId: /subscriptions/{subscription-id}/resourceGroups/pactoria-rg/providers/Microsoft.App/managedEnvironments/pactoria-env
+  configuration:
+    ingress:
+      external: true
+      targetPort: 8000
+      allowInsecure: false
+    secrets:
+      - name: groq-api-key
+        value: "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"
+  template:
+    containers:
+      - image: {registry-name}.azurecr.io/pactoria-backend:latest
+        name: pactoria-backend
+        env:
+          - name: GROQ_API_KEY
+            secretRef: groq-api-key
+          - name: DATABASE_URL
+            value: "sqlite:///./data/pactoria_mvp.db"
+          - name: ENVIRONMENT
+            value: "production"
+          - name: DEBUG
+            value: "false"
+        resources:
+          # MINIMUM possible resources for lowest cost
+          cpu: 0.25
+          memory: 0.5Gi
+        volumeMounts:
+          - volumeName: sqlite-storage
+            mountPath: /app/data
+    scale:
+      # Scale to zero when not in use to minimize costs
+      minReplicas: 0
+      maxReplicas: 2
+    volumes:
+      - name: sqlite-storage
+        storageType: AzureFile
+        storageName: pactoria-sqlite

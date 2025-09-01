@@ -11,9 +11,10 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-# Create SQLite engine for development (easy setup)
-# In production, this would be PostgreSQL or Oracle
-DATABASE_URL = "sqlite:///./pactoria_mvp.db"
+# Create SQLite engine - using environment variable for production
+# This allows Azure Files persistence mount
+import os
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./pactoria_mvp.db")
 
 engine = create_engine(
     DATABASE_URL,
@@ -47,7 +48,7 @@ async def create_tables():
     # Import all models to register them with Base
     from app.infrastructure.database.models import (
         User, Company, Contract, Template, AIGeneration, 
-        ComplianceScore, AuditLog, ContractVersion
+        ComplianceScore, AuditLog, ContractVersion, SystemMetrics
     )
     
     # Create all tables

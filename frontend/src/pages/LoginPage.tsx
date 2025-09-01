@@ -10,8 +10,9 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    name: '',
-    company: ''
+    full_name: '',
+    company_name: '',
+    timezone: 'Europe/London'
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
@@ -28,12 +29,12 @@ export default function LoginPage() {
       if (isLogin) {
         await login(formData.email, formData.password);
       } else {
-        if (!formData.name || !formData.company) {
+        if (!formData.full_name || !formData.company_name) {
           setErrors({ form: 'Please fill in all fields' });
           setLoading(false);
           return;
         }
-        await register(formData.email, formData.password, formData.name, formData.company);
+        await register(formData.email, formData.password, formData.full_name, formData.company_name, formData.timezone);
       }
       navigate('/dashboard');
     } catch (error: unknown) {
@@ -46,10 +47,21 @@ export default function LoginPage() {
   const handleDemoLogin = async () => {
     setLoading(true);
     try {
+      // Use a demo account if available, or direct to registration
+      setFormData({
+        email: 'demo@pactoria.com',
+        password: 'demo123',
+        full_name: 'Demo User',
+        company_name: 'Demo Company Ltd',
+        timezone: 'Europe/London'
+      });
+      setIsLogin(true);
       await login('demo@pactoria.com', 'demo123');
       navigate('/dashboard');
     } catch (error: unknown) {
-      setErrors({ form: error instanceof Error ? error.message : 'Demo login failed' });
+      // If demo login fails, show registration form with pre-filled data
+      setIsLogin(false);
+      setErrors({ form: 'Demo account not found. Please register to create an account.' });
     } finally {
       setLoading(false);
     }
@@ -96,29 +108,29 @@ export default function LoginPage() {
           {!isLogin && (
             <>
               <Input
-                id="name"
-                name="name"
+                id="full_name"
+                name="full_name"
                 type="text"
                 label="Full Name"
                 placeholder="John Smith"
                 leftIcon={<UserIcon />}
                 required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                error={errors.name}
+                value={formData.full_name}
+                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                error={errors.full_name}
               />
 
               <Input
-                id="company"
-                name="company"
+                id="company_name"
+                name="company_name"
                 type="text"
                 label="Company Name"
                 placeholder="Acme Ltd"
                 leftIcon={<BuildingOfficeIcon />}
                 required
-                value={formData.company}
-                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                error={errors.company}
+                value={formData.company_name}
+                onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
+                error={errors.company_name}
               />
             </>
           )}

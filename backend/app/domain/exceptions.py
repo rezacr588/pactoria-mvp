@@ -49,6 +49,32 @@ class ContractNotFoundError(DomainError):
         self.details["contract_id"] = contract_id
 
 
+class ResourceNotFoundError(DomainError):
+    """Raised when any resource cannot be found"""
+    
+    def __init__(self, resource_type: str, resource_id: str):
+        super().__init__(f"{resource_type} with ID '{resource_id}' not found", "RESOURCE_NOT_FOUND")
+        self.resource_type = resource_type
+        self.resource_id = resource_id
+        self.details.update({
+            "resource_type": resource_type,
+            "resource_id": resource_id
+        })
+
+
+class CompanyAccessError(DomainError):
+    """Raised when user lacks access to company resources"""
+    
+    def __init__(self, message: str, user_id: Optional[str] = None, company_id: Optional[str] = None):
+        super().__init__(message, "COMPANY_ACCESS_ERROR")
+        self.user_id = user_id
+        self.company_id = company_id
+        if user_id:
+            self.details["user_id"] = user_id
+        if company_id:
+            self.details["company_id"] = company_id
+
+
 class ContractStateError(BusinessRuleViolationError):
     """Raised when contract is in invalid state for requested operation"""
     

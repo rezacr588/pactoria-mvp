@@ -1,0 +1,90 @@
+# Dockerfile ignore for Azure deployment optimization
+
+# Python cache and virtual environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+# Virtual environments
+venv/
+ENV/
+env/
+.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Local development files
+*.sqlite
+*.db
+*.log
+logs/
+uploads/
+data/
+
+# Development environment files
+.env.development
+.env.local
+
+# Documentation
+docs/
+*.md
+README*
+
+# Test files
+tests/
+test_*
+*_test.py
+pytest.ini
+tox.ini
+
+# Development tools
+.flake8
+.pylintrc
+mypy.ini
+
+# Package management
+pip-selfcheck.json
+
+# Azure specific ignores
+.azure/
+azure-pipelines.yml
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile.dev
+docker-compose*.yml

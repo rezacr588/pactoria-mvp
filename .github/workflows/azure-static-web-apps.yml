@@ -1,0 +1,141 @@
+name: Azure Static Web Apps CI/CD
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/azure-static-web-apps.yml'
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches: [ "main" ]
+    paths:
+      - 'frontend/**'
+
+# Environment variables
+env:
+  NODE_VERSION: '18.x'
+  AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+
+jobs:
+  build_and_deploy_job:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Build and Deploy Job
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: false
+
+      # Setup Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      # Cache node modules for faster builds
+      - name: Cache node modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci --prefer-offline --no-audit
+        
+      # Build the application
+      - name: Build application
+        run: |
+          cd frontend
+          npm run build
+        env:
+          # Production environment variables for build
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://pactoria-backend.azurewebsites.net/api' }}
+          VITE_APP_NAME: 'Pactoria'
+          VITE_APP_VERSION: '1.0.0'
+          VITE_ENABLE_ANALYTICS: 'false'
+          VITE_ENABLE_DEBUG: 'false'
+          
+      # Run linting (optional, but good practice)
+      - name: Run ESLint
+        run: |
+          cd frontend
+          npm run lint
+        continue-on-error: true
+
+      # Deploy to Azure Static Web Apps
+      - name: Build And Deploy
+        id: builddeploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          # App configuration
+          app_location: "frontend" # App source code path
+          api_location: "" # Api source code path - optional
+          output_location: "dist" # Built app content directory
+          # Build configuration
+          skip_app_build: true # We build manually above
+          skip_api_build: true # No API in static web app
+          # Deployment configuration
+          config_file_location: "frontend/staticwebapp.config.json"
+
+  close_pull_request_job:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Close Pull Request Job
+    steps:
+      - name: Close Pull Request
+        id: closepullrequest
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: "close"
+
+  # Optional: Deploy staging environment for PRs
+  deploy_staging:
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    name: Deploy to Staging
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install and Build
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL_STAGING || 'https://pactoria-backend-staging.azurewebsites.net/api' }}
+          VITE_ENABLE_DEBUG: 'true'
+
+      - name: Deploy to Staging
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_STAGING }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "frontend"
+          output_location: "dist"
+          skip_app_build: true

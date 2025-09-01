@@ -4,7 +4,7 @@ Pytest configuration and shared fixtures for Pactoria MVP tests
 import pytest
 import asyncio
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, patch
 from typing import Dict, Any
 import os
 import tempfile
@@ -26,11 +26,17 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(scope="session", autouse=True)
-def setup_test_database():
-    """Set up test database with all tables using in-memory SQLite"""
-    # Create a test engine with in-memory database
-    test_engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+@pytest.fixture(scope="function")
+def test_database():
+    """Set up isolated test database with all tables using in-memory SQLite"""
+    # Create a test engine with in-memory database (unique per test)
+    test_engine = create_engine(f"sqlite:///:memory:", connect_args={"check_same_thread": False})
+    
+    # Import all models to ensure they're registered with Base
+    from app.infrastructure.database.models import (
+        User, Company, Contract, Template, AIGeneration, 
+        ComplianceScore, AuditLog, ContractVersion, SystemMetrics
+    )
     
     # Create all tables for testing
     Base.metadata.create_all(bind=test_engine)
@@ -46,17 +52,27 @@ def setup_test_database():
         finally:
             db.close()
     
+    # Override dependency and patch direct SessionLocal usage
     app.dependency_overrides[get_db] = override_get_db
     
-    yield test_engine
+    # Patch SessionLocal in database module to prevent direct access
+    with patch('app.core.database.SessionLocal', TestingSessionLocal):
+        yield test_engine
     
     # Cleanup
     app.dependency_overrides.clear()
 
 
+@pytest.fixture(scope="function")
+def isolated_test_db():
+    """Use for unit tests that need isolated database"""
+    # For unit tests, use isolated database
+    pass
+
+
 @pytest.fixture
-def client():
-    """Create a test client for FastAPI application"""
+def client(test_database):
+    """Create a test client for FastAPI application with test database"""
     with TestClient(app) as client:
         yield client
 

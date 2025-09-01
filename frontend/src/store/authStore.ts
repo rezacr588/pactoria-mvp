@@ -1,32 +1,45 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User } from '../types';
+import { User, Company, AuthResponse } from '../types';
+import { AuthService } from '../services/api';
 
 interface AuthState {
   user: User | null;
+  company: Company | null;
+  token: string | null;
   isLoading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string, company: string) => Promise<void>;
+  register: (email: string, password: string, full_name: string, company_name?: string, timezone?: string) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
+  clearError: () => void;
 }
 
-// Mock user data
-const mockUser: User = {
-  id: '1',
-  email: 'demo@pactoria.com',
-  name: 'Sarah Johnson',
-  company: 'TechCorp Ltd',
-  role: 'admin',
-  avatar: 'https://ui-avatars.com/api/?name=Sarah+Johnson&background=3b82f6&color=fff',
-  joinedAt: new Date('2024-01-15'),
-  lastActive: new Date(),
+// Token storage configuration
+const TOKEN_STORAGE_KEY = import.meta.env.VITE_TOKEN_STORAGE_KEY || 'auth-token';
+
+// Helper function to store token
+const storeToken = (token: string) => {
+  localStorage.setItem(TOKEN_STORAGE_KEY, token);
+};
+
+// Helper function to clear token
+const clearToken = () => {
+  localStorage.removeItem(TOKEN_STORAGE_KEY);
+};
+
+// Helper function to get stored token
+const getStoredToken = (): string | null => {
+  return localStorage.getItem(TOKEN_STORAGE_KEY);
 };
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
+      company: null,
+      token: getStoredToken(),
       isLoading: false,
       error: null,
 
@@ -34,50 +47,117 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         
         try {
-          // Mock login - in real app would call API
-          if (email === 'demo@pactoria.com' && password === 'demo123') {
-            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
-            set({ user: mockUser, isLoading: false });
-          } else {
-            throw new Error('Invalid credentials');
-          }
-        } catch (error: unknown) {
-          set({ error: error instanceof Error ? error.message : 'Authentication failed', isLoading: false });
+          const response = await AuthService.login(email, password);
+          
+          // Store token separately for security
+          storeToken(response.token.access_token);
+          
+          set({ 
+            user: response.user,
+            company: response.company,
+            token: response.token.access_token,
+            isLoading: false,
+            error: null
+          });
+        } catch (error: any) {
+          const errorMessage = error.data?.detail || error.message || 'Authentication failed';
+          set({ 
+            error: errorMessage,
+            isLoading: false,
+            user: null,
+            company: null,
+            token: null
+          });
+          clearToken();
           throw error;
         }
       },
 
-      register: async (email: string, _password: string, name: string, company: string) => {
+      register: async (email: string, password: string, full_name: string, company_name?: string, timezone = 'Europe/London') => {
         set({ isLoading: true, error: null });
         
         try {
-          // Mock registration - in real app would call API
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-          
-          const newUser: User = {
-            id: Date.now().toString(),
+          const response = await AuthService.register({
             email,
-            name,
-            company,
-            role: 'admin',
-            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff`,
-            joinedAt: new Date(),
-            lastActive: new Date(),
-          };
+            password,
+            full_name,
+            company_name,
+            timezone
+          });
           
-          set({ user: newUser, isLoading: false });
-        } catch (error: unknown) {
-          set({ error: error instanceof Error ? error.message : 'Registration failed', isLoading: false });
+          // Store token separately for security
+          storeToken(response.token.access_token);
+          
+          set({ 
+            user: response.user,
+            company: response.company,
+            token: response.token.access_token,
+            isLoading: false,
+            error: null
+          });
+        } catch (error: any) {
+          const errorMessage = error.data?.detail || error.message || 'Registration failed';
+          set({ 
+            error: errorMessage,
+            isLoading: false,
+            user: null,
+            company: null,
+            token: null
+          });
+          clearToken();
+          throw error;
+        }
+      },
+
+      refreshUser: async () => {
+        const { token } = get();
+        if (!token) return;
+        
+        try {
+          const user = await AuthService.getCurrentUser();
+          set({ user, error: null });
+        } catch (error: any) {
+          // Token might be expired, clear auth state
+          set({ user: null, company: null, token: null, error: 'Session expired' });
+          clearToken();
           throw error;
         }
       },
 
       logout: () => {
-        set({ user: null, error: null });
+        clearToken();
+        set({ 
+          user: null,
+          company: null,
+          token: null,
+          error: null 
+        });
+      },
+
+      clearError: () => {
+        set({ error: null });
       },
     }),
     {
       name: 'auth-storage',
+      // Only persist user and company data, not the token (for security)
+      partialize: (state) => ({
+        user: state.user,
+        company: state.company,
+      }),
     }
   )
 );
+
+// Initialize token from localStorage on app start
+if (typeof window !== 'undefined') {
+  const token = getStoredToken();
+  if (token) {
+    useAuthStore.setState({ token });
+    // Optionally refresh user data if token exists
+    useAuthStore.getState().refreshUser().catch(() => {
+      // Silently handle refresh errors on initialization
+      useAuthStore.getState().logout();
+    });
+  }
+}

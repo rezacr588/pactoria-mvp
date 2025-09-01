@@ -1,7 +1,6 @@
 import React from 'react';
-import { CommandLineIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { CommandLineIcon } from '@heroicons/react/24/outline';
 import { formatShortcut, KeyboardShortcut } from '../../hooks/useKeyboardShortcuts';
-import { classNames } from '../../utils/classNames';
 import Modal from './Modal';
 
 export interface KeyboardShortcutsHelpProps {

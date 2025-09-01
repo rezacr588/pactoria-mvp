@@ -6,39 +6,30 @@ import {
   FunnelIcon,
   ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
-import { useContractStore } from '../store/contractStore';
+import { useContractStore, CONTRACT_STATUS_OPTIONS, CONTRACT_TYPE_OPTIONS } from '../store/contractStore';
 import { Contract } from '../types';
+import { getErrorMessage } from '../utils/errorHandling';
+import { debounce } from '../utils/loadingStates';
 import { Button, Card, Badge, Input, Select, EmptyState } from '../components/ui';
 import { classNames } from '../utils/classNames';
 import { textStyles, textColors } from '../utils/typography';
 
 const statusOptions = [
   { value: '', label: 'All Statuses' },
-  { value: 'draft', label: 'Draft' },
-  { value: 'review', label: 'Review' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'signed', label: 'Signed' },
-  { value: 'active', label: 'Active' },
-  { value: 'expired', label: 'Expired' },
-  { value: 'terminated', label: 'Terminated' }
+  ...CONTRACT_STATUS_OPTIONS
 ];
 
 const typeOptions = [
   { value: '', label: 'All Types' },
-  { value: 'professional-services', label: 'Professional Services' },
-  { value: 'employment', label: 'Employment Contract' },
-  { value: 'supplier', label: 'Supplier Agreement' },
-  { value: 'nda', label: 'Non-Disclosure Agreement' }
+  ...CONTRACT_TYPE_OPTIONS
 ];
 
 function getStatusBadgeVariant(status: Contract['status']): 'default' | 'success' | 'warning' | 'danger' | 'info' {
   switch (status) {
     case 'active':
-    case 'signed':
       return 'success';
-    case 'review':
-    case 'approved':
-      return 'warning';
+    case 'completed':
+      return 'success';
     case 'draft':
       return 'info';
     case 'expired':
@@ -50,11 +41,18 @@ function getStatusBadgeVariant(status: Contract['status']): 'default' | 'success
 }
 
 export default function ContractsPage() {
-  const { contracts, fetchContracts, isLoading } = useContractStore();
+  const { 
+    contracts, 
+    pagination,
+    fetchContracts, 
+    isLoading, 
+    error,
+    clearError 
+  } = useContractStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
-  const [sortBy, setSortBy] = useState('updatedAt');
+  const [sortBy, setSortBy] = useState('updated_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
   // Debounced search to improve performance
@@ -68,56 +66,71 @@ export default function ContractsPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  useEffect(() => {
-    fetchContracts();
-  }, [fetchContracts]);
+  // Debounced API call
+  const debouncedFetchContracts = useCallback(
+    debounce((params: {
+      search?: string;
+      contract_type?: string;
+      status?: string;
+      page?: number;
+    }) => {
+      fetchContracts(params).catch((error) => {
+        console.error('Failed to fetch contracts:', getErrorMessage(error));
+      });
+    }, 500),
+    [fetchContracts]
+  );
 
-  // Filter and sort contracts with memoization for performance
-  const filteredContracts = useMemo(() => contracts
-    .filter(contract => {
-      const matchesSearch = contract.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-                           contract.type.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-                           contract.parties.some(party => 
-                             party.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
-                           );
-      const matchesStatus = !statusFilter || contract.status === statusFilter;
-      const matchesType = !typeFilter || contract.type.id === typeFilter;
-      
-      return matchesSearch && matchesStatus && matchesType;
-    })
+  useEffect(() => {
+    debouncedFetchContracts({});
+  }, [debouncedFetchContracts]);
+
+  useEffect(() => {
+    const params: any = {};
+    
+    if (debouncedSearchQuery) params.search = debouncedSearchQuery;
+    if (statusFilter) params.status = statusFilter;
+    if (typeFilter) params.contract_type = typeFilter;
+    
+    debouncedFetchContracts(params);
+  }, [debouncedSearchQuery, statusFilter, typeFilter, debouncedFetchContracts]);
+
+  // Sort contracts client-side (filtering is now done server-side)
+  const sortedContracts = useMemo(() => contracts
     .sort((a, b) => {
-      const aValue = sortBy === 'name' ? a.name : 
+      const aValue = sortBy === 'title' ? a.title : 
                      sortBy === 'status' ? a.status :
-                     sortBy === 'type' ? a.type.name :
-                     sortBy === 'updatedAt' ? new Date(a.updatedAt).getTime() :
-                     new Date(a.createdAt).getTime();
+                     sortBy === 'contract_type' ? a.contract_type :
+                     sortBy === 'updated_at' ? new Date(a.updated_at || a.created_at).getTime() :
+                     new Date(a.created_at).getTime();
       
-      const bValue = sortBy === 'name' ? b.name : 
+      const bValue = sortBy === 'title' ? b.title : 
                      sortBy === 'status' ? b.status :
-                     sortBy === 'type' ? b.type.name :
-                     sortBy === 'updatedAt' ? new Date(b.updatedAt).getTime() :
-                     new Date(b.createdAt).getTime();
+                     sortBy === 'contract_type' ? b.contract_type :
+                     sortBy === 'updated_at' ? new Date(b.updated_at || b.created_at).getTime() :
+                     new Date(b.created_at).getTime();
 
       if (sortOrder === 'asc') {
         return aValue > bValue ? 1 : -1;
       } else {
         return aValue < bValue ? 1 : -1;
       }
-    }), [contracts, debouncedSearchQuery, statusFilter, typeFilter, sortBy, sortOrder]);
+    }), [contracts, sortBy, sortOrder]);
 
   const handleExportCSV = useCallback(() => {
-    const headers = ['Name', 'Type', 'Status', 'Created', 'Updated', 'Compliance Score', 'Risk Level'];
+    const headers = ['Title', 'Type', 'Status', 'Client', 'Supplier', 'Value', 'Currency', 'Created', 'Updated'];
     const csvContent = [
       headers.join(','),
-      ...filteredContracts.map(contract => [
-        `"${contract.name}"`,
-        `"${contract.type.name}"`,
+      ...sortedContracts.map(contract => [
+        `"${contract.title}"`,
+        `"${contract.contract_type}"`,
         contract.status,
-        new Date(contract.createdAt).toLocaleDateString(),
-        new Date(contract.updatedAt).toLocaleDateString(),
-        contract.complianceScore.overall,
-        contract.riskAssessment.overall <= 30 ? 'Low' :
-        contract.riskAssessment.overall <= 60 ? 'Medium' : 'High'
+        `"${contract.client_name || ''}"`,
+        `"${contract.supplier_name || ''}"`,
+        contract.contract_value || '',
+        contract.currency,
+        new Date(contract.created_at).toLocaleDateString(),
+        new Date(contract.updated_at || contract.created_at).toLocaleDateString()
       ].join(','))
     ].join('\n');
 
@@ -128,7 +141,7 @@ export default function ContractsPage() {
     link.download = `contracts-export-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
     URL.revokeObjectURL(url);
-  }, [filteredContracts]);
+  }, [sortedContracts]);
   
   const clearFilters = useCallback(() => {
     setSearchQuery('');
@@ -188,11 +201,11 @@ export default function ContractsPage() {
           <Select
             placeholder="Sort by"
             options={[
-              { value: 'updatedAt', label: 'Last Updated' },
-              { value: 'createdAt', label: 'Date Created' },
-              { value: 'name', label: 'Name' },
+              { value: 'updated_at', label: 'Last Updated' },
+              { value: 'created_at', label: 'Date Created' },
+              { value: 'title', label: 'Title' },
               { value: 'status', label: 'Status' },
-              { value: 'type', label: 'Type' }
+              { value: 'contract_type', label: 'Type' }
             ]}
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -204,8 +217,19 @@ export default function ContractsPage() {
       <div className="mb-4 flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center space-x-4">
           <p className={textStyles.metadata}>
-            Showing {filteredContracts.length} of {contracts.length} contracts
+            Showing {sortedContracts.length} of {pagination.total} contracts
           </p>
+          {error && (
+            <div className="text-red-600 text-sm">
+              Error: {getErrorMessage(error)}
+              <button 
+                onClick={clearError} 
+                className="ml-2 text-blue-600 hover:underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
           {hasActiveFilters && (
             <Button
               variant="ghost"
@@ -253,7 +277,7 @@ export default function ContractsPage() {
             </Card>
           ))}
         </div>
-      ) : filteredContracts.length === 0 ? (
+      ) : sortedContracts.length === 0 ? (
         <Card>
           <EmptyState
             icon={FunnelIcon}
@@ -276,7 +300,7 @@ export default function ContractsPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {filteredContracts.map((contract) => (
+          {sortedContracts.map((contract) => (
             <Card key={contract.id} variant="bordered" className="hover:shadow-md hover:border-primary-200 dark:hover:border-primary-800 transition-all duration-200 group">
               <Link to={`/contracts/${contract.id}`} className="block">
                 <div className="flex items-center justify-between">
@@ -284,60 +308,55 @@ export default function ContractsPage() {
                     <div className="flex-shrink-0">
                       <div className="w-10 h-10 bg-primary-100 dark:bg-primary-950/30 rounded-lg flex items-center justify-center">
                         <span className={`${textColors.interactive} font-semibold text-sm`}>
-                          {contract.name.charAt(0)}
+                          {contract.title.charAt(0)}
                         </span>
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-3 mb-1">
                         <h3 className={`${textStyles.cardTitle} truncate group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors`}>
-                          {contract.name}
+                          {contract.title}
                         </h3>
                         <Badge variant={getStatusBadgeVariant(contract.status)}>
                           {contract.status.charAt(0).toUpperCase() + contract.status.slice(1)}
                         </Badge>
                       </div>
                       <div className={`mt-1 flex items-center space-x-4 ${textStyles.metadata}`}>
-                        <span>{contract.type.name}</span>
+                        <span>{contract.contract_type.replace('_', ' ')}</span>
                         <span>•</span>
                         <span>Version {contract.version}</span>
                         <span>•</span>
-                        <span>Updated {new Date(contract.updatedAt).toLocaleDateString()}</span>
+                        <span>Updated {new Date(contract.updated_at || contract.created_at).toLocaleDateString()}</span>
+                        {contract.contract_value && (
+                          <>
+                            <span>•</span>
+                            <span>{contract.currency} {contract.contract_value.toLocaleString()}</span>
+                          </>
+                        )}
                       </div>
                       <div className="mt-2 flex items-center space-x-4">
-                        <div className="flex items-center space-x-2">
-                          <div className={classNames(
-                            'w-2 h-2 rounded-full',
-                            contract.complianceScore.overall >= 90 ? 'bg-success-500' :
-                            contract.complianceScore.overall >= 80 ? 'bg-warning-500' :
-                            'bg-danger-500'
-                          )} />
-                          <span className={textStyles.timestamp}>
-                            {contract.complianceScore.overall}% Compliant
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className={classNames(
-                            'w-2 h-2 rounded-full',
-                            contract.riskAssessment.overall <= 30 ? 'bg-success-500' :
-                            contract.riskAssessment.overall <= 60 ? 'bg-warning-500' :
-'bg-danger-500'
-                          )} />
-                          <span className={textStyles.timestamp}>
-                            {contract.riskAssessment.overall <= 30 ? 'Low' :
-                             contract.riskAssessment.overall <= 60 ? 'Medium' : 'High'} Risk
-                          </span>
-                        </div>
+                        {contract.client_name && (
+                          <div className="flex items-center space-x-1">
+                            <span className={textStyles.timestamp}>Client:</span>
+                            <span className={textStyles.timestamp}>{contract.client_name}</span>
+                          </div>
+                        )}
+                        {contract.supplier_name && (
+                          <div className="flex items-center space-x-1">
+                            <span className={textStyles.timestamp}>Supplier:</span>
+                            <span className={textStyles.timestamp}>{contract.supplier_name}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
                     <div className="text-right hidden sm:block">
                       <div className={`text-sm font-medium ${textColors.primary}`}>
-                        {contract.parties.length} {contract.parties.length === 1 ? 'Party' : 'Parties'}
+                        {new Date(contract.created_at).toLocaleDateString()}
                       </div>
                       <div className={textStyles.metadata}>
-                        {contract.deadlines.length} {contract.deadlines.length === 1 ? 'Deadline' : 'Deadlines'}
+                        Created
                       </div>
                     </div>
                   </div>

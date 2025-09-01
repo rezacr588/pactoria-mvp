@@ -1,5 +1,4 @@
 import React from 'react';
-import { useSkipLinks } from '../../hooks/useAccessibility';
 import { classNames } from '../../utils/classNames';
 
 export interface SkipLinkProps {

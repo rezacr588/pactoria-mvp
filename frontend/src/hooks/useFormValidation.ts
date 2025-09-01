@@ -341,7 +341,7 @@ export function useFormValidation<T extends Record<string, any>>(
     setFieldValue(name, value, validateOnChange);
   }, [setFieldValue, validateOnChange]);
 
-  const handleBlur = useCallback((name: keyof T) => (e: React.FocusEvent) => {
+  const handleBlur = useCallback((name: keyof T) => () => {
     setTouched(name, true);
     if (validateOnBlur) {
       validateField(name);

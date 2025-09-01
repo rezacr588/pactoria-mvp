@@ -148,17 +148,90 @@ async def create_contract(
     return ContractResponse.model_validate(contract)
 
 
-@router.get("/", response_model=ContractListResponse)
+@router.get(
+    "/", 
+    response_model=ContractListResponse,
+    summary="List Company Contracts",
+    description="""
+    Retrieve paginated list of contracts for the authenticated user's company.
+    
+    **Key Features:**
+    - Paginated results with configurable page size (1-100 contracts per page)
+    - Filter by contract type (service_agreement, employment_contract, etc.)
+    - Filter by contract status (draft, active, completed, expired, terminated)
+    - Full-text search across title, client name, supplier name, and description
+    - Results sorted by creation date (newest first)
+    - Only returns current version of contracts
+    
+    **Query Parameters:**
+    - `page`: Page number (default: 1, minimum: 1)
+    - `size`: Number of contracts per page (default: 10, range: 1-100)
+    - `contract_type`: Filter by contract type (optional)
+    - `status`: Filter by contract status (optional)
+    - `search`: Search term to match against contract fields (optional)
+    
+    **Example Queries:**
+    - `GET /api/v1/contracts/` - Get first page of all contracts
+    - `GET /api/v1/contracts/?page=2&size=25` - Get 25 contracts on page 2
+    - `GET /api/v1/contracts/?contract_type=service_agreement&status=active` - Get active service agreements
+    - `GET /api/v1/contracts/?search=consulting` - Search for contracts containing "consulting"
+    
+    **Requires Authentication:** JWT Bearer token
+    **Requires Company:** User must be associated with a company
+    """,
+    responses={
+        200: {
+            "description": "Contracts retrieved successfully",
+            "model": ContractListResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "contracts": [
+                            {
+                                "id": "contract-12345",
+                                "title": "Professional Services Agreement",
+                                "contract_type": "service_agreement",
+                                "status": "active",
+                                "client_name": "ABC Corp Ltd",
+                                "contract_value": 50000.00,
+                                "currency": "GBP",
+                                "created_at": "2024-01-15T10:30:00Z",
+                                "updated_at": "2024-01-15T10:30:00Z"
+                            }
+                        ],
+                        "total": 47,
+                        "page": 1,
+                        "size": 10,
+                        "pages": 5
+                    }
+                }
+            }
+        },
+        401: {
+            "description": "Authentication required",
+            "model": UnauthorizedError
+        },
+        403: {
+            "description": "User not associated with company",
+            "model": ForbiddenError
+        },
+        422: {
+            "description": "Invalid query parameters",
+            "model": ValidationError
+        }
+    },
+    dependencies=[Depends(security)]
+)
 async def list_contracts(
-    page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1, le=100),
-    contract_type: Optional[str] = None,
-    status: Optional[str] = None,
-    search: Optional[str] = None,
+    page: int = Query(1, ge=1, description="Page number for pagination"),
+    size: int = Query(10, ge=1, le=100, description="Number of contracts per page (max 100)"),
+    contract_type: Optional[str] = Query(None, description="Filter by contract type (service_agreement, employment_contract, etc.)"),
+    status: Optional[str] = Query(None, description="Filter by contract status (draft, active, completed, expired, terminated)"),
+    search: Optional[str] = Query(None, description="Search term to match against contract title, client name, supplier name, or description"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """List contracts for user's company"""
+    """List contracts for user's company with pagination and filtering"""
     
     ResourceValidator.validate_user_has_company(current_user)
     
@@ -205,13 +278,93 @@ async def list_contracts(
     )
 
 
-@router.get("/{contract_id}", response_model=ContractResponse)
+@router.get(
+    "/{contract_id}", 
+    response_model=ContractResponse,
+    summary="Get Contract by ID",
+    description="""
+    Retrieve detailed information for a specific contract by its unique identifier.
+    
+    **Key Features:**
+    - Returns complete contract details including all metadata
+    - Includes compliance scores and AI generation data if available
+    - Shows contract versions and audit trail
+    - Enforces company access control - users can only access their company's contracts
+    
+    **Path Parameters:**
+    - `contract_id`: Unique identifier of the contract (UUID format)
+    
+    **Response Data Includes:**
+    - Contract basic information (title, type, status, dates)
+    - Client and supplier details
+    - Financial information (value, currency)
+    - Generated and final content
+    - Compliance and risk scores
+    - Version control information
+    - Creation and modification timestamps
+    - Associated template information
+    
+    **Use Cases:**
+    - Display contract details in frontend
+    - Download contract content for editing
+    - Review compliance scores and recommendations
+    - Track contract status and history
+    
+    **Requires Authentication:** JWT Bearer token
+    **Requires Company Access:** User must belong to the same company as the contract
+    """,
+    responses={
+        200: {
+            "description": "Contract retrieved successfully",
+            "model": ContractResponse,
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "contract-12345",
+                        "title": "Professional Services Agreement with TechCorp",
+                        "contract_type": "service_agreement",
+                        "status": "active",
+                        "client_name": "TechCorp Ltd",
+                        "client_email": "legal@techcorp.com",
+                        "supplier_name": "My Consultancy Ltd",
+                        "supplier_email": "contact@myconsultancy.com",
+                        "contract_value": 75000.00,
+                        "currency": "GBP",
+                        "start_date": "2024-02-01T00:00:00Z",
+                        "end_date": "2024-12-31T23:59:59Z",
+                        "plain_english_input": "Need consulting agreement for software development project...",
+                        "generated_content": "PROFESSIONAL SERVICES AGREEMENT\\n\\nThis agreement...",
+                        "final_content": "PROFESSIONAL SERVICES AGREEMENT\\n\\nThis agreement...",
+                        "version": 1,
+                        "compliance_score": 0.92,
+                        "risk_score": 3,
+                        "created_at": "2024-01-15T10:30:00Z",
+                        "updated_at": "2024-01-16T14:22:00Z"
+                    }
+                }
+            }
+        },
+        401: {
+            "description": "Authentication required",
+            "model": UnauthorizedError
+        },
+        403: {
+            "description": "Access forbidden - contract belongs to different company",
+            "model": ForbiddenError
+        },
+        404: {
+            "description": "Contract not found",
+            "model": NotFoundError
+        }
+    },
+    dependencies=[Depends(security)]
+)
 async def get_contract(
     contract_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get contract by ID"""
+    """Get detailed contract information by ID with company access control"""
     
     contract = db.query(Contract).filter(Contract.id == contract_id).first()
     if not contract:
@@ -431,6 +584,17 @@ async def generate_contract_content(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate contract content: {str(e)}"
         )
+
+
+@router.post("/{contract_id}/analyze/compliance", response_model=ComplianceScoreResponse)
+async def analyze_contract_compliance_detailed(
+    contract_id: str,
+    analysis_data: ContractAnalysisRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Analyze contract for compliance (detailed endpoint)"""
+    return await analyze_contract_compliance(contract_id, analysis_data, current_user, db)
 
 
 @router.post("/{contract_id}/analyze", response_model=ComplianceScoreResponse)

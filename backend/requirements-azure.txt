@@ -1,0 +1,49 @@
+# Optimized requirements for Azure App Service F1 tier
+# Reduced dependencies for memory efficiency and faster cold starts
+
+# Core FastAPI dependencies
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+gunicorn==21.2.0
+python-dotenv==1.0.1
+pydantic==2.10.2
+pydantic-settings==2.6.1
+
+# Database - optimized for Azure PostgreSQL
+sqlalchemy==2.0.35
+psycopg2-binary==2.9.10
+# Removed alembic for F1 tier - using direct table creation
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.17
+
+# AI/LLM - Groq only for efficiency
+groq==0.11.0
+# Removed langchain packages to reduce memory footprint
+# Will use Groq SDK directly
+
+# File handling - minimal set
+python-docx==1.1.2
+jinja2==3.1.4
+
+# HTTP client - async for efficiency
+httpx==0.28.0
+
+# Removed Redis for F1 tier - using in-memory caching instead
+# Removed testing dependencies for production
+
+# Azure specific dependencies
+azure-storage-blob==12.19.0
+azure-identity==1.15.0
+
+# Logging and monitoring
+structlog==23.2.0
+
+# Security enhancements
+cryptography==41.0.8
+bcrypt==4.1.2
+
+# Performance optimization
+orjson==3.9.10  # Faster JSON serialization

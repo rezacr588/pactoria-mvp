@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     # File Upload
     MAX_FILE_SIZE_MB: int = 10
     ALLOWED_FILE_TYPES: List[str] = [".pdf", ".docx", ".txt"]
+    UPLOAD_DIR: str = "uploads"
     
     # Contract Settings (MVP Requirements)
     MAX_USERS_PER_ACCOUNT: int = 5  # As per MVP plan

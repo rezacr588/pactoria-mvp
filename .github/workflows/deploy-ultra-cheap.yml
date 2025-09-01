@@ -1,0 +1,41 @@
+name: Ultra-Cheap Azure Deployment
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Build and deploy backend
+      run: |
+        # Build container image
+        az acr build --registry pactoriaacr --image pactoria-backend:latest ./backend
+        
+        # Update container app
+        az containerapp update \
+          --name pactoria-backend \
+          --resource-group pactoria-rg \
+          --image pactoriaacr.azurecr.io/pactoria-backend:latest
+    
+    - name: Build and deploy frontend
+      run: |
+        cd frontend
+        npm install
+        npm run build
+        
+        # Deploy to Static Web Apps
+        az staticwebapp deploy \
+          --name pactoria-frontend \
+          --resource-group pactoria-rg \
+          --source ./dist

@@ -38,7 +38,6 @@ const Wizard: React.FC<WizardProps> = ({
   className,
   showStepNumbers = true,
   allowStepClick = true,
-  persistProgress = false,
   completedSteps = [],
 }) => {
   const [animationDirection, setAnimationDirection] = useState<'forward' | 'backward'>('forward');

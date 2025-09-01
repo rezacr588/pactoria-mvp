@@ -1,8 +1,8 @@
+@import './styles/logo.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import './styles/logo.css';
 
 @layer base {
   html {
@@ -107,5 +107,70 @@
   /* Better form focus rings */
   .form-input:focus {
     @apply ring-2 ring-primary-500 ring-opacity-50 border-primary-500;
+  }
+
+  /* Responsive text utilities */
+  .text-responsive-xs {
+    @apply text-xs sm:text-sm;
+  }
+
+  .text-responsive-sm {
+    @apply text-sm sm:text-base;
+  }
+
+  .text-responsive-base {
+    @apply text-base sm:text-lg;
+  }
+
+  .text-responsive-lg {
+    @apply text-lg sm:text-xl lg:text-2xl;
+  }
+
+  .text-responsive-xl {
+    @apply text-xl sm:text-2xl lg:text-3xl xl:text-4xl;
+  }
+
+  /* Safe area adjustments for mobile */
+  .safe-area-inset {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Print styles */
+  @media print {
+    * {
+      @apply text-black bg-white;
+    }
+    
+    .no-print {
+      display: none !important;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    :root {
+      --tw-prose-body: theme('colors.neutral.900');
+      --tw-prose-headings: theme('colors.neutral.900');
+    }
+    
+    .dark {
+      --tw-prose-body: theme('colors.neutral.100');
+      --tw-prose-headings: theme('colors.neutral.100');
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import verify_token
-from app.infrastructure.database.models import User, Company
+from app.infrastructure.database.models import User, Company, UserRole
 
 security = HTTPBearer(auto_error=False)
 
@@ -126,5 +126,106 @@ async def get_optional_user(
             return None
         
         return user
+    except Exception:
+        return None
+
+
+# Role-based access control functions
+def has_permission(user: User, required_role: UserRole) -> bool:
+    """Check if user has the required role or higher"""
+    if user.is_admin:
+        return True
+    
+    role_hierarchy = {
+        UserRole.VIEWER: 1,
+        UserRole.EDITOR: 2,
+        UserRole.ADMIN: 3
+    }
+    
+    user_level = role_hierarchy.get(user.role, 0)
+    required_level = role_hierarchy.get(required_role, 0)
+    
+    return user_level >= required_level
+
+
+def require_role(required_role: UserRole):
+    """Decorator factory for role-based access control"""
+    def role_dependency(current_user: User = Depends(get_current_user)) -> User:
+        if not has_permission(current_user, required_role):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Insufficient permissions. {required_role.value.title()} role or higher required."
+            )
+        return current_user
+    return role_dependency
+
+
+# Specific role dependencies
+async def get_editor_user(current_user: User = Depends(get_current_user)) -> User:
+    """Get current user if they have editor role or higher"""
+    if not has_permission(current_user, UserRole.EDITOR):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Editor privileges required"
+        )
+    return current_user
+
+
+async def get_admin_role_user(current_user: User = Depends(get_current_user)) -> User:
+    """Get current user if they have admin role or are system admin"""
+    if not has_permission(current_user, UserRole.ADMIN) and not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required"
+        )
+    return current_user
+
+
+def can_modify_resource(user: User, resource_owner_id: str) -> bool:
+    """Check if user can modify a resource based on ownership and role"""
+    # Admins can modify anything
+    if user.is_admin or user.role == UserRole.ADMIN:
+        return True
+    
+    # Editors can modify their own resources
+    if user.role == UserRole.EDITOR and user.id == resource_owner_id:
+        return True
+    
+    # Viewers cannot modify anything
+    return False
+
+
+def require_modify_permission(user: User, resource_owner_id: str):
+    """Require permission to modify a resource"""
+    if not can_modify_resource(user, resource_owner_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to modify this resource"
+        )
+
+
+# WebSocket authentication functions
+
+def decode_jwt_token(token: str) -> Optional[dict]:
+    """Decode JWT token and return payload"""
+    try:
+        from app.core.security import decode_token
+        return decode_token(token)
+    except Exception:
+        return None
+
+
+def authenticate_websocket_user(token: str, db: Session) -> Optional[User]:
+    """Authenticate WebSocket user from JWT token"""
+    try:
+        # Verify token and get user ID
+        user_id = verify_token(token)
+        if not user_id:
+            return None
+        
+        # Get user from database
+        user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
+        return user
+        
     except Exception:
         return None

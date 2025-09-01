@@ -115,3 +115,14 @@ class AnalyticsFilter(BaseModel):
     company_id: Optional[str] = None
     user_id: Optional[str] = None
     include_drafts: bool = True
+
+
+class DashboardResponse(BaseModel):
+    """Complete dashboard analytics response"""
+    business_metrics: BusinessMetricsResponse
+    user_metrics: UserMetricsResponse
+    contract_types: List[ContractTypeMetrics]
+    compliance_metrics: ComplianceMetricsResponse
+    recent_contracts_trend: TimeSeriesResponse
+    contract_value_trend: TimeSeriesResponse
+    summary: Dict[str, Any]

@@ -1,0 +1,28 @@
+# Azure Functions requirements for AI processing
+# Optimized for Consumption plan with low memory usage
+
+# Azure Functions
+azure-functions==1.18.0
+azure-functions-worker==1.0.0
+
+# AI/ML Libraries (minimal set for Functions)
+groq==0.11.0
+tiktoken==0.5.2
+pydantic==2.10.2
+
+# HTTP and JSON handling
+httpx==0.28.0
+orjson==3.9.10
+
+# Environment and configuration
+python-dotenv==1.0.1
+
+# Logging
+structlog==23.2.0
+
+# Security
+cryptography==41.0.8
+
+# Database connectivity (if needed)
+psycopg2-binary==2.9.10
+sqlalchemy==2.0.35

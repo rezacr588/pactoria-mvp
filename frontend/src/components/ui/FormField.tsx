@@ -17,7 +17,7 @@ export interface FormFieldProps extends Omit<InputProps, 'onChange' | 'onBlur'> 
   required?: boolean;
   showValidation?: boolean;
   validationDelay?: boolean;
-  options?: Array<{ label: string; value: string | number }>;
+  options?: Array<{ label: string; value: string }>;
   rows?: number;
   onChange?: (value: any) => void;
   onBlur?: () => void;
@@ -41,11 +41,9 @@ const FormField: React.FC<FormFieldProps> = ({
   rows = 4,
   onChange,
   onBlur,
-  children,
   className,
   disabled,
   placeholder,
-  ...props
 }) => {
   const hasError = touched && error;
   const showSuccess = touched && !error && dirty && showValidation;
@@ -60,25 +58,24 @@ const FormField: React.FC<FormFieldProps> = ({
   };
 
   const renderField = () => {
-    const commonProps = {
+    const baseProps = {
       id: name,
       name,
       value: value || '',
-      onChange: handleChange,
       onBlur: handleBlur,
       disabled,
       placeholder,
       required,
       'aria-describedby': error ? `${name}-error` : helpText ? `${name}-help` : undefined,
       'aria-invalid': hasError ? true : undefined,
-      ...props,
     };
 
     switch (type) {
       case 'textarea':
         return (
           <Textarea
-            {...commonProps}
+            {...baseProps}
+            onChange={handleChange}
             rows={rows}
             className={hasError ? 'border-danger-300 dark:border-danger-600' : showSuccess ? 'border-success-300 dark:border-success-600' : ''}
           />
@@ -87,21 +84,18 @@ const FormField: React.FC<FormFieldProps> = ({
       case 'select':
         return (
           <Select
-            {...commonProps}
+            {...baseProps}
+            onChange={handleChange}
+            options={options}
             className={hasError ? 'border-danger-300 dark:border-danger-600' : showSuccess ? 'border-success-300 dark:border-success-600' : ''}
-          >
-            {children || options.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Select>
+          />
         );
 
       default:
         return (
           <Input
-            {...commonProps}
+            {...baseProps}
+            onChange={handleChange}
             type={type}
             error={hasError ? error : undefined}
             success={showSuccess}

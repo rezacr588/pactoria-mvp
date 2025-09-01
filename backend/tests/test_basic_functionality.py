@@ -4,15 +4,12 @@ Tests the core API endpoints to ensure they work correctly
 """
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
-
-client = TestClient(app)
 
 
 class TestBasicEndpoints:
     """Test basic API endpoints work"""
 
-    def test_root_endpoint(self):
+    def test_root_endpoint(self, client):
         """Test the root endpoint returns expected data"""
         response = client.get("/")
         assert response.status_code == 200
@@ -21,14 +18,14 @@ class TestBasicEndpoints:
         assert "version" in data
         assert data["name"] == "Pactoria Contract Management"
 
-    def test_health_endpoint(self):
+    def test_health_endpoint(self, client):
         """Test health check endpoint"""
         response = client.get("/health")
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "healthy"
 
-    def test_api_status_endpoint(self):
+    def test_api_status_endpoint(self, client):
         """Test API status endpoint"""
         response = client.get("/api/v1/status/")
         assert response.status_code == 200
@@ -50,7 +47,7 @@ class TestBasicEndpoints:
             assert feature in data["features"]
             assert data["features"][feature] is True
 
-    def test_api_features_endpoint(self):
+    def test_api_features_endpoint(self, client):
         """Test API features listing"""
         response = client.get("/api/v1/status/features")
         assert response.status_code == 200
@@ -66,7 +63,7 @@ class TestBasicEndpoints:
 class TestAuthentication:
     """Test authentication functionality"""
 
-    def test_user_registration(self):
+    def test_user_registration(self, client, test_database):
         """Test user can register successfully"""
         import uuid
         unique_email = f"testuser-{uuid.uuid4().hex[:8]}@example.com"
@@ -85,7 +82,7 @@ class TestAuthentication:
         assert "user" in data
         assert data["user"]["email"] == user_data["email"]
 
-    def test_user_login_with_valid_credentials(self):
+    def test_user_login_with_valid_credentials(self, client, test_database):
         """Test user can login with valid credentials"""
         # First register a user
         import uuid
@@ -93,7 +90,8 @@ class TestAuthentication:
         user_data = {
             "email": unique_email,
             "password": "TestPassword123!",
-            "full_name": "Login Test User"
+            "full_name": "Login Test User",
+            "company_name": "Login Test Company"
         }
         client.post("/api/v1/auth/register", json=user_data)
         
@@ -120,12 +118,12 @@ class TestAuthentication:
         response = client.post("/api/v1/auth/login", json=login_data)
         assert response.status_code == 401
 
-    def test_protected_endpoint_without_auth(self):
+    def test_protected_endpoint_without_auth(self, client):
         """Test protected endpoints require authentication"""
         response = client.get("/api/v1/auth/me")
         assert response.status_code == 401
 
-    def test_protected_endpoint_with_auth(self):
+    def test_protected_endpoint_with_auth(self, client, test_database):
         """Test protected endpoints work with valid authentication"""
         # Register and get token
         import uuid
@@ -133,7 +131,8 @@ class TestAuthentication:
         user_data = {
             "email": unique_email,
             "password": "TestPassword123!",
-            "full_name": "Auth Test User"
+            "full_name": "Auth Test User",
+            "company_name": "Auth Test Company"
         }
         response = client.post("/api/v1/auth/register", json=user_data)
         token = response.json()["token"]["access_token"]
@@ -150,7 +149,7 @@ class TestAuthentication:
 class TestTemplates:
     """Test template functionality"""
 
-    def test_list_templates(self):
+    def test_list_templates(self, client, test_database):
         """Test listing available templates"""
         response = client.get("/api/v1/contracts/templates/")
         assert response.status_code == 200
@@ -169,7 +168,7 @@ class TestTemplates:
             assert "contract_type" in template
             assert "description" in template
 
-    def test_filter_templates_by_type(self):
+    def test_filter_templates_by_type(self, client, test_database):
         """Test filtering templates by contract type"""
         response = client.get("/api/v1/contracts/templates/?contract_type=service_agreement")
         assert response.status_code == 200
@@ -184,9 +183,10 @@ class TestTemplates:
 
 class TestContracts:
     """Test contract functionality"""
-    
-    def setup_method(self):
-        """Setup method to create authenticated user for contract tests"""
+
+    @pytest.fixture
+    def authenticated_user(self, client, test_database):
+        """Create an authenticated user for contract tests"""
         import uuid
         unique_email = f"contracttest-{uuid.uuid4().hex[:8]}@example.com"
         user_data = {
@@ -196,10 +196,11 @@ class TestContracts:
             "company_name": "Test Company"
         }
         response = client.post("/api/v1/auth/register", json=user_data)
-        self.token = response.json()["token"]["access_token"]
-        self.headers = {"Authorization": f"Bearer {self.token}"}
+        token = response.json()["token"]["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+        return {"token": token, "headers": headers, "email": unique_email}
 
-    def test_create_contract(self):
+    def test_create_contract(self, client, authenticated_user):
         """Test creating a new contract"""
         contract_data = {
             "title": "Test Service Agreement",
@@ -210,7 +211,7 @@ class TestContracts:
             "currency": "GBP"
         }
         
-        response = client.post("/api/v1/contracts/", json=contract_data, headers=self.headers)
+        response = client.post("/api/v1/contracts/", json=contract_data, headers=authenticated_user["headers"])
         assert response.status_code == 201
         
         data = response.json()
@@ -218,7 +219,7 @@ class TestContracts:
         assert data["contract_type"] == contract_data["contract_type"]
         assert data["status"] == "draft"
 
-    def test_list_contracts(self):
+    def test_list_contracts(self, client, authenticated_user):
         """Test listing user's contracts"""
         # First create a contract
         contract_data = {
@@ -226,10 +227,10 @@ class TestContracts:
             "contract_type": "service_agreement", 
             "plain_english_input": "Test contract for listing"
         }
-        client.post("/api/v1/contracts/", json=contract_data, headers=self.headers)
+        client.post("/api/v1/contracts/", json=contract_data, headers=authenticated_user["headers"])
         
         # Then list contracts
-        response = client.get("/api/v1/contracts/", headers=self.headers)
+        response = client.get("/api/v1/contracts/", headers=authenticated_user["headers"])
         assert response.status_code == 200
         
         data = response.json()
@@ -237,7 +238,7 @@ class TestContracts:
         assert "total" in data
         assert isinstance(data["contracts"], list)
 
-    def test_get_contract_by_id(self):
+    def test_get_contract_by_id(self, client, authenticated_user):
         """Test retrieving a specific contract"""
         # Create a contract
         contract_data = {
@@ -245,18 +246,18 @@ class TestContracts:
             "contract_type": "service_agreement",
             "plain_english_input": "Test contract for retrieval"
         }
-        create_response = client.post("/api/v1/contracts/", json=contract_data, headers=self.headers)
+        create_response = client.post("/api/v1/contracts/", json=contract_data, headers=authenticated_user["headers"])
         contract_id = create_response.json()["id"]
         
         # Retrieve the contract
-        response = client.get(f"/api/v1/contracts/{contract_id}", headers=self.headers)
+        response = client.get(f"/api/v1/contracts/{contract_id}", headers=authenticated_user["headers"])
         assert response.status_code == 200
         
         data = response.json()
         assert data["id"] == contract_id
         assert data["title"] == contract_data["title"]
 
-    def test_update_contract(self):
+    def test_update_contract(self, client, authenticated_user):
         """Test updating an existing contract"""
         # Create a contract
         contract_data = {
@@ -264,7 +265,7 @@ class TestContracts:
             "contract_type": "service_agreement",
             "plain_english_input": "Original description"
         }
-        create_response = client.post("/api/v1/contracts/", json=contract_data, headers=self.headers)
+        create_response = client.post("/api/v1/contracts/", json=contract_data, headers=authenticated_user["headers"])
         contract_id = create_response.json()["id"]
         
         # Update the contract
@@ -273,7 +274,7 @@ class TestContracts:
             "status": "active"
         }
         
-        response = client.put(f"/api/v1/contracts/{contract_id}", json=update_data, headers=self.headers)
+        response = client.put(f"/api/v1/contracts/{contract_id}", json=update_data, headers=authenticated_user["headers"])
         assert response.status_code == 200
         
         data = response.json()
@@ -284,7 +285,8 @@ class TestContracts:
 class TestAnalytics:
     """Test analytics endpoints"""
     
-    def setup_method(self):
+    @pytest.fixture
+    def authenticated_analytics_user(self, client, test_database):
         """Setup authenticated user for analytics tests"""
         import uuid
         unique_email = f"analyticstest-{uuid.uuid4().hex[:8]}@example.com"
@@ -295,12 +297,13 @@ class TestAnalytics:
             "company_name": "Analytics Test Company"
         }
         response = client.post("/api/v1/auth/register", json=user_data)
-        self.token = response.json()["token"]["access_token"]
-        self.headers = {"Authorization": f"Bearer {self.token}"}
+        token = response.json()["token"]["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+        return {"token": token, "headers": headers, "email": unique_email}
 
-    def test_business_metrics(self):
+    def test_business_metrics(self, client, authenticated_analytics_user):
         """Test business metrics endpoint"""
-        response = client.get("/api/v1/analytics/business", headers=self.headers)
+        response = client.get("/api/v1/analytics/business", headers=authenticated_analytics_user["headers"])
         assert response.status_code == 200
         
         data = response.json()
@@ -309,9 +312,9 @@ class TestAnalytics:
         assert "compliance_score_average" in data
         assert isinstance(data["total_contracts"], int)
 
-    def test_user_metrics(self):
+    def test_user_metrics(self, client, authenticated_analytics_user):
         """Test user metrics endpoint"""
-        response = client.get("/api/v1/analytics/users", headers=self.headers)
+        response = client.get("/api/v1/analytics/users", headers=authenticated_analytics_user["headers"])
         assert response.status_code == 200
         
         data = response.json()
@@ -319,9 +322,9 @@ class TestAnalytics:
         assert "active_users_30d" in data
         assert "user_engagement_score" in data
 
-    def test_contract_type_metrics(self):
+    def test_contract_type_metrics(self, client, authenticated_analytics_user):
         """Test contract type distribution metrics"""
-        response = client.get("/api/v1/analytics/contract-types", headers=self.headers)
+        response = client.get("/api/v1/analytics/contract-types", headers=authenticated_analytics_user["headers"])
         assert response.status_code == 200
         
         data = response.json()

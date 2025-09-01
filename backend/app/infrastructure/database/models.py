@@ -33,6 +33,13 @@ class SubscriptionTier(str, enum.Enum):
     BUSINESS = "business"
 
 
+class UserRole(str, enum.Enum):
+    ADMIN = "admin"
+    CONTRACT_MANAGER = "contract_manager"
+    LEGAL_REVIEWER = "legal_reviewer"
+    VIEWER = "viewer"
+
+
 class User(Base):
     __tablename__ = "users"
     
@@ -42,6 +49,13 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
+    role = Column(Enum(UserRole), default=UserRole.CONTRACT_MANAGER)
+    department = Column(String, nullable=True)
+    
+    # Invitation fields for bulk user invitations
+    invitation_token = Column(String, nullable=True, unique=True)
+    invited_at = Column(DateTime(timezone=True), nullable=True)
+    invited_by = Column(String, ForeignKey("users.id"), nullable=True)
     
     company_id = Column(String, ForeignKey("companies.id"), nullable=True)
     company = relationship("Company", back_populates="users")

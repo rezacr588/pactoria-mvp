@@ -13,7 +13,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { commands, searchCommands } = useCommandPalette();
+  const { searchCommands } = useCommandPalette();
 
   const filteredCommands = useMemo(() => {
     return searchCommands(query);
@@ -157,7 +157,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose }) => {
                       {groupName}
                     </div>
                   )}
-                  {groupCommands.map((command, index) => {
+                  {groupCommands.map((command) => {
                     const globalIndex = filteredCommands.findIndex(c => c.id === command.id);
                     const isSelected = globalIndex === selectedIndex;
                     

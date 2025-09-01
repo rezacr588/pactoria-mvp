@@ -20,11 +20,149 @@ from app.schemas.analytics import (
     BusinessMetricsResponse, UserMetricsResponse, ContractTypeMetrics,
     TimeSeriesResponse, TimeSeriesDataPoint, ComplianceMetricsResponse,
     SystemHealthResponse, PerformanceMetricsResponse, AnalyticsFilter,
-    MetricPeriod
+    MetricPeriod, DashboardResponse
+)
+from app.schemas.common import (
+    ErrorResponse, ValidationError, UnauthorizedError, NotFoundError, 
+    ForbiddenError
 )
 from app.services.ai_service import ai_service
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
+
+
+@router.get(
+    "/dashboard", 
+    response_model=DashboardResponse,
+    summary="Get Dashboard Analytics",
+    description="""
+    Get comprehensive dashboard analytics for the company.
+    
+    **Includes:**
+    - Business metrics (contracts, values, growth)
+    - User activity and engagement metrics
+    - Contract type distribution
+    - Compliance scores and risk analysis
+    - Time series trends for contracts and values
+    - Executive summary with key insights
+    
+    **Features:**
+    - Real-time data aggregation
+    - Company-specific metrics
+    - Trend analysis and insights
+    - Performance indicators
+    - Risk assessment summary
+    
+    **Use Cases:**
+    - Executive dashboard display
+    - Business intelligence reporting
+    - Performance monitoring
+    - Compliance oversight
+    
+    **Requires Authentication:** JWT Bearer token with company association
+    """,
+    responses={
+        200: {
+            "description": "Dashboard analytics retrieved successfully",
+            "model": DashboardResponse
+        },
+        401: {
+            "description": "Authentication required",
+            "model": UnauthorizedError
+        },
+        403: {
+            "description": "Company association required",
+            "model": ForbiddenError
+        }
+    }
+)
+async def get_dashboard_analytics(
+    company: Company = Depends(get_user_company),
+    db: Session = Depends(get_db)
+):
+    """Get comprehensive dashboard analytics"""
+    
+    # Get all individual metrics
+    business_metrics = await get_business_metrics(company, db)
+    user_metrics = await get_user_metrics(company, db)
+    contract_types = await get_contract_type_metrics(company, db)
+    compliance_metrics = await get_compliance_metrics(company, db)
+    
+    # Get time series data for trends
+    recent_contracts_trend = await get_time_series_metrics(
+        "contracts_created", MetricPeriod.DAILY, 30, company, db
+    )
+    
+    contract_value_trend = await get_time_series_metrics(
+        "contract_value", MetricPeriod.WEEKLY, 90, company, db
+    )
+    
+    # Generate executive summary
+    total_contracts = business_metrics.total_contracts
+    total_value = business_metrics.total_contract_value
+    avg_compliance = business_metrics.compliance_score_average
+    growth_rate = business_metrics.growth_rate
+    high_risk_count = business_metrics.high_risk_contracts
+    
+    # Determine key insights
+    insights = []
+    if growth_rate > 10:
+        insights.append(f"Strong growth with {growth_rate:.1f}% increase in contracts this month")
+    elif growth_rate < -10:
+        insights.append(f"Contract volume declined {abs(growth_rate):.1f}% this month - review needed")
+    
+    if avg_compliance < 0.7:
+        insights.append("Compliance scores below recommended threshold - immediate attention required")
+    elif avg_compliance > 0.9:
+        insights.append("Excellent compliance standards maintained")
+    
+    if high_risk_count > 0:
+        insights.append(f"{high_risk_count} high-risk contracts need immediate review")
+    
+    if total_value > 100000:  # £100k+
+        insights.append(f"Portfolio value of £{total_value:,.0f} represents significant business value")
+    
+    # Contract distribution analysis
+    top_contract_type = max(contract_types, key=lambda x: x.count) if contract_types else None
+    if top_contract_type:
+        insights.append(f"{top_contract_type.contract_type.replace('_', ' ').title()} contracts dominate portfolio ({top_contract_type.percentage:.1f}%)")
+    
+    summary = {
+        "total_contracts": total_contracts,
+        "total_portfolio_value": total_value,
+        "average_compliance_score": avg_compliance,
+        "monthly_growth_rate": growth_rate,
+        "high_risk_contracts": high_risk_count,
+        "key_insights": insights,
+        "overall_health": "excellent" if avg_compliance > 0.9 and high_risk_count == 0 else 
+                         "good" if avg_compliance > 0.8 and high_risk_count < 3 else
+                         "needs_attention",
+        "recommended_actions": []
+    }
+    
+    # Generate recommendations
+    recommendations = summary["recommended_actions"]
+    if high_risk_count > 0:
+        recommendations.append(f"Review and remediate {high_risk_count} high-risk contracts")
+    if avg_compliance < 0.8:
+        recommendations.append("Improve contract compliance through template updates and AI analysis")
+    if growth_rate < 0:
+        recommendations.append("Analyze factors contributing to contract volume decline")
+    if user_metrics.user_engagement_score < 50:
+        recommendations.append("Improve user engagement through training and workflow optimization")
+    
+    if not recommendations:
+        recommendations.append("Continue maintaining excellent contract management practices")
+    
+    return DashboardResponse(
+        business_metrics=business_metrics,
+        user_metrics=user_metrics,
+        contract_types=contract_types,
+        compliance_metrics=compliance_metrics,
+        recent_contracts_trend=recent_contracts_trend,
+        contract_value_trend=contract_value_trend,
+        summary=summary
+    )
 
 
 @router.get("/business", response_model=BusinessMetricsResponse)
