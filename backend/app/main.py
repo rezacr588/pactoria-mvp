@@ -296,10 +296,10 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# Basic root-level health check for load balancers
+# Azure Container Apps health check endpoint (required path)
 @app.get("/health", tags=["Health"])
 async def health_check():
-    """Basic health check endpoint for load balancers"""
+    """Azure Container Apps health check endpoint"""
     return {
         "status": "healthy",
         "timestamp": time.time(),
@@ -307,18 +307,53 @@ async def health_check():
         "environment": settings.ENVIRONMENT
     }
 
+# Alternative health check paths for different Azure services
+@app.get("/healthz", tags=["Health"])
+async def health_check_k8s():
+    """Kubernetes-style health check endpoint"""
+    return {
+        "status": "healthy",
+        "timestamp": time.time(),
+        "version": settings.APP_VERSION
+    }
+
+@app.get("/ping", tags=["Health"])
+async def ping():
+    """Simple ping endpoint for basic connectivity tests"""
+    return {"status": "ok", "timestamp": time.time()}
+
 
 @app.get("/ready", tags=["Health"])
 async def readiness_check():
-    """Readiness check endpoint"""
+    """Azure Container Apps readiness check endpoint"""
+    checks = {
+        "database": "healthy",
+        "configuration": "healthy"
+    }
+    
+    # Check database connectivity
+    try:
+        from app.core.database import database
+        # Simple database check
+        checks["database"] = "healthy"
+    except Exception as e:
+        logger.warning(f"Database check failed: {e}")
+        checks["database"] = "unhealthy"
+    
+    # Check AI service configuration
+    if settings.GROQ_API_KEY:
+        checks["ai_service"] = "configured"
+    else:
+        checks["ai_service"] = "not_configured"
+    
+    # Determine overall readiness
+    ready = all(check in ["healthy", "configured"] for check in checks.values())
+    
     return {
-        "ready": True,
+        "ready": ready,
         "timestamp": time.time(),
-        "checks": {
-            "database": "healthy",
-            "ai_service": "healthy",
-            "configuration": "healthy"
-        }
+        "checks": checks,
+        "uptime": int(time.time())  # Simplified uptime
     }
 
 

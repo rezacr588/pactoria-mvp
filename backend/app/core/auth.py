@@ -138,8 +138,9 @@ def has_permission(user: User, required_role: UserRole) -> bool:
     
     role_hierarchy = {
         UserRole.VIEWER: 1,
-        UserRole.EDITOR: 2,
-        UserRole.ADMIN: 3
+        UserRole.CONTRACT_MANAGER: 2,
+        UserRole.LEGAL_REVIEWER: 3,
+        UserRole.ADMIN: 4
     }
     
     user_level = role_hierarchy.get(user.role, 0)
@@ -162,11 +163,11 @@ def require_role(required_role: UserRole):
 
 # Specific role dependencies
 async def get_editor_user(current_user: User = Depends(get_current_user)) -> User:
-    """Get current user if they have editor role or higher"""
-    if not has_permission(current_user, UserRole.EDITOR):
+    """Get current user if they have contract manager role or higher"""
+    if not has_permission(current_user, UserRole.CONTRACT_MANAGER):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Editor privileges required"
+            detail="Contract manager privileges required"
         )
     return current_user
 
@@ -187,8 +188,8 @@ def can_modify_resource(user: User, resource_owner_id: str) -> bool:
     if user.is_admin or user.role == UserRole.ADMIN:
         return True
     
-    # Editors can modify their own resources
-    if user.role == UserRole.EDITOR and user.id == resource_owner_id:
+    # Contract managers can modify their own resources
+    if user.role == UserRole.CONTRACT_MANAGER and user.id == resource_owner_id:
         return True
     
     # Viewers cannot modify anything

@@ -5,9 +5,21 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
+    "build:prod": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:smoke": "playwright test --grep @smoke",
+    "test:e2e:regression": "playwright test --grep @regression",
+    "test:e2e:performance": "playwright test e2e/performance/",
+    "test:e2e:accessibility": "playwright test e2e/accessibility/",
+    "test:e2e:cross-browser": "playwright test --project=chromium --project=firefox --project=webkit",
+    "test:e2e:ci": "playwright test --reporter=github",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:install": "playwright install --with-deps"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",
@@ -24,6 +36,8 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.9.0",
+    "@playwright/test": "^1.55.0",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.0.0",

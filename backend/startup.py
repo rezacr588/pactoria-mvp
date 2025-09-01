@@ -132,6 +132,26 @@ def setup_azure_environment():
     os.environ['ENVIRONMENT'] = 'production'
     os.environ['DEBUG'] = 'false'
     
+    # Validate critical environment variables
+    critical_vars = ['SECRET_KEY', 'JWT_SECRET_KEY']
+    missing_vars = []
+    
+    for var in critical_vars:
+        if not os.getenv(var) or os.getenv(var) in ['change-this-in-production', 'change-this-in-production-immediately']:
+            missing_vars.append(var)
+    
+    if missing_vars:
+        logger.error(f"Critical environment variables not set or using default values: {missing_vars}")
+        logger.error("Please set proper values before deploying to production!")
+    
+    # Validate Groq API key
+    if not os.getenv('GROQ_API_KEY'):
+        logger.warning("GROQ_API_KEY not set - AI features will not work")
+    elif os.getenv('GROQ_API_KEY').startswith('gsk_'):
+        logger.info("Groq API key configured")
+    else:
+        logger.warning("GROQ_API_KEY format may be incorrect")
+    
     # Azure App Service specific settings
     if WEBSITE_HOSTNAME:
         logger.info(f"Running on Azure App Service: {WEBSITE_HOSTNAME}")
@@ -144,18 +164,38 @@ def setup_azure_environment():
         ]
         os.environ['CORS_ORIGINS'] = ','.join(cors_origins)
         
-        # Azure database connection
+        # Azure database connection with enhanced connection string handling
         if not os.getenv('DATABASE_URL'):
-            # Default to Azure PostgreSQL if not set
-            db_server = os.getenv('AZURE_POSTGRESQL_HOST', 'localhost')
-            db_name = os.getenv('AZURE_POSTGRESQL_DATABASE', 'pactoria')
-            db_user = os.getenv('AZURE_POSTGRESQL_USER', 'pactoria')
-            db_password = os.getenv('AZURE_POSTGRESQL_PASSWORD', '')
-            
-            if all([db_server, db_name, db_user, db_password]):
+            # Try Azure PostgreSQL connection string first
+            if os.getenv('AZURE_POSTGRESQL_CONNECTION_STRING'):
+                database_url = os.getenv('AZURE_POSTGRESQL_CONNECTION_STRING')
+                os.environ['DATABASE_URL'] = database_url
+                logger.info("Using Azure PostgreSQL connection string")
+            # Build from individual components
+            elif all([os.getenv('AZURE_POSTGRESQL_HOST'), os.getenv('AZURE_POSTGRESQL_DATABASE'), 
+                     os.getenv('AZURE_POSTGRESQL_USER'), os.getenv('AZURE_POSTGRESQL_PASSWORD')]):
+                db_server = os.getenv('AZURE_POSTGRESQL_HOST')
+                db_name = os.getenv('AZURE_POSTGRESQL_DATABASE')
+                db_user = os.getenv('AZURE_POSTGRESQL_USER')
+                db_password = os.getenv('AZURE_POSTGRESQL_PASSWORD')
+                
                 database_url = f"postgresql://{db_user}:{db_password}@{db_server}:5432/{db_name}?sslmode=require"
                 os.environ['DATABASE_URL'] = database_url
                 logger.info(f"Using Azure PostgreSQL: {db_server}")
+            # Azure SQL Database support
+            elif all([os.getenv('AZURE_SQL_SERVER'), os.getenv('AZURE_SQL_DATABASE'), 
+                     os.getenv('AZURE_SQL_USER'), os.getenv('AZURE_SQL_PASSWORD')]):
+                sql_server = os.getenv('AZURE_SQL_SERVER')
+                sql_db = os.getenv('AZURE_SQL_DATABASE')
+                sql_user = os.getenv('AZURE_SQL_USER')
+                sql_password = os.getenv('AZURE_SQL_PASSWORD')
+                
+                database_url = f"mssql+pyodbc://{sql_user}:{sql_password}@{sql_server}:1433/{sql_db}?driver=ODBC+Driver+18+for+SQL+Server&Encrypt=yes&TrustServerCertificate=no"
+                os.environ['DATABASE_URL'] = database_url
+                logger.info(f"Using Azure SQL Database: {sql_server}")
+            else:
+                # Fallback to SQLite for local development or simple deployments
+                logger.info("No Azure database configured, using SQLite")
     
     # Set upload directory for Azure
     os.environ['UPLOAD_DIR'] = '/tmp/uploads'  # Azure App Service writable temp

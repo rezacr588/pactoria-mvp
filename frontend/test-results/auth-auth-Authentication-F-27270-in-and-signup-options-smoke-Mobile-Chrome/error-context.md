@@ -1,0 +1,306 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - link "Skip to navigation" [ref=e4] [cursor=pointer]:
+      - /url: "#navigation"
+    - link "Skip to search" [ref=e5] [cursor=pointer]:
+      - /url: "#search"
+  - main [ref=e6]:
+    - navigation "Global" [ref=e8]:
+      - link "Pactoria - UK Contract Management Pactoria" [ref=e10] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e11] [cursor=pointer]:
+          - img "Pactoria - UK Contract Management" [ref=e12] [cursor=pointer]
+          - generic [ref=e13] [cursor=pointer]: Pactoria
+      - button "Open main menu" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16] [cursor=pointer]: Open main menu
+        - img [ref=e17] [cursor=pointer]
+    - generic [ref=e22]:
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - img [ref=e27]
+          - generic [ref=e29]: AI-Powered • UK-Compliant
+        - heading "UK Contract Management Made Simple" [level=1] [ref=e30]:
+          - text: UK Contract Management
+          - generic [ref=e31]: Made Simple
+        - paragraph [ref=e32]:
+          - text: Generate legally binding, UK-compliant contracts in seconds. Save
+          - generic [ref=e33]: £8,000+ annually
+          - text: on legal fees while ensuring
+          - generic [ref=e34]: 95% compliance accuracy
+          - text: with our AI-powered platform built specifically for UK SMEs.
+        - generic [ref=e35]:
+          - link "Start Free Trial" [ref=e36] [cursor=pointer]:
+            - /url: /login
+            - button "Start Free Trial" [ref=e37] [cursor=pointer]:
+              - generic [ref=e41] [cursor=pointer]:
+                - text: Start Free Trial
+                - img [ref=e42] [cursor=pointer]
+          - link "View Demo" [ref=e44] [cursor=pointer]:
+            - /url: /login
+            - text: View Demo
+            - img [ref=e45] [cursor=pointer]
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - img [ref=e49]
+            - text: No credit card required
+          - generic [ref=e51]:
+            - img [ref=e52]
+            - text: 14-day free trial
+          - generic [ref=e54]:
+            - img [ref=e55]
+            - text: Cancel anytime
+      - img "Contract management dashboard showing modern interface with contract list, analytics, and team collaboration features" [ref=e63]
+    - generic [ref=e67]:
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - img [ref=e70]
+          - text: Trusted by hundreds of UK SMEs
+        - heading "Proven results that speak for themselves" [level=2] [ref=e72]
+      - generic [ref=e73]:
+        - generic [ref=e77] [cursor=pointer]:
+          - definition [ref=e78] [cursor=pointer]: 6+
+          - term [ref=e79] [cursor=pointer]: Hours Saved Weekly
+        - generic [ref=e83] [cursor=pointer]:
+          - definition [ref=e84] [cursor=pointer]: 95%
+          - term [ref=e85] [cursor=pointer]: UK Legal Compliance
+        - generic [ref=e89] [cursor=pointer]:
+          - definition [ref=e90] [cursor=pointer]: 73%
+          - term [ref=e91] [cursor=pointer]: Risk Reduction
+        - generic [ref=e95] [cursor=pointer]:
+          - definition [ref=e96] [cursor=pointer]: £8K+
+          - term [ref=e97] [cursor=pointer]: Cost Savings
+    - generic [ref=e99]:
+      - generic [ref=e100]:
+        - generic [ref=e101]:
+          - img [ref=e102]
+          - text: The Challenge
+        - heading "UK SMEs waste£12,000+ annually on contract management" [level=2] [ref=e104]:
+          - text: UK SMEs waste
+          - generic [ref=e105]: £12,000+ annually
+          - text: on contract management
+        - paragraph [ref=e106]: Traditional legal services are expensive, slow, and complex. Most contract software isn't built for UK law. SMEs risk non-compliance, costly disputes, and missed opportunities.
+      - generic [ref=e107]:
+        - generic [ref=e108]:
+          - generic [ref=e109]:
+            - img [ref=e110]
+            - text: Our Solution
+          - heading "Transform your contract management with measurable results" [level=3] [ref=e112]
+        - generic [ref=e113]:
+          - generic [ref=e117] [cursor=pointer]:
+            - img [ref=e119] [cursor=pointer]
+            - heading "Save £8,000+ Annually" [level=3] [ref=e121] [cursor=pointer]
+            - paragraph [ref=e122] [cursor=pointer]: Reduce legal fees by 80% with AI-powered contract generation and review.
+          - generic [ref=e126] [cursor=pointer]:
+            - img [ref=e128] [cursor=pointer]
+            - heading "6+ Hours Saved Weekly" [level=3] [ref=e130] [cursor=pointer]
+            - paragraph [ref=e131] [cursor=pointer]: Automate contract creation, compliance checks, and risk assessments.
+          - generic [ref=e135] [cursor=pointer]:
+            - img [ref=e137] [cursor=pointer]
+            - heading "95% Compliance Accuracy" [level=3] [ref=e139] [cursor=pointer]
+            - paragraph [ref=e140] [cursor=pointer]: Stay protected with real-time UK legal compliance validation.
+    - generic [ref=e142]:
+      - generic [ref=e143]:
+        - generic [ref=e144]:
+          - img [ref=e145]
+          - text: Everything you need
+        - heading "Enterprise-grade features forSME budgets" [level=2] [ref=e147]:
+          - text: Enterprise-grade features for
+          - generic [ref=e148]: SME budgets
+        - paragraph [ref=e149]: Built specifically for UK businesses, Pactoria combines cutting-edge AI with deep legal expertise to deliver a contract management platform that actually works for you.
+      - generic [ref=e150]:
+        - generic [ref=e154] [cursor=pointer]:
+          - img [ref=e157] [cursor=pointer]
+          - heading "AI-Powered Generation" [level=3] [ref=e160] [cursor=pointer]
+          - paragraph [ref=e161] [cursor=pointer]: Transform plain English into legally binding UK contracts in under 30 seconds.
+        - generic [ref=e167] [cursor=pointer]:
+          - img [ref=e170] [cursor=pointer]
+          - heading "UK Legal Compliance" [level=3] [ref=e173] [cursor=pointer]
+          - paragraph [ref=e174] [cursor=pointer]: Built-in GDPR, employment law, and consumer rights validation for every contract.
+        - generic [ref=e180] [cursor=pointer]:
+          - img [ref=e183] [cursor=pointer]
+          - heading "Risk Assessment" [level=3] [ref=e186] [cursor=pointer]
+          - paragraph [ref=e187] [cursor=pointer]: Intelligent 1-10 scale risk scoring with actionable recommendations.
+        - generic [ref=e193] [cursor=pointer]:
+          - img [ref=e196] [cursor=pointer]
+          - heading "Smart Templates" [level=3] [ref=e199] [cursor=pointer]
+          - paragraph [ref=e200] [cursor=pointer]: 20+ UK-specific legal templates for every business need.
+        - generic [ref=e206] [cursor=pointer]:
+          - img [ref=e209] [cursor=pointer]
+          - heading "Version Control" [level=3] [ref=e212] [cursor=pointer]
+          - paragraph [ref=e213] [cursor=pointer]: Complete audit trail and version history for compliance and transparency.
+        - generic [ref=e219] [cursor=pointer]:
+          - img [ref=e222] [cursor=pointer]
+          - heading "Team Collaboration" [level=3] [ref=e225] [cursor=pointer]
+          - paragraph [ref=e226] [cursor=pointer]: Secure workspace for up to 5 team members with role-based permissions.
+    - generic [ref=e230]:
+      - generic [ref=e231]:
+        - generic [ref=e232]:
+          - img [ref=e233]
+          - text: Use Cases
+        - heading "One platform,endless possibilities" [level=2] [ref=e235]:
+          - text: One platform,
+          - generic [ref=e236]: endless possibilities
+        - paragraph [ref=e237]: From employment contracts to supplier agreements, Pactoria handles every type of business contract with UK legal precision.
+      - generic [ref=e238]:
+        - generic [ref=e242] [cursor=pointer]:
+          - img [ref=e244] [cursor=pointer]
+          - generic [ref=e246] [cursor=pointer]: Professional Services Agreements
+        - generic [ref=e250] [cursor=pointer]:
+          - img [ref=e252] [cursor=pointer]
+          - generic [ref=e254] [cursor=pointer]: Employment Contracts
+        - generic [ref=e258] [cursor=pointer]:
+          - img [ref=e260] [cursor=pointer]
+          - generic [ref=e262] [cursor=pointer]: Supplier Agreements
+        - generic [ref=e266] [cursor=pointer]:
+          - img [ref=e268] [cursor=pointer]
+          - generic [ref=e270] [cursor=pointer]: Non-Disclosure Agreements
+        - generic [ref=e274] [cursor=pointer]:
+          - img [ref=e276] [cursor=pointer]
+          - generic [ref=e278] [cursor=pointer]: Partnership Agreements
+        - generic [ref=e282] [cursor=pointer]:
+          - img [ref=e284] [cursor=pointer]
+          - generic [ref=e286] [cursor=pointer]: Terms of Service
+    - generic [ref=e288]:
+      - generic [ref=e289]:
+        - generic [ref=e290]:
+          - img [ref=e291]
+          - text: Customer Stories
+        - heading "Trusted by UK'sfastest-growing SMEs" [level=2] [ref=e293]:
+          - text: Trusted by UK's
+          - generic [ref=e294]: fastest-growing SMEs
+        - paragraph [ref=e295]: See how businesses like yours are transforming their contract management and saving thousands of pounds annually.
+      - generic [ref=e296]:
+        - generic [ref=e302] [cursor=pointer]:
+          - generic [ref=e303] [cursor=pointer]:
+            - img [ref=e304] [cursor=pointer]
+            - img [ref=e306] [cursor=pointer]
+            - img [ref=e308] [cursor=pointer]
+            - img [ref=e310] [cursor=pointer]
+            - img [ref=e312] [cursor=pointer]
+          - blockquote [ref=e314] [cursor=pointer]:
+            - paragraph [ref=e315] [cursor=pointer]: "\"Pactoria has transformed how we handle contracts. What used to take days with solicitors now takes minutes. The UK compliance features give us peace of mind.\""
+          - generic [ref=e316] [cursor=pointer]:
+            - generic [ref=e318] [cursor=pointer]: SJ
+            - generic [ref=e319] [cursor=pointer]:
+              - generic [ref=e320] [cursor=pointer]: Sarah Johnson
+              - generic [ref=e321] [cursor=pointer]: CEO, TechCorp Ltd • Management Consultancy
+        - generic [ref=e327] [cursor=pointer]:
+          - generic [ref=e328] [cursor=pointer]:
+            - img [ref=e329] [cursor=pointer]
+            - img [ref=e331] [cursor=pointer]
+            - img [ref=e333] [cursor=pointer]
+            - img [ref=e335] [cursor=pointer]
+            - img [ref=e337] [cursor=pointer]
+          - blockquote [ref=e339] [cursor=pointer]:
+            - paragraph [ref=e340] [cursor=pointer]: "\"The AI risk assessment caught issues we would have missed. It's like having a legal team on demand, but at a fraction of the cost.\""
+          - generic [ref=e341] [cursor=pointer]:
+            - generic [ref=e343] [cursor=pointer]: MC
+            - generic [ref=e344] [cursor=pointer]:
+              - generic [ref=e345] [cursor=pointer]: Michael Chen
+              - generic [ref=e346] [cursor=pointer]: Operations Director • Digital Agency
+        - generic [ref=e352] [cursor=pointer]:
+          - generic [ref=e353] [cursor=pointer]:
+            - img [ref=e354] [cursor=pointer]
+            - img [ref=e356] [cursor=pointer]
+            - img [ref=e358] [cursor=pointer]
+            - img [ref=e360] [cursor=pointer]
+            - img [ref=e362] [cursor=pointer]
+          - blockquote [ref=e364] [cursor=pointer]:
+            - paragraph [ref=e365] [cursor=pointer]: "\"Finally, a contract platform built for UK businesses. The GDPR compliance checks alone have saved us from potential fines.\""
+          - generic [ref=e366] [cursor=pointer]:
+            - generic [ref=e368] [cursor=pointer]: EW
+            - generic [ref=e369] [cursor=pointer]:
+              - generic [ref=e370] [cursor=pointer]: Emma Wilson
+              - generic [ref=e371] [cursor=pointer]: Founder • Recruitment Firm
+    - generic [ref=e372]:
+      - img [ref=e374]
+      - generic [ref=e378]:
+        - generic [ref=e379]:
+          - img [ref=e380]
+          - text: Transform Your Business Today
+        - heading "Ready to transform yourcontract management?" [level=2] [ref=e382]:
+          - text: Ready to transform your
+          - generic [ref=e383]: contract management?
+        - paragraph [ref=e384]:
+          - text: Join hundreds of UK SMEs saving time and money with Pactoria. Start your
+          - generic [ref=e385]: free 14-day trial
+          - text: today – no credit card required.
+        - generic [ref=e386]:
+          - link "Start Free Trial" [ref=e387] [cursor=pointer]:
+            - /url: /login
+            - button "Start Free Trial" [ref=e388] [cursor=pointer]:
+              - generic [ref=e392] [cursor=pointer]:
+                - text: Start Free Trial
+                - img [ref=e393] [cursor=pointer]
+          - link "Book a Demo" [ref=e395] [cursor=pointer]:
+            - /url: /login
+            - text: Book a Demo
+            - img [ref=e396] [cursor=pointer]
+        - generic [ref=e398]:
+          - generic [ref=e401]:
+            - img [ref=e403]
+            - paragraph [ref=e405]: UK Innovator Visa Endorsed
+          - generic [ref=e408]:
+            - img [ref=e410]
+            - paragraph [ref=e412]: GDPR Compliant
+          - generic [ref=e415]:
+            - img [ref=e417]
+            - paragraph [ref=e419]: ISO 27001 Certified
+    - generic [ref=e421]:
+      - generic [ref=e422]:
+        - generic [ref=e423]:
+          - generic [ref=e424]:
+            - img "Pactoria - UK Contract Management" [ref=e425]
+            - generic [ref=e426]: Pactoria
+          - paragraph [ref=e427]: AI-powered contract management platform built specifically for UK SMEs. Streamline your legal processes and ensure compliance with confidence.
+          - generic [ref=e428]:
+            - link "Follow us on Twitter" [ref=e429] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e430] [cursor=pointer]: Twitter
+              - img [ref=e431] [cursor=pointer]
+            - link "Follow us on LinkedIn" [ref=e433] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e434] [cursor=pointer]: LinkedIn
+              - img [ref=e435] [cursor=pointer]
+        - generic [ref=e437]:
+          - heading "Product" [level=3] [ref=e438]
+          - list [ref=e439]:
+            - listitem [ref=e440]:
+              - button "Features" [ref=e441] [cursor=pointer]
+            - listitem [ref=e442]:
+              - button "Use Cases" [ref=e443] [cursor=pointer]
+            - listitem [ref=e444]:
+              - link "Pricing" [ref=e445] [cursor=pointer]:
+                - /url: /login
+            - listitem [ref=e446]:
+              - button "Reviews" [ref=e447] [cursor=pointer]
+        - generic [ref=e448]:
+          - heading "Company" [level=3] [ref=e449]
+          - list [ref=e450]:
+            - listitem [ref=e451]:
+              - link "About" [ref=e452] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e453]:
+              - link "Privacy Policy" [ref=e454] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e455]:
+              - link "Terms of Service" [ref=e456] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e457]:
+              - link "Contact" [ref=e458] [cursor=pointer]:
+                - /url: "#"
+      - generic [ref=e460]:
+        - paragraph [ref=e461]: "© 2025 Pactoria Ltd. All rights reserved. Company Number: 12345678. VAT: GB123456789."
+        - generic [ref=e462]:
+          - generic [ref=e463]:
+            - img [ref=e464]
+            - text: GDPR Compliant
+          - generic [ref=e466]:
+            - img [ref=e467]
+            - text: UK Innovation Visa
+```

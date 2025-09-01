@@ -446,11 +446,11 @@ class BulkOperationsService:
                         continue
                     
                     # Business rule: Cannot demote the last admin
-                    if user.role == "ADMIN" and request.new_role != "ADMIN":
+                    if user.role == "admin" and request.new_role != "admin":
                         admin_count = self.db.query(User).filter(
                             and_(
                                 User.company_id == current_user.company_id,
-                                User.role == "ADMIN",
+                                User.role == "admin",
                                 User.is_active == True
                             )
                         ).count()
@@ -525,8 +525,8 @@ class BulkOperationsService:
         if not user.company_id:
             raise CompanyAccessError("User must be associated with a company")
         
-        # For now, allow CONTRACT_MANAGER and above for bulk operations
-        allowed_roles = {"ADMIN", "CONTRACT_MANAGER"}
+        # For now, allow contract_manager and above for bulk operations
+        allowed_roles = {"admin", "contract_manager"}
         if user.role not in allowed_roles:
             raise BusinessRuleViolationError(
                 "Insufficient permissions for bulk operations", 
@@ -539,11 +539,11 @@ class BulkOperationsService:
         if not user.company_id:
             raise CompanyAccessError("User must be associated with a company")
         
-        if user.role != "ADMIN":
+        if user.role != "admin":
             raise BusinessRuleViolationError(
                 "Admin permissions required for this operation",
                 current_role=user.role,
-                required_role="ADMIN"
+                required_role="admin"
             )
     
     def _validate_bulk_contract_limits(self, count: int):

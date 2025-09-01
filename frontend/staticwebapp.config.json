@@ -1,31 +1,109 @@
 {
+  "$schema": "https://json.schemastore.org/staticwebapp.config.json",
+  
   "routes": [
     {
       "route": "/api/*",
-      "allowedRoles": ["anonymous"]
+      "allowedRoles": ["anonymous"],
+      "headers": {
+        "Cache-Control": "no-cache, no-store, must-revalidate"
+      }
+    },
+    {
+      "route": "/health",
+      "allowedRoles": ["anonymous"],
+      "headers": {
+        "Cache-Control": "no-cache, no-store, must-revalidate"
+      }
+    },
+    {
+      "route": "/assets/*",
+      "headers": {
+        "Cache-Control": "max-age=31536000, immutable"
+      }
+    },
+    {
+      "route": "/*.{js,css,woff,woff2,ttf,eot}",
+      "headers": {
+        "Cache-Control": "max-age=31536000, immutable"
+      }
+    },
+    {
+      "route": "/*.{png,jpg,jpeg,gif,svg,ico,webp}",
+      "headers": {
+        "Cache-Control": "max-age=86400, public"
+      }
     },
     {
       "route": "/*",
       "serve": "/index.html",
-      "statusCode": 200
+      "statusCode": 200,
+      "headers": {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "X-XSS-Protection": "1; mode=block",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "geolocation=(), microphone=(), camera=()"
+      }
     }
   ],
+  
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/api/*", "/*.{css,scss,js,png,gif,ico,jpg,svg}"]
+    "exclude": [
+      "/api/*", 
+      "/health",
+      "/assets/*",
+      "/*.{css,scss,js,ts,png,gif,ico,jpg,jpeg,svg,webp,woff,woff2,ttf,eot,json,xml,txt}"
+    ]
   },
+  
   "mimeTypes": {
-    ".json": "application/json"
+    ".json": "application/json",
+    ".js": "application/javascript",
+    ".css": "text/css",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2",
+    ".ttf": "font/ttf",
+    ".eot": "application/vnd.ms-fontobject",
+    ".svg": "image/svg+xml",
+    ".webp": "image/webp"
   },
+  
   "globalHeaders": {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization"
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "1; mode=block",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains"
   },
+  
   "responseOverrides": {
+    "401": {
+      "statusCode": 401,
+      "rewrite": "/index.html"
+    },
+    "403": {
+      "statusCode": 403,
+      "rewrite": "/index.html"
+    },
     "404": {
-      "rewrite": "/index.html",
-      "statusCode": 200
+      "statusCode": 200,
+      "rewrite": "/index.html"
     }
+  },
+  
+  "platform": {
+    "apiRuntime": "node:18"
+  },
+  
+  "trailingSlash": "never",
+  
+  "forwardingGateway": {
+    "allowedForwardedHosts": [
+      "*.azurestaticapps.net",
+      "*.azure.com"
+    ]
   }
 }

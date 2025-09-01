@@ -1,42 +1,164 @@
-# Azure Container Apps Configuration - Ultra Low Cost
-apiVersion: 2022-03-01
-location: East US  # Cheapest region
+# ===============================================================================
+# Azure Container Apps Configuration - Production Ready & Cost Optimized
+# ===============================================================================
+# This configuration is optimized for ultra-low cost deployment
+# Uses minimum resources and scale-to-zero for cost efficiency
+# ===============================================================================
+
+apiVersion: 2022-11-01-preview
+location: eastus  # Most cost-effective region
 name: pactoria-backend
+type: Microsoft.App/containerApps
 properties:
-  managedEnvironmentId: /subscriptions/{subscription-id}/resourceGroups/pactoria-rg/providers/Microsoft.App/managedEnvironments/pactoria-env
+  managedEnvironmentId: /subscriptions/{SUBSCRIPTION_ID}/resourceGroups/pactoria-rg/providers/Microsoft.App/managedEnvironments/pactoria-env
+  
   configuration:
+    # Ingress configuration
     ingress:
       external: true
       targetPort: 8000
+      transport: http
       allowInsecure: false
+      traffic:
+        - weight: 100
+          latestRevision: true
+      
+    # Application secrets (replace with your actual values)
     secrets:
+      - name: jwt-secret-key
+        value: "{JWT_SECRET_KEY}"  # Replace with actual JWT secret
+      - name: secret-key
+        value: "{SECRET_KEY}"      # Replace with actual app secret
       - name: groq-api-key
-        value: "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"
+        value: "{GROQ_API_KEY}"    # Replace with actual Groq API key
+      # Optional: Database secrets for PostgreSQL
+      - name: postgresql-connection-string
+        value: "{POSTGRESQL_CONNECTION_STRING}"  # Optional
+    
+    # Active revisions mode
+    activeRevisionsMode: single
+    
+    # Registry credentials (if using private registry)
+    registries:
+      - server: "{REGISTRY_NAME}.azurecr.io"
+        username: "{REGISTRY_USERNAME}"
+        passwordSecretRef: "registry-password"
+  
   template:
+    # Container configuration
     containers:
-      - image: {registry-name}.azurecr.io/pactoria-backend:latest
-        name: pactoria-backend
+      - name: pactoria-backend
+        image: "{REGISTRY_NAME}.azurecr.io/pactoria-backend:latest"
+        
+        # Environment variables
         env:
+          # Security
+          - name: JWT_SECRET_KEY
+            secretRef: jwt-secret-key
+          - name: SECRET_KEY
+            secretRef: secret-key
           - name: GROQ_API_KEY
             secretRef: groq-api-key
-          - name: DATABASE_URL
-            value: "sqlite:///./data/pactoria_mvp.db"
+          
+          # Application config
           - name: ENVIRONMENT
             value: "production"
           - name: DEBUG
             value: "false"
+          - name: LOG_LEVEL
+            value: "INFO"
+          - name: PORT
+            value: "8000"
+          - name: BIND_HOST
+            value: "0.0.0.0"
+          
+          # Database config (SQLite default for cost optimization)
+          - name: DATABASE_URL
+            value: "sqlite:///./data/pactoria_mvp.db"
+          # Uncomment for PostgreSQL:
+          # - name: DATABASE_URL
+          #   secretRef: postgresql-connection-string
+          
+          # Performance optimization for Container Apps
+          - name: GUNICORN_WORKERS
+            value: "1"
+          - name: GUNICORN_THREADS
+            value: "2"
+          - name: GUNICORN_TIMEOUT
+            value: "120"
+          
+          # Feature flags for cost optimization
+          - name: ENABLE_DETAILED_LOGGING
+            value: "false"
+          - name: ENABLE_METRICS_COLLECTION
+            value: "false"
+          - name: ENABLE_REDIS_CACHING
+            value: "false"
+          
+          # CORS will be set dynamically by startup.py
+          - name: CORS_ORIGINS
+            value: "https://*.azurestaticapps.net,https://*.azure.com"
+          
+          # File upload config
+          - name: UPLOAD_DIR
+            value: "/tmp/uploads"
+          - name: MAX_FILE_SIZE_MB
+            value: "10"
+        
+        # Resource allocation - MINIMUM for cost optimization
         resources:
-          # MINIMUM possible resources for lowest cost
-          cpu: 0.25
-          memory: 0.5Gi
+          cpu: 0.25        # Minimum CPU allocation
+          memory: 0.5Gi    # Minimum memory allocation
+        
+        # Health probes
+        probes:
+          - type: liveness
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          - type: readiness
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+        
+        # Volume mounts for SQLite persistence
         volumeMounts:
           - volumeName: sqlite-storage
             mountPath: /app/data
+          - volumeName: temp-storage
+            mountPath: /tmp
+    
+    # Scaling configuration - ULTRA cost optimized
     scale:
-      # Scale to zero when not in use to minimize costs
-      minReplicas: 0
-      maxReplicas: 2
+      minReplicas: 0    # Scale to zero when idle (saves maximum cost)
+      maxReplicas: 2    # Maximum 2 replicas for cost control
+      rules:
+        - name: http-scaler
+          http:
+            metadata:
+              concurrentRequests: "10"  # Scale up after 10 concurrent requests
+        - name: cpu-scaler
+          custom:
+            type: cpu
+            metadata:
+              type: Utilization
+              value: "80"  # Scale up at 80% CPU utilization
+    
+    # Volume definitions
     volumes:
       - name: sqlite-storage
         storageType: AzureFile
-        storageName: pactoria-sqlite
+        storageName: pactoria-sqlite-storage
+      - name: temp-storage
+        storageType: EmptyDir
+    
+    # Revision suffix
+    revisionSuffix: "v1"

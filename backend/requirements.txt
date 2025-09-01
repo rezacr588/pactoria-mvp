@@ -8,7 +8,7 @@ pydantic-settings==2.6.1
 # Database
 sqlalchemy==2.0.35
 alembic==1.14.0
-psycopg2-binary==2.9.10
+# SQLite (built-in with Python, no additional dependency needed)
 
 # Authentication
 python-jose[cryptography]==3.3.0
