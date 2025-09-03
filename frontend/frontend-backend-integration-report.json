@@ -1,0 +1,893 @@
+{
+  "generatedAt": "2025-09-02T23:16:24.211Z",
+  "testEnvironment": {
+    "baseUrl": "http://localhost:5173",
+    "apiBaseUrl": "http://localhost:8000/api/v1",
+    "backendAvailable": false
+  },
+  "summary": {
+    "totalEndpoints": 65,
+    "implementedEndpoints": 1,
+    "workingEndpoints": 0,
+    "failingEndpoints": 1,
+    "missingEndpoints": 64,
+    "criticalIssues": 15,
+    "productionReadiness": "NOT_READY",
+    "overallScore": 0
+  },
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "implemented": true,
+      "tested": true,
+      "hasError": true,
+      "errorType": "Could not connect to the server.",
+      "responseTime": 6,
+      "usedByComponents": [
+        "User Registration & Login"
+      ],
+      "critical": true
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "implemented": false,
+      "tested": true,
+      "hasError": true,
+      "usedByComponents": [
+        "User Registration & Login"
+      ],
+      "critical": true
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/dashboard",
+      "implemented": false,
+      "tested": true,
+      "hasError": true,
+      "usedByComponents": [
+        "Dashboard Data Loading"
+      ],
+      "critical": true
+    },
+    {
+      "method": "GET",
+      "path": "/contracts",
+      "implemented": false,
+      "tested": true,
+      "hasError": true,
+      "usedByComponents": [
+        "Dashboard Data Loading"
+      ],
+      "critical": true
+    },
+    {
+      "method": "GET",
+      "path": "/contracts",
+      "implemented": false,
+      "tested": true,
+      "hasError": true,
+      "usedByComponents": [
+        "Contract List & Search"
+      ],
+      "critical": true
+    },
+    {
+      "method": "GET",
+      "path": "/search/contracts/quick",
+      "implemented": false,
+      "tested": true,
+      "hasError": true,
+      "usedByComponents": [
+        "Contract List & Search"
+      ],
+      "critical": true
+    },
+    {
+      "method": "GET",
+      "path": "/contracts/templates",
+      "implemented": false,
+      "tested": true,
+      "hasError": true,
+      "usedByComponents": [
+        "Contract Creation"
+      ],
+      "critical": true
+    },
+    {
+      "method": "POST",
+      "path": "/contracts",
+      "implemented": false,
+      "tested": true,
+      "hasError": true,
+      "usedByComponents": [
+        "Contract Creation"
+      ],
+      "critical": true
+    },
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "LoginPage"
+      ],
+      "critical": true
+    },
+    {
+      "method": "PUT",
+      "path": "/auth/me",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "SettingsPage"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/contracts/{id}",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "ContractViewPage"
+      ],
+      "critical": true
+    },
+    {
+      "method": "PUT",
+      "path": "/contracts/{id}",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "ContractEditPage"
+      ],
+      "critical": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/contracts/{id}",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "ContractActions"
+      ],
+      "critical": true
+    },
+    {
+      "method": "POST",
+      "path": "/contracts/{id}/generate",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "ContractGeneration"
+      ],
+      "critical": true
+    },
+    {
+      "method": "POST",
+      "path": "/contracts/{id}/analyze",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "ComplianceAnalysis"
+      ],
+      "critical": true
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/business",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "AnalyticsPage"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/analytics/time-series/{metric}",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "ChartsComponent"
+      ],
+      "critical": false
+    },
+    {
+      "method": "POST",
+      "path": "/search/contracts",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "AdvancedSearch"
+      ],
+      "critical": true
+    },
+    {
+      "method": "POST",
+      "path": "/search/users",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "UserSearch"
+      ],
+      "critical": false
+    },
+    {
+      "method": "POST",
+      "path": "/search/templates",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "TemplateSearch"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/search/suggestions/contracts",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "SearchSuggestions"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/search/facets/contracts",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "SearchFilters"
+      ],
+      "critical": false
+    },
+    {
+      "method": "POST",
+      "path": "/bulk/contracts/update",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "BulkOperations"
+      ],
+      "critical": false
+    },
+    {
+      "method": "POST",
+      "path": "/bulk/contracts/delete",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "BulkOperations"
+      ],
+      "critical": false
+    },
+    {
+      "method": "POST",
+      "path": "/bulk/contracts/export",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "ExportFeature"
+      ],
+      "critical": false
+    },
+    {
+      "method": "POST",
+      "path": "/bulk/users/invite",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "TeamInvite"
+      ],
+      "critical": false
+    },
+    {
+      "method": "POST",
+      "path": "/bulk/users/role-change",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "RoleManagement"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/bulk/status/{operationId}",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "BulkStatus"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/templates",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "TemplatesPage"
+      ],
+      "critical": false
+    },
+    {
+      "method": "POST",
+      "path": "/templates",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "TemplateCreate"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/templates/{id}",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "TemplateView"
+      ],
+      "critical": false
+    },
+    {
+      "method": "PUT",
+      "path": "/templates/{id}",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "TemplateEdit"
+      ],
+      "critical": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/templates/{id}",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "TemplateDelete"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/templates/categories",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "TemplateFilters"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/templates/contract-types",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "TemplateFilters"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/ws/stats",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "WebSocketService"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/ws/health",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "WebSocketService"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/notifications",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "NotificationsPage"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/notifications/{id}",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "NotificationDetail"
+      ],
+      "critical": false
+    },
+    {
+      "method": "PUT",
+      "path": "/notifications/{id}/read",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "NotificationActions"
+      ],
+      "critical": false
+    },
+    {
+      "method": "PUT",
+      "path": "/notifications/read-all",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "NotificationActions"
+      ],
+      "critical": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/notifications/{id}",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "NotificationActions"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/notifications/stats/summary",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "NotificationBadge"
+      ],
+      "critical": false
+    },
+    {
+      "method": "POST",
+      "path": "/notifications",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "AdminNotifications"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/team/members",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "TeamPage"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/team/members/{id}",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "TeamMemberDetail"
+      ],
+      "critical": false
+    },
+    {
+      "method": "POST",
+      "path": "/team/invite",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "TeamInvite"
+      ],
+      "critical": false
+    },
+    {
+      "method": "PUT",
+      "path": "/team/members/{id}/role",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "RoleChange"
+      ],
+      "critical": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/team/members/{id}",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "TeamActions"
+      ],
+      "critical": false
+    },
+    {
+      "method": "POST",
+      "path": "/team/members/{id}/resend-invite",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "InviteActions"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/team/stats",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "TeamDashboard"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/team/roles",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "RoleSelector"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/integrations",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "IntegrationsPage"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/integrations/{id}",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "IntegrationDetail"
+      ],
+      "critical": false
+    },
+    {
+      "method": "POST",
+      "path": "/integrations/{id}/connect",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "IntegrationConnect"
+      ],
+      "critical": false
+    },
+    {
+      "method": "DELETE",
+      "path": "/integrations/{id}/disconnect",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "IntegrationActions"
+      ],
+      "critical": false
+    },
+    {
+      "method": "PUT",
+      "path": "/integrations/{id}/configure",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "IntegrationConfig"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/integrations/{id}/sync-status",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "IntegrationStatus"
+      ],
+      "critical": false
+    },
+    {
+      "method": "POST",
+      "path": "/integrations/{id}/sync",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "IntegrationSync"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/integrations/stats/summary",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "IntegrationsDashboard"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/integrations/categories/list",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "IntegrationFilters"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/audit/entries",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "AuditTrailPage"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/audit/entries/{id}",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "AuditEntryDetail"
+      ],
+      "critical": false
+    },
+    {
+      "method": "GET",
+      "path": "/audit/stats",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "AuditDashboard"
+      ],
+      "critical": false
+    },
+    {
+      "method": "POST",
+      "path": "/audit/entries/export",
+      "implemented": false,
+      "tested": false,
+      "hasError": true,
+      "errorType": "NOT_TESTED",
+      "usedByComponents": [
+        "AuditExport"
+      ],
+      "critical": false
+    }
+  ],
+  "missingFeatures": [
+    "POST /auth/login - User Registration & Login",
+    "GET /auth/me - User Registration & Login",
+    "GET /analytics/dashboard - Dashboard Data Loading",
+    "GET /contracts - Dashboard Data Loading",
+    "GET /contracts - Contract List & Search",
+    "GET /search/contracts/quick - Contract List & Search",
+    "GET /contracts/templates - Contract Creation",
+    "POST /contracts - Contract Creation",
+    "POST /auth/register - LoginPage",
+    "GET /contracts/{id} - ContractViewPage",
+    "PUT /contracts/{id} - ContractEditPage",
+    "DELETE /contracts/{id} - ContractActions",
+    "POST /contracts/{id}/generate - ContractGeneration",
+    "POST /contracts/{id}/analyze - ComplianceAnalysis",
+    "POST /search/contracts - AdvancedSearch"
+  ],
+  "criticalIssues": [
+    "Flow \"Analytics Dashboard\" failed: Error: page.goto: Target page, context or browser has been closed",
+    "Flow \"Team Management\" failed: Error: page.goto: Target page, context or browser has been closed",
+    "Flow \"Notifications\" failed: Error: page.goto: Target page, context or browser has been closed",
+    "Flow \"Templates Management\" failed: Error: page.goto: Target page, context or browser has been closed",
+    "Flow \"Integrations\" failed: Error: page.goto: Target page, context or browser has been closed",
+    "Flow \"Audit Trail\" failed: Error: page.goto: Target page, context or browser has been closed",
+    "Critical endpoint POST /auth/login is failing",
+    "Critical endpoint GET /auth/me is not implemented",
+    "Critical endpoint GET /analytics/dashboard is not implemented",
+    "Critical endpoint GET /contracts is not implemented",
+    "Critical endpoint GET /contracts is not implemented",
+    "Critical endpoint GET /search/contracts/quick is not implemented",
+    "Critical endpoint GET /contracts/templates is not implemented",
+    "Critical endpoint POST /contracts is not implemented",
+    "Critical endpoint POST /auth/register is not implemented",
+    "Critical endpoint GET /contracts/{id} is not implemented",
+    "Critical endpoint PUT /contracts/{id} is not implemented",
+    "Critical endpoint DELETE /contracts/{id} is not implemented",
+    "Critical endpoint POST /contracts/{id}/generate is not implemented",
+    "Critical endpoint POST /contracts/{id}/analyze is not implemented",
+    "Critical endpoint POST /search/contracts is not implemented",
+    "Backend API server is not available or not responding"
+  ],
+  "recommendations": [
+    "Implement missing critical API endpoints to ensure core functionality works",
+    "Set up proper error handling for all API calls with user-friendly error messages",
+    "Add loading states and skeleton screens for better user experience",
+    "Implement retry mechanisms for failed API requests",
+    "Add comprehensive logging for API requests and responses",
+    "Set up API response caching where appropriate to improve performance",
+    "Implement proper authentication token refresh mechanisms",
+    "Add API endpoint monitoring and health checks",
+    "Create mock API responses for development and testing",
+    "Set up API documentation and contract testing",
+    "Fix failing API endpoints - check backend implementation and error responses",
+    "Consider implementing endpoints in phases, starting with critical user flows",
+    "Set up backend development environment and ensure API server is running",
+    "15 critical endpoints are failing - these must be fixed before production"
+  ],
+  "productionBlockers": [
+    "Backend API must be running and accessible",
+    "15 critical API endpoints not working",
+    "Authentication system not fully functional",
+    "Core contract management features not working"
+  ],
+  "implementationPriority": {
+    "high": [
+      "POST /auth/login - User Registration & Login",
+      "GET /auth/me - User Registration & Login",
+      "GET /analytics/dashboard - Dashboard Data Loading",
+      "GET /contracts - Dashboard Data Loading",
+      "GET /contracts - Contract List & Search",
+      "GET /search/contracts/quick - Contract List & Search",
+      "GET /contracts/templates - Contract Creation",
+      "POST /contracts - Contract Creation",
+      "POST /auth/register - LoginPage",
+      "GET /contracts/{id} - ContractViewPage",
+      "PUT /contracts/{id} - ContractEditPage",
+      "DELETE /contracts/{id} - ContractActions",
+      "POST /contracts/{id}/generate - ContractGeneration",
+      "POST /contracts/{id}/analyze - ComplianceAnalysis",
+      "POST /search/contracts - AdvancedSearch"
+    ],
+    "medium": [
+      "PUT /auth/me - SettingsPage",
+      "GET /analytics/business - AnalyticsPage",
+      "GET /analytics/time-series/{metric} - ChartsComponent",
+      "POST /search/users - UserSearch",
+      "POST /search/templates - TemplateSearch",
+      "GET /search/suggestions/contracts - SearchSuggestions",
+      "GET /search/facets/contracts - SearchFilters",
+      "POST /bulk/contracts/update - BulkOperations",
+      "POST /bulk/contracts/delete - BulkOperations",
+      "POST /bulk/contracts/export - ExportFeature"
+    ],
+    "low": [
+      "Performance optimizations",
+      "Additional error handling",
+      "UI/UX improvements"
+    ]
+  }
+}

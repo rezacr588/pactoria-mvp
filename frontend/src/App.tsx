@@ -82,7 +82,7 @@ function App() {
 
   return (
     <ErrorBoundary level="critical" showErrorDetails={process.env.NODE_ENV === 'development'}>
-      <ThemeProvider>
+      <ThemeProvider defaultTheme="light">
         <ToastProvider>
           <Router>
             <KeyboardShortcutsProvider>

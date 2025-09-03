@@ -155,3 +155,23 @@ export const textStyles = {
 export function tw(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
+
+// Responsive text scales for better mobile/desktop experience
+export const responsiveText = {
+  hero: 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl',
+  title: 'text-xl sm:text-2xl md:text-3xl lg:text-4xl',
+  subtitle: 'text-lg sm:text-xl md:text-2xl lg:text-3xl',
+  body: 'text-sm sm:text-base md:text-lg',
+  caption: 'text-xs sm:text-sm md:text-base'
+};
+
+// Mobile-first accessibility improvements
+export const accessibleText = {
+  minContrast: {
+    light: 'text-neutral-800 dark:text-neutral-200',
+    medium: 'text-neutral-700 dark:text-neutral-300',
+    low: 'text-neutral-600 dark:text-neutral-400'
+  },
+  focusVisible: 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500',
+  screenReader: 'sr-only'
+};

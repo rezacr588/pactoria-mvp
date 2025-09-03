@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   DocumentTextIcon,
   MagnifyingGlassIcon,
@@ -11,6 +11,9 @@ import {
   ShieldCheckIcon,
   ClockIcon,
   TagIcon,
+  ExclamationTriangleIcon,
+  ArrowPathIcon,
+  CheckCircleIcon,
 } from '@heroicons/react/24/outline';
 import {
   HeartIcon as HeartSolidIcon,
@@ -18,180 +21,32 @@ import {
 } from '@heroicons/react/24/solid';
 import { Card, Button, Input, Select, Badge } from '../components/ui';
 import { classNames } from '../utils/classNames';
+import { TemplateService } from '../services/api';
+import { getErrorMessage } from '../utils/errorHandling';
+import { useToast } from '../contexts/ToastContext';
+import { SkeletonGrid } from '../components/ui/Skeleton';
 
 interface Template {
   id: string;
   name: string;
   description: string;
-  category: 'employment' | 'commercial' | 'property' | 'corporate' | 'consumer' | 'ip';
-  subcategory: string;
-  type: 'contract' | 'agreement' | 'letter' | 'form' | 'policy';
-  jurisdiction: 'england-wales' | 'scotland' | 'northern-ireland' | 'uk-wide';
-  lastUpdated: string;
+  category: string;
+  contract_type: string;
+  template_content: string;
+  compliance_features: string[];
+  legal_notes?: string;
   version: string;
-  complianceScore: number;
-  usageCount: number;
-  isFavorite: boolean;
-  isPopular: boolean;
-  tags: string[];
-  previewText: string;
-  estimatedTime: number; // minutes to complete
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  author: {
-    name: string;
-    role: string;
-  };
+  is_active: boolean;
+  suitable_for: string[];
+  created_at: string;
+  updated_at?: string;
+  // UI state
+  isFavorite?: boolean;
 }
 
-const mockTemplates: Template[] = [
-  {
-    id: '1',
-    name: 'Employment Contract - Permanent Full-Time',
-    description: 'Comprehensive employment contract template for permanent full-time employees in England & Wales',
-    category: 'employment',
-    subcategory: 'Permanent Employment',
-    type: 'contract',
-    jurisdiction: 'england-wales',
-    lastUpdated: '2025-08-15',
-    version: '2.1',
-    complianceScore: 98,
-    usageCount: 245,
-    isFavorite: true,
-    isPopular: true,
-    tags: ['GDPR Compliant', 'Working Time Regulations', 'Statutory Rights'],
-    previewText: 'This Employment Agreement is made between [Company Name] and [Employee Name]...',
-    estimatedTime: 25,
-    difficulty: 'intermediate',
-    author: { name: 'Legal Team', role: 'Employment Specialist' }
-  },
-  {
-    id: '2',
-    name: 'Professional Services Agreement',
-    description: 'Standard agreement for professional services with IP protection and liability clauses',
-    category: 'commercial',
-    subcategory: 'Service Agreements',
-    type: 'agreement',
-    jurisdiction: 'uk-wide',
-    lastUpdated: '2025-08-20',
-    version: '3.0',
-    complianceScore: 96,
-    usageCount: 189,
-    isFavorite: false,
-    isPopular: true,
-    tags: ['IP Protection', 'Liability Limitation', 'Payment Terms'],
-    previewText: 'This Professional Services Agreement governs the provision of services by...',
-    estimatedTime: 30,
-    difficulty: 'advanced',
-    author: { name: 'Commercial Team', role: 'Contract Specialist' }
-  },
-  {
-    id: '3',
-    name: 'Non-Disclosure Agreement (NDA)',
-    description: 'Mutual NDA template for protecting confidential information between parties',
-    category: 'commercial',
-    subcategory: 'Confidentiality',
-    type: 'agreement',
-    jurisdiction: 'uk-wide',
-    lastUpdated: '2025-08-10',
-    version: '1.5',
-    complianceScore: 95,
-    usageCount: 567,
-    isFavorite: true,
-    isPopular: true,
-    tags: ['Confidentiality', 'Trade Secrets', 'Mutual Protection'],
-    previewText: 'This Non-Disclosure Agreement is entered into by and between...',
-    estimatedTime: 15,
-    difficulty: 'beginner',
-    author: { name: 'Legal Team', role: 'Privacy Specialist' }
-  },
-  {
-    id: '4',
-    name: 'Supplier Agreement Template',
-    description: 'Comprehensive supplier agreement with quality standards and delivery terms',
-    category: 'commercial',
-    subcategory: 'Supply Chain',
-    type: 'agreement',
-    jurisdiction: 'england-wales',
-    lastUpdated: '2025-07-28',
-    version: '2.3',
-    complianceScore: 94,
-    usageCount: 156,
-    isFavorite: false,
-    isPopular: false,
-    tags: ['Quality Standards', 'Delivery Terms', 'Performance KPIs'],
-    previewText: 'This Supplier Agreement sets out the terms for the supply of goods/services...',
-    estimatedTime: 35,
-    difficulty: 'advanced',
-    author: { name: 'Procurement Team', role: 'Supply Chain Lead' }
-  },
-  {
-    id: '5',
-    name: 'Data Processing Agreement (DPA)',
-    description: 'GDPR-compliant data processing agreement for third-party processors',
-    category: 'consumer',
-    subcategory: 'Data Protection',
-    type: 'agreement',
-    jurisdiction: 'uk-wide',
-    lastUpdated: '2025-08-25',
-    version: '4.1',
-    complianceScore: 99,
-    usageCount: 312,
-    isFavorite: true,
-    isPopular: true,
-    tags: ['GDPR', 'Data Security', 'Processing Activities'],
-    previewText: 'This Data Processing Agreement governs the processing of personal data...',
-    estimatedTime: 20,
-    difficulty: 'intermediate',
-    author: { name: 'Privacy Team', role: 'Data Protection Officer' }
-  },
-  {
-    id: '6',
-    name: 'Commercial Lease Agreement',
-    description: 'Standard commercial property lease with tenant protections',
-    category: 'property',
-    subcategory: 'Commercial Leases',
-    type: 'agreement',
-    jurisdiction: 'england-wales',
-    lastUpdated: '2025-08-05',
-    version: '1.8',
-    complianceScore: 92,
-    usageCount: 89,
-    isFavorite: false,
-    isPopular: false,
-    tags: ['Rent Review', 'Repair Obligations', 'Assignment Rights'],
-    previewText: 'This Lease Agreement is made between the Landlord and Tenant for...',
-    estimatedTime: 45,
-    difficulty: 'advanced',
-    author: { name: 'Property Team', role: 'Real Estate Specialist' }
-  }
-];
 
-const categoryOptions = [
-  { value: '', label: 'All Categories' },
-  { value: 'employment', label: 'Employment' },
-  { value: 'commercial', label: 'Commercial' },
-  { value: 'property', label: 'Property' },
-  { value: 'corporate', label: 'Corporate' },
-  { value: 'consumer', label: 'Consumer' },
-  { value: 'ip', label: 'Intellectual Property' },
-];
 
-const typeOptions = [
-  { value: '', label: 'All Types' },
-  { value: 'contract', label: 'Contracts' },
-  { value: 'agreement', label: 'Agreements' },
-  { value: 'letter', label: 'Letters' },
-  { value: 'form', label: 'Forms' },
-  { value: 'policy', label: 'Policies' },
-];
 
-const jurisdictionOptions = [
-  { value: '', label: 'All Jurisdictions' },
-  { value: 'uk-wide', label: 'UK-Wide' },
-  { value: 'england-wales', label: 'England & Wales' },
-  { value: 'scotland', label: 'Scotland' },
-  { value: 'northern-ireland', label: 'Northern Ireland' },
-];
 
 const sortOptions = [
   { value: 'popular', label: 'Most Popular' },
@@ -201,8 +56,9 @@ const sortOptions = [
   { value: 'usage', label: 'Usage Count' },
 ];
 
-function getCategoryColor(category: Template['category']) {
-  switch (category) {
+function getCategoryColor(category: string) {
+  const lowerCategory = category.toLowerCase();
+  switch (lowerCategory) {
     case 'employment':
       return 'text-blue-700 bg-blue-100';
     case 'commercial':
@@ -214,13 +70,21 @@ function getCategoryColor(category: Template['category']) {
     case 'consumer':
       return 'text-red-700 bg-red-100';
     case 'ip':
+    case 'intellectual property':
       return 'text-indigo-700 bg-indigo-100';
     default:
       return 'text-gray-700 bg-gray-100';
   }
 }
 
-function getDifficultyColor(difficulty: Template['difficulty']) {
+function getDifficultyFromFeatures(features: string[]) {
+  // Determine difficulty based on compliance features
+  if (features.length >= 5) return 'advanced';
+  if (features.length >= 3) return 'intermediate';
+  return 'beginner';
+}
+
+function getDifficultyColor(difficulty: string) {
   switch (difficulty) {
     case 'beginner':
       return 'text-green-600 bg-green-50 border-green-200';
@@ -233,70 +97,181 @@ function getDifficultyColor(difficulty: Template['difficulty']) {
   }
 }
 
-function getJurisdictionLabel(jurisdiction: Template['jurisdiction']) {
-  switch (jurisdiction) {
-    case 'uk-wide':
-      return 'UK-Wide';
-    case 'england-wales':
-      return 'England & Wales';
-    case 'scotland':
-      return 'Scotland';
-    case 'northern-ireland':
-      return 'Northern Ireland';
-    default:
-      return jurisdiction;
-  }
-}
 
 export default function TemplatesPage() {
-  const [templates, setTemplates] = useState<Template[]>(mockTemplates);
+  const { showToast } = useToast();
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
-  const [jurisdictionFilter, setJurisdictionFilter] = useState('');
-  const [sortBy, setSortBy] = useState('popular');
-  // View mode can be implemented later if needed
-  // const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [sortBy, setSortBy] = useState('name');
+  const [categories, setCategories] = useState<string[]>([]);
+  const [contractTypes, setContractTypes] = useState<string[]>([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    size: 20,
+    total: 0,
+    pages: 0
+  });
 
-  // Filter templates
-  const filteredTemplates = templates
-    .filter(template => {
-      const matchesSearch = 
-        template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        template.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+  // Favorite templates state (stored locally)
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+
+  // Load favorites from localStorage
+  useEffect(() => {
+    const savedFavorites = localStorage.getItem('template-favorites');
+    if (savedFavorites) {
+      setFavoriteIds(new Set(JSON.parse(savedFavorites)));
+    }
+  }, []);
+
+  // Save favorites to localStorage
+  const saveFavorites = useCallback((favorites: Set<string>) => {
+    localStorage.setItem('template-favorites', JSON.stringify(Array.from(favorites)));
+  }, []);
+
+  // Fetch templates
+  const fetchTemplates = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
       
-      const matchesCategory = !categoryFilter || template.category === categoryFilter;
-      const matchesType = !typeFilter || template.type === typeFilter;
-      const matchesJurisdiction = !jurisdictionFilter || template.jurisdiction === jurisdictionFilter;
+      const response = await TemplateService.getTemplates({
+        page: pagination.page,
+        size: pagination.size,
+        contract_type: typeFilter || undefined,
+        category: categoryFilter || undefined,
+        search: searchQuery || undefined
+      });
+      
+      setTemplates(response.templates);
+      setPagination({
+        page: response.page,
+        size: response.size,
+        total: response.total,
+        pages: response.pages
+      });
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pagination.page, pagination.size, typeFilter, categoryFilter, searchQuery, showToast]);
 
-      return matchesSearch && matchesCategory && matchesType && matchesJurisdiction;
-    })
+  // Fetch categories and contract types
+  const fetchMetadata = useCallback(async () => {
+    try {
+      const [categoriesData, contractTypesData] = await Promise.all([
+        TemplateService.getTemplateCategories(),
+        TemplateService.getTemplateContractTypes()
+      ]);
+      setCategories(categoriesData);
+      setContractTypes(contractTypesData);
+    } catch (err) {
+      console.warn('Failed to fetch template metadata:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTemplates();
+  }, [fetchTemplates]);
+
+  useEffect(() => {
+    fetchMetadata();
+  }, [fetchMetadata]);
+
+  // Generate options for dropdowns
+  const categoryOptions = [
+    { value: '', label: 'All Categories' },
+    ...categories.map(category => ({
+      value: category,
+      label: category.charAt(0).toUpperCase() + category.slice(1)
+    }))
+  ];
+
+  const typeOptions = [
+    { value: '', label: 'All Types' },
+    ...contractTypes.map(type => ({
+      value: type,
+      label: type.charAt(0).toUpperCase() + type.slice(1)
+    }))
+  ];
+
+  const sortOptions = [
+    { value: 'name', label: 'Name A-Z' },
+    { value: 'category', label: 'Category' },
+    { value: 'created_at', label: 'Recently Added' },
+    { value: 'updated_at', label: 'Recently Updated' }
+  ];
+
+  // Filter and sort templates
+  const filteredTemplates = templates
+    .filter(template => template.is_active) // Only show active templates
     .sort((a, b) => {
       switch (sortBy) {
-        case 'popular':
-          return b.usageCount - a.usageCount;
-        case 'recent':
-          return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
         case 'name':
           return a.name.localeCompare(b.name);
-        case 'compliance':
-          return b.complianceScore - a.complianceScore;
-        case 'usage':
-          return b.usageCount - a.usageCount;
+        case 'category':
+          return a.category.localeCompare(b.category);
+        case 'created_at':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'updated_at':
+          return new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime();
         default:
           return 0;
       }
     });
 
   const toggleFavorite = (id: string) => {
-    setTemplates(prev => prev.map(template =>
-      template.id === id ? { ...template, isFavorite: !template.isFavorite } : template
-    ));
+    const newFavorites = new Set(favoriteIds);
+    if (favoriteIds.has(id)) {
+      newFavorites.delete(id);
+    } else {
+      newFavorites.add(id);
+    }
+    setFavoriteIds(newFavorites);
+    saveFavorites(newFavorites);
   };
 
-  const favoriteTemplates = templates.filter(t => t.isFavorite);
-  const popularTemplates = templates.filter(t => t.isPopular);
+  const favoriteTemplates = templates.filter(t => favoriteIds.has(t.id));
+  const activeTemplates = templates.filter(t => t.is_active);
+
+  if (isLoading) {
+    return (
+      <div className="p-4 sm:p-6">
+        <div className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">UK Legal Templates</h1>
+          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">
+            Professional, compliant contract templates for UK businesses
+          </p>
+        </div>
+        <SkeletonGrid count={6} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 sm:p-6">
+        <div className="text-center py-12">
+          <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-red-500" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">Error loading templates</h3>
+          <p className="mt-1 text-sm text-gray-500">{error}</p>
+          <Button
+            onClick={fetchTemplates}
+            className="mt-4"
+            icon={<ArrowPathIcon className="h-4 w-4" />}
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6">
@@ -338,10 +313,10 @@ export default function TemplatesPage() {
         <Card variant="bordered" className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-500">Popular</p>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{popularTemplates.length}</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-500">Active</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{activeTemplates.length}</p>
             </div>
-            <StarSolidIcon className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-500" />
+            <CheckCircleIcon className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
           </div>
         </Card>
         <Card variant="bordered" className="p-4">
@@ -356,10 +331,10 @@ export default function TemplatesPage() {
         <Card variant="bordered" className="p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs sm:text-sm font-medium text-gray-500">Avg. Compliance</p>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">96%</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-500">Categories</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{categories.length}</p>
             </div>
-            <ShieldCheckIcon className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
+            <TagIcon className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-600" />
           </div>
         </Card>
       </div>
@@ -387,12 +362,7 @@ export default function TemplatesPage() {
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
           />
-          <Select
-            placeholder="Jurisdiction"
-            options={jurisdictionOptions}
-            value={jurisdictionFilter}
-            onChange={(e) => setJurisdictionFilter(e.target.value)}
-          />
+          <div></div>
           <Select
             placeholder="Sort by"
             options={sortOptions}
@@ -405,8 +375,31 @@ export default function TemplatesPage() {
       {/* Results Summary */}
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-gray-500">
-          Showing {filteredTemplates.length} of {templates.length} templates
+          Showing {filteredTemplates.length} of {pagination.total} templates
         </p>
+        {pagination.pages > 1 && (
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+              disabled={pagination.page === 1}
+            >
+              Previous
+            </Button>
+            <span className="text-sm text-gray-500">
+              Page {pagination.page} of {pagination.pages}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.pages, prev.page + 1) }))}
+              disabled={pagination.page === pagination.pages}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Templates Grid */}
@@ -422,134 +415,159 @@ export default function TemplatesPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredTemplates.map((template) => (
-            <Card key={template.id} variant="bordered" className="flex flex-col">
-              <div className="p-6 flex-1">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Badge className={classNames('text-xs', getCategoryColor(template.category))}>
-                        {template.category.charAt(0).toUpperCase() + template.category.slice(1)}
-                      </Badge>
-                      {template.isPopular && (
-                        <StarSolidIcon className="h-4 w-4 text-yellow-500" />
+          {filteredTemplates.map((template) => {
+            const isFavorite = favoriteIds.has(template.id);
+            const difficulty = getDifficultyFromFeatures(template.compliance_features);
+            const complianceScore = Math.max(90, Math.min(100, 85 + template.compliance_features.length * 3)); // Estimate based on features
+            
+            return (
+              <Card key={template.id} variant="bordered" className="flex flex-col">
+                <div className="p-6 flex-1">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Badge className={classNames('text-xs', getCategoryColor(template.category))}>
+                          {template.category.charAt(0).toUpperCase() + template.category.slice(1)}
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          v{template.version}
+                        </Badge>
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        {template.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        {template.description}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => toggleFavorite(template.id)}
+                      className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      {isFavorite ? (
+                        <HeartSolidIcon className="h-5 w-5 text-red-500" />
+                      ) : (
+                        <HeartIcon className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Compliance Features</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-16 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-green-500 h-2 rounded-full"
+                            style={{ width: `${complianceScore}%` }}
+                          />
+                        </div>
+                        <span className="font-medium text-green-600">{complianceScore}%</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Contract Type</span>
+                      <span className="font-medium">{template.contract_type}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Features</span>
+                      <span className="font-medium">{template.compliance_features.length} compliance features</span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Complexity</span>
+                      <span className={classNames(
+                        'text-xs px-2 py-1 rounded border font-medium',
+                        getDifficultyColor(difficulty)
+                      )}>
+                        {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <div className="flex flex-wrap gap-1">
+                      {template.compliance_features.slice(0, 3).map((feature) => (
+                        <span
+                          key={feature}
+                          className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded"
+                        >
+                          <TagIcon className="h-3 w-3 mr-1" />
+                          {feature}
+                        </span>
+                      ))}
+                      {template.compliance_features.length > 3 && (
+                        <span className="text-xs text-gray-500 px-2 py-1">
+                          +{template.compliance_features.length - 3} more
+                        </span>
                       )}
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {template.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      {template.description}
+                  </div>
+
+                  {template.suitable_for.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-xs font-medium text-gray-500 mb-1">Suitable for:</p>
+                      <p className="text-xs text-gray-600">
+                        {template.suitable_for.slice(0, 2).join(', ')}
+                        {template.suitable_for.length > 2 && ` +${template.suitable_for.length - 2} more`}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="text-xs text-gray-500 mb-4">
+                    <p className="mb-1">
+                      <span className="font-medium">Updated:</span>{' '}
+                      {new Date(template.updated_at || template.created_at).toLocaleDateString('en-GB')}
+                    </p>
+                    <p>
+                      <span className="font-medium">Version:</span> {template.version}
                     </p>
                   </div>
-                  <button
-                    onClick={() => toggleFavorite(template.id)}
-                    className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors"
-                  >
-                    {template.isFavorite ? (
-                      <HeartSolidIcon className="h-5 w-5 text-red-500" />
-                    ) : (
-                      <HeartIcon className="h-5 w-5" />
-                    )}
-                  </button>
                 </div>
 
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Compliance Score</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-16 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-green-500 h-2 rounded-full"
-                          style={{ width: `${template.complianceScore}%` }}
-                        />
-                      </div>
-                      <span className="font-medium text-green-600">{template.complianceScore}%</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Jurisdiction</span>
-                    <span className="font-medium">{getJurisdictionLabel(template.jurisdiction)}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Est. Time</span>
-                    <div className="flex items-center space-x-1">
-                      <ClockIcon className="h-4 w-4 text-gray-400" />
-                      <span className="font-medium">{template.estimatedTime}m</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Difficulty</span>
-                    <span className={classNames(
-                      'text-xs px-2 py-1 rounded border font-medium',
-                      getDifficultyColor(template.difficulty)
-                    )}>
-                      {template.difficulty.charAt(0).toUpperCase() + template.difficulty.slice(1)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <div className="flex flex-wrap gap-1">
-                    {template.tags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded"
-                      >
-                        <TagIcon className="h-3 w-3 mr-1" />
-                        {tag}
-                      </span>
-                    ))}
-                    {template.tags.length > 3 && (
-                      <span className="text-xs text-gray-500 px-2 py-1">
-                        +{template.tags.length - 3} more
-                      </span>
-                    )}
+                <div className="p-6 pt-0 mt-auto">
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="flex-1"
+                      icon={<DocumentDuplicateIcon className="h-4 w-4" />}
+                      onClick={() => {
+                        // Navigate to contract creation with this template
+                        window.location.href = `/contracts/create?template=${template.id}`;
+                      }}
+                    >
+                      Use Template
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      icon={<EyeIcon className="h-4 w-4" />}
+                      onClick={() => {
+                        // Show preview modal or navigate to preview
+                        console.log('Preview template:', template.id);
+                      }}
+                    >
+                      Preview
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={<PencilIcon className="h-4 w-4" />}
+                      onClick={() => {
+                        // Navigate to template editor (admin only)
+                        console.log('Edit template:', template.id);
+                      }}
+                    >
+                      Edit
+                    </Button>
                   </div>
                 </div>
-
-                <div className="text-xs text-gray-500 mb-4">
-                  <p className="mb-1">
-                    <span className="font-medium">Updated:</span>{' '}
-                    {new Date(template.lastUpdated).toLocaleDateString('en-GB')} (v{template.version})
-                  </p>
-                  <p>
-                    <span className="font-medium">Used:</span> {template.usageCount} times
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-6 pt-0 mt-auto">
-                <div className="flex space-x-2">
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    className="flex-1"
-                    icon={<DocumentDuplicateIcon className="h-4 w-4" />}
-                  >
-                    Use Template
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    icon={<EyeIcon className="h-4 w-4" />}
-                  >
-                    Preview
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    icon={<PencilIcon className="h-4 w-4" />}
-                  >
-                    Edit
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

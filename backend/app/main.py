@@ -117,6 +117,22 @@ This API is proprietary software. Unauthorized access or use is prohibited.
         {
             "name": "Analytics",
             "description": "Contract analytics, compliance metrics, and reporting"
+        },
+        {
+            "name": "Audit Trail",
+            "description": "Activity logging and audit trail management"
+        },
+        {
+            "name": "Notifications",
+            "description": "User notifications and alert management"
+        },
+        {
+            "name": "Team Management",
+            "description": "Team member management and user invitations"
+        },
+        {
+            "name": "Integrations",
+            "description": "Third-party integrations and external service connections"
         }
     ],
     # Servers for different environments

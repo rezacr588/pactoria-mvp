@@ -1,12 +1,14 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useContractStore } from '../store/contractStore';
 import { useAuthStore } from '../store/authStore';
 import OnboardingChecklist from '../components/OnboardingChecklist';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '../components/ui';
 import { SkeletonDashboard } from '../components/ui/Skeleton';
 import { classNames } from '../utils/classNames';
 import { textColors, textStyles, typography } from '../utils/typography';
+import { AnalyticsService, ContractService } from '../services/api';
+import { getErrorMessage } from '../utils/errorHandling';
+import { useToast } from '../contexts/ToastContext';
 import {
   DocumentTextIcon,
   ClockIcon,
@@ -35,68 +37,106 @@ function getRiskLevel(score: number) {
 }
 
 export default function DashboardPage() {
-  const { contracts, fetchContracts, isLoading } = useContractStore();
+  const { showToast } = useToast();
   const { user } = useAuthStore();
   const [showOnboarding, setShowOnboarding] = useState(true);
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [contracts, setContracts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch dashboard data from analytics API
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Fetch both analytics dashboard and recent contracts
+      const [analyticsData, contractsData] = await Promise.all([
+        AnalyticsService.getDashboard(),
+        ContractService.getContracts({ page: 1, size: 10 })
+      ]);
+      
+      setDashboardData(analyticsData);
+      setContracts(contractsData.contracts);
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [showToast]);
 
   useEffect(() => {
-    fetchContracts();
-  }, [fetchContracts]);
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   // Memoized calculations to prevent unnecessary re-renders
   const dashboardMetrics = useMemo(() => {
-    const totalContracts = contracts.length;
-    const activeContracts = contracts.filter(c => c.status === 'active').length;
-    const pendingContracts = contracts.filter(c => c.status === 'review' || c.status === 'draft').length;
-    const averageCompliance = contracts.length > 0 
-      ? Math.round(contracts.reduce((acc, c) => acc + c.complianceScore.overall, 0) / contracts.length)
-      : 0;
+    if (!dashboardData?.business_metrics) {
+      return {
+        totalContracts: 0,
+        activeContracts: 0,
+        pendingContracts: 0,
+        averageCompliance: 0,
+        recentContracts: contracts,
+        upcomingDeadlines: [],
+        complianceIssues: []
+      };
+    }
 
-    // Recent activity
+    const businessMetrics = dashboardData.business_metrics;
+    const complianceMetrics = dashboardData.compliance_metrics;
+
+    // Recent activity - use the contracts we fetched
     const recentContracts = contracts
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+      .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
       .slice(0, 5);
 
-    // Upcoming deadlines
+    // Mock upcoming deadlines (since the API doesn't provide this specific format)
     const upcomingDeadlines = contracts
-      .flatMap(contract => 
-        contract.deadlines.map(deadline => ({
-          ...deadline,
-          contractName: contract.name,
-          contractId: contract.id,
-          daysUntil: Math.ceil((new Date(deadline.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-        }))
-      )
-      .filter(deadline => deadline.daysUntil >= 0)
+      .filter(contract => contract.end_date)
+      .map(contract => ({
+        id: `${contract.id}-deadline`,
+        title: 'Contract Expiration',
+        contractName: contract.title,
+        contractId: contract.id,
+        daysUntil: Math.ceil((new Date(contract.end_date!).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+      }))
+      .filter(deadline => deadline.daysUntil >= 0 && deadline.daysUntil <= 90)
       .sort((a, b) => a.daysUntil - b.daysUntil)
       .slice(0, 5);
 
-    // Compliance issues
-    const complianceIssues = contracts
-      .flatMap(contract => 
-        contract.complianceScore.issues.map(issue => ({
-          ...issue,
-          contractName: contract.name,
-          contractId: contract.id
-        }))
-      )
-      .slice(0, 5);
+    // Mock compliance issues based on compliance metrics
+    const complianceIssues = complianceMetrics?.high_risk_contracts_count > 0 ? [
+      {
+        contractId: 'mock-1',
+        contractName: 'High Risk Contract',
+        category: 'Risk Assessment',
+        description: `${complianceMetrics.high_risk_contracts_count} contracts flagged as high risk`
+      }
+    ] : [];
 
     return {
-      totalContracts,
-      activeContracts,
-      pendingContracts,
-      averageCompliance,
+      totalContracts: businessMetrics.total_contracts,
+      activeContracts: businessMetrics.active_contracts,
+      pendingContracts: businessMetrics.draft_contracts,
+      averageCompliance: Math.round(businessMetrics.compliance_score_average || 0),
       recentContracts,
       upcomingDeadlines,
       complianceIssues
     };
-  }, [contracts]);
+  }, [contracts, dashboardData]);
 
   const { totalContracts, activeContracts, pendingContracts, averageCompliance, recentContracts, upcomingDeadlines, complianceIssues } = dashboardMetrics;
 
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   // Show skeleton while loading - moved after all hooks
-  if (isLoading && contracts.length === 0) {
+  if (isLoading && !dashboardData) {
     return (
       <div className="p-4 sm:p-6 max-w-7xl mx-auto" role="main" aria-label="Loading dashboard">
         <div className="sr-only" aria-live="polite">Loading your dashboard data...</div>
@@ -162,6 +202,23 @@ export default function DashboardPage() {
           </Button>
         </Link>
       </header>
+
+      {/* Error Display */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="text-red-600 dark:text-red-400 text-sm">
+              <strong>Error loading dashboard data:</strong> {error}
+            </div>
+            <button 
+              onClick={clearError} 
+              className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm font-medium"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Quick stats */}
       <section aria-labelledby="stats-heading" className="mb-6 sm:mb-8">
@@ -262,7 +319,6 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-4">
               {recentContracts.map((contract) => {
-                const riskInfo = getRiskLevel(contract.riskAssessment.overall);
                 return (
                   <div key={contract.id} className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-secondary-800 rounded-lg hover:bg-neutral-100 dark:hover:bg-secondary-700 transition-colors">
                     <div className="flex items-center space-x-4">
@@ -274,24 +330,23 @@ export default function DashboardPage() {
                           to={`/contracts/${contract.id}`}
                           className={`${textStyles.listTitle} hover:text-primary-600`}
                         >
-                          {contract.name}
+                          {contract.title}
                         </Link>
                         <div className={textStyles.listSubtitle}>
-                          {contract.type.name} • Updated {new Date(contract.updatedAt).toLocaleDateString()}
+                          {contract.contract_type.replace('_', ' ')} • Updated {new Date(contract.updated_at || contract.created_at).toLocaleDateString()}
                         </div>
                         <div className="flex items-center space-x-4 mt-2">
                           <span className={classNames(
-                            getComplianceColor(contract.complianceScore.overall),
+                            'text-blue-600',
                             'text-xs font-medium'
                           )}>
-                            {contract.complianceScore.overall}% Compliant
+                            {contract.status.charAt(0).toUpperCase() + contract.status.slice(1)}
                           </span>
-                          <span className={classNames(
-                            riskInfo.color,
-                            'text-xs font-medium'
-                          )}>
-                            {riskInfo.level} Risk
-                          </span>
+                          {contract.contract_value && (
+                            <span className="text-xs text-gray-500">
+                              {contract.currency} {contract.contract_value.toLocaleString()}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -506,7 +561,6 @@ export default function DashboardPage() {
           
           <div className="space-y-4">
             {contracts.slice(0, 3).map((contract) => {
-              const riskInfo = getRiskLevel(contract.riskAssessment.overall);
               return (
                 <div key={contract.id} className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-secondary-800 rounded-lg">
                   <div className="flex-1 min-w-0">
@@ -514,18 +568,20 @@ export default function DashboardPage() {
                       to={`/contracts/${contract.id}`}
                       className={`text-sm font-medium ${textColors.primary} ${textColors.interactiveHover} truncate block`}
                     >
-                      {contract.name}
+                      {contract.title}
                     </Link>
-                    <p className={`text-xs ${textColors.muted}`}>{contract.type.name}</p>
+                    <p className={`text-xs ${textColors.muted}`}>{contract.contract_type.replace('_', ' ')}</p>
                   </div>
                   <div className="text-right ml-4">
                     <span className={classNames(
-                      riskInfo.color,
+                      'text-blue-600',
                       'text-xs font-medium'
                     )}>
-                      {riskInfo.level}
+                      {contract.status.charAt(0).toUpperCase() + contract.status.slice(1)}
                     </span>
-                    <p className={`text-xs ${textColors.muted}`}>{contract.riskAssessment.overall}%</p>
+                    {contract.contract_value && (
+                      <p className={`text-xs ${textColors.muted}`}>{contract.currency} {contract.contract_value.toLocaleString()}</p>
+                    )}
                   </div>
                 </div>
               );

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   ArrowDownTrayIcon,
   ClockIcon,
@@ -12,6 +12,9 @@ import {
 } from '@heroicons/react/24/outline';
 import { Card, CardHeader, CardTitle, CardContent, Button, Select } from '../components/ui';
 import { classNames } from '../utils/classNames';
+import { AnalyticsService } from '../services/api';
+import { getErrorMessage } from '../utils/errorHandling';
+import { useToast } from '../contexts/ToastContext';
 
 const timeRangeOptions = [
   { value: '7d', label: 'Last 7 days' },
@@ -20,82 +23,11 @@ const timeRangeOptions = [
   { value: '1y', label: 'Last year' },
 ];
 
-// Mock data for analytics
-const overviewMetrics = [
-  {
-    id: '1',
-    name: 'Total Contracts',
-    value: '127',
-    change: '+12%',
-    changeType: 'increase' as const,
-    icon: DocumentTextIcon,
-    description: 'All contracts created'
-  },
-  {
-    id: '2', 
-    name: 'Active Contracts',
-    value: '89',
-    change: '+8%',
-    changeType: 'increase' as const,
-    icon: CheckCircleIcon,
-    description: 'Currently active contracts'
-  },
-  {
-    id: '3',
-    name: 'Avg. Compliance Score',
-    value: '94%',
-    change: '+3%',
-    changeType: 'increase' as const,
-    icon: ShieldCheckIcon,
-    description: 'Average UK legal compliance'
-  },
-  {
-    id: '4',
-    name: 'Time Saved',
-    value: '342 hrs',
-    change: '+25%',
-    changeType: 'increase' as const,
-    icon: ClockIcon,
-    description: 'Total time saved this month'
-  }
-];
 
-const contractsByType = [
-  { type: 'Professional Services', count: 45, percentage: 35.4, color: 'bg-blue-500' },
-  { type: 'Employment Contracts', count: 32, percentage: 25.2, color: 'bg-green-500' },
-  { type: 'Supplier Agreements', count: 28, percentage: 22.0, color: 'bg-purple-500' },
-  { type: 'NDAs', count: 15, percentage: 11.8, color: 'bg-orange-500' },
-  { type: 'Other', count: 7, percentage: 5.5, color: 'bg-gray-500' }
-];
 
-const complianceBreakdown = [
-  { category: 'GDPR Compliance', score: 96, status: 'excellent', issues: 2 },
-  { category: 'Employment Law', score: 92, status: 'good', issues: 5 },
-  { category: 'Commercial Terms', score: 94, status: 'excellent', issues: 3 },
-  { category: 'Consumer Rights', score: 91, status: 'good', issues: 4 }
-];
 
-const monthlyActivity = [
-  { month: 'Jan', contracts: 18, compliance: 92 },
-  { month: 'Feb', contracts: 22, compliance: 93 },
-  { month: 'Mar', contracts: 19, compliance: 94 },
-  { month: 'Apr', contracts: 25, compliance: 95 },
-  { month: 'May', contracts: 28, compliance: 94 },
-  { month: 'Jun', contracts: 35, compliance: 96 }
-];
 
-const riskAnalysis = [
-  { level: 'Low Risk', count: 78, percentage: 61.4, color: 'text-green-600' },
-  { level: 'Medium Risk', count: 35, percentage: 27.6, color: 'text-yellow-600' },
-  { level: 'High Risk', count: 14, percentage: 11.0, color: 'text-red-600' }
-];
 
-const upcomingDeadlines = [
-  { contract: 'Marketing Services - TechCorp', date: '2025-09-05', daysLeft: 5, type: 'Review Due' },
-  { contract: 'Employment Contract - J. Smith', date: '2025-09-08', daysLeft: 8, type: 'Probation End' },
-  { contract: 'Supplier Agreement - ABC Ltd', date: '2025-09-15', daysLeft: 15, type: 'Renewal Due' },
-  { contract: 'NDA - StartupXYZ', date: '2025-09-22', daysLeft: 22, type: 'Expiry' }
-];
 
 function getStatusColor(status: string) {
   switch (status) {
@@ -117,28 +49,222 @@ function getComplianceStatus(score: number) {
 }
 
 export default function AnalyticsPage() {
+  const { showToast } = useToast();
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState('30d');
 
-  const handleExportReport = () => {
-    // Mock export functionality
-    const reportData = {
-      overview: overviewMetrics,
-      contractTypes: contractsByType,
-      compliance: complianceBreakdown,
-      activity: monthlyActivity,
-      risks: riskAnalysis,
-      deadlines: upcomingDeadlines
-    };
+  // Fetch dashboard analytics
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await AnalyticsService.getDashboard();
+      setDashboardData(data);
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [showToast]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  const handleExportReport = useCallback(async () => {
+    if (!dashboardData) return;
     
-    const jsonData = JSON.stringify(reportData, null, 2);
-    const blob = new Blob([jsonData], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `pactoria-analytics-${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
+    try {
+      const reportData = {
+        business_metrics: dashboardData.business_metrics,
+        user_metrics: dashboardData.user_metrics,
+        contract_types: dashboardData.contract_types,
+        compliance_metrics: dashboardData.compliance_metrics,
+        summary: dashboardData.summary,
+        generated_at: new Date().toISOString()
+      };
+      
+      const jsonData = JSON.stringify(reportData, null, 2);
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `pactoria-analytics-${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      
+      showToast('Analytics report exported successfully', 'success');
+    } catch (err) {
+      showToast('Failed to export analytics report', 'error');
+    }
+  }, [dashboardData, showToast]);
+
+  if (isLoading) {
+    return (
+      <div className="p-4 sm:p-6">
+        <div className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Analytics & Reports</h1>
+          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">
+            Track contract performance, compliance metrics, and business insights
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} variant="bordered" className="p-4">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            </Card>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} variant="bordered" className="p-6">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded mb-4"></div>
+                <div className="space-y-3">
+                  <div className="h-3 bg-gray-200 rounded"></div>
+                  <div className="h-3 bg-gray-200 rounded"></div>
+                  <div className="h-3 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !dashboardData) {
+    return (
+      <div className="p-4 sm:p-6">
+        <div className="text-center py-12">
+          <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-red-500" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">Error loading analytics</h3>
+          <p className="mt-1 text-sm text-gray-500">{error || 'Failed to load dashboard data'}</p>
+          <Button
+            onClick={fetchDashboardData}
+            className="mt-4"
+            icon={<ArrowTrendingUpIcon className="h-4 w-4" />}
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Extract data from backend response
+  const businessMetrics = dashboardData.business_metrics || {};
+  const complianceMetrics = dashboardData.compliance_metrics || {};
+  const contractTypes = dashboardData.contract_types || [];
+  const summary = dashboardData.summary || {};
+  const contractValueTrend = dashboardData.contract_value_trend || {};
+  const recentContractsTrend = dashboardData.recent_contracts_trend || {};
+
+  // Prepare overview metrics from backend data
+  const overviewMetrics = [
+    {
+      id: '1',
+      name: 'Total Contracts',
+      value: businessMetrics.total_contracts?.toString() || '0',
+      change: businessMetrics.growth_rate ? `${businessMetrics.growth_rate > 0 ? '+' : ''}${businessMetrics.growth_rate.toFixed(1)}%` : '0%',
+      changeType: (businessMetrics.growth_rate || 0) >= 0 ? 'increase' : 'decrease',
+      icon: DocumentTextIcon,
+      description: 'All contracts in system'
+    },
+    {
+      id: '2',
+      name: 'Active Contracts',
+      value: businessMetrics.active_contracts?.toString() || '0',
+      change: businessMetrics.contracts_this_month ? `+${businessMetrics.contracts_this_month}` : '0',
+      changeType: 'increase' as const,
+      icon: CheckCircleIcon,
+      description: 'Currently active contracts'
+    },
+    {
+      id: '3',
+      name: 'Avg. Compliance',
+      value: complianceMetrics.overall_compliance_average ? `${Math.round(complianceMetrics.overall_compliance_average)}%` : '0%',
+      change: complianceMetrics.compliance_trend === 'improving' ? '+2%' : complianceMetrics.compliance_trend === 'declining' ? '-1%' : '0%',
+      changeType: complianceMetrics.compliance_trend === 'improving' ? 'increase' : 'decrease',
+      icon: ShieldCheckIcon,
+      description: 'Average compliance score'
+    },
+    {
+      id: '4',
+      name: 'Contract Value',
+      value: businessMetrics.total_contract_value ? `£${(businessMetrics.total_contract_value / 1000).toFixed(0)}k` : '£0',
+      change: contractValueTrend.trend_percentage ? `${contractValueTrend.trend_percentage > 0 ? '+' : ''}${contractValueTrend.trend_percentage.toFixed(1)}%` : '0%',
+      changeType: (contractValueTrend.trend_percentage || 0) >= 0 ? 'increase' : 'decrease',
+      icon: ClockIcon,
+      description: 'Total portfolio value'
+    }
+  ];
+
+  // Prepare contract types data
+  const contractsByType = contractTypes.map((type: any, index: number) => {
+    const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-red-500', 'bg-indigo-500'];
+    return {
+      type: type.contract_type,
+      count: type.count,
+      percentage: type.percentage,
+      color: colors[index % colors.length]
+    };
+  });
+
+  // Prepare compliance breakdown
+  const complianceBreakdown = [
+    { category: 'GDPR Compliance', score: Math.round(complianceMetrics.gdpr_compliance_average || 0), status: getComplianceStatus(complianceMetrics.gdpr_compliance_average || 0), issues: 0 },
+    { category: 'Employment Law', score: Math.round(complianceMetrics.employment_law_compliance_average || 0), status: getComplianceStatus(complianceMetrics.employment_law_compliance_average || 0), issues: 0 },
+    { category: 'Commercial Terms', score: Math.round(complianceMetrics.commercial_terms_compliance_average || 0), status: getComplianceStatus(complianceMetrics.commercial_terms_compliance_average || 0), issues: 0 },
+    { category: 'Consumer Rights', score: Math.round(complianceMetrics.consumer_rights_compliance_average || 0), status: getComplianceStatus(complianceMetrics.consumer_rights_compliance_average || 0), issues: 0 }
+  ];
+
+  // Prepare risk analysis
+  const riskAnalysis = [
+    {
+      level: 'Low Risk',
+      count: complianceMetrics.low_risk_contracts_count || 0,
+      percentage: businessMetrics.total_contracts ? ((complianceMetrics.low_risk_contracts_count || 0) / businessMetrics.total_contracts * 100) : 0,
+      color: 'text-green-600'
+    },
+    {
+      level: 'Medium Risk',
+      count: complianceMetrics.medium_risk_contracts_count || 0,
+      percentage: businessMetrics.total_contracts ? ((complianceMetrics.medium_risk_contracts_count || 0) / businessMetrics.total_contracts * 100) : 0,
+      color: 'text-yellow-600'
+    },
+    {
+      level: 'High Risk',
+      count: complianceMetrics.high_risk_contracts_count || 0,
+      percentage: businessMetrics.total_contracts ? ((complianceMetrics.high_risk_contracts_count || 0) / businessMetrics.total_contracts * 100) : 0,
+      color: 'text-red-600'
+    }
+  ];
+
+  // Prepare monthly activity from trends data
+  const monthlyActivity = recentContractsTrend.data_points?.slice(-6).map((point: any) => ({
+    month: new Date(point.date).toLocaleDateString('en-US', { month: 'short' }),
+    contracts: point.count || point.value || 0,
+    compliance: Math.round(complianceMetrics.overall_compliance_average || 0)
+  })) || [];
+
+  // Mock upcoming deadlines (since this isn't in the API)
+  const upcomingDeadlines = [
+    { contract: 'Next contract review', date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), daysLeft: 7, type: 'Review Due' },
+    { contract: 'Contract renewal', date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), daysLeft: 14, type: 'Renewal Due' }
+  ];
 
   return (
     <div className="p-4 sm:p-6">
@@ -160,6 +286,7 @@ export default function AnalyticsPage() {
             variant="secondary"
             icon={<ArrowDownTrayIcon className="h-4 w-4" />}
             onClick={handleExportReport}
+            disabled={!dashboardData}
           >
             Export Report
           </Button>
@@ -235,17 +362,19 @@ export default function AnalyticsPage() {
                 </div>
               ))}
             </div>
-            <div className="mt-6 p-3 bg-blue-50 rounded-lg">
-              <div className="flex items-start space-x-2">
-                <ExclamationTriangleIcon className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs font-medium text-blue-800">Risk Insight</p>
-                  <p className="text-xs text-blue-600 mt-1">
-                    14 high-risk contracts need attention. Review recommendations in the details view.
-                  </p>
+            {riskAnalysis.find(r => r.level === 'High Risk')?.count > 0 && (
+              <div className="mt-6 p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <ExclamationTriangleIcon className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs font-medium text-blue-800">Risk Insight</p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      {riskAnalysis.find(r => r.level === 'High Risk')?.count} high-risk contracts need attention. Review recommendations in the compliance section.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -6,13 +6,32 @@ import {
   FunnelIcon,
   ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
-import { useContractStore, CONTRACT_STATUS_OPTIONS, CONTRACT_TYPE_OPTIONS } from '../store/contractStore';
-import { Contract } from '../types';
+import { ContractService } from '../services/api';
 import { getErrorMessage } from '../utils/errorHandling';
 import { debounce } from '../utils/loadingStates';
 import { Button, Card, Badge, Input, Select, EmptyState } from '../components/ui';
 import { classNames } from '../utils/classNames';
 import { textStyles, textColors } from '../utils/typography';
+import { useToast } from '../contexts/ToastContext';
+
+// Contract type and status options
+const CONTRACT_STATUS_OPTIONS = [
+  { value: 'draft', label: 'Draft' },
+  { value: 'review', label: 'Under Review' },
+  { value: 'active', label: 'Active' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'expired', label: 'Expired' },
+  { value: 'terminated', label: 'Terminated' }
+];
+
+const CONTRACT_TYPE_OPTIONS = [
+  { value: 'professional_services', label: 'Professional Services' },
+  { value: 'employment', label: 'Employment' },
+  { value: 'supplier', label: 'Supplier Agreement' },
+  { value: 'nda', label: 'NDA' },
+  { value: 'freelance', label: 'Freelance' },
+  { value: 'commercial', label: 'Commercial' }
+];
 
 const statusOptions = [
   { value: '', label: 'All Statuses' },
@@ -24,7 +43,7 @@ const typeOptions = [
   ...CONTRACT_TYPE_OPTIONS
 ];
 
-function getStatusBadgeVariant(status: Contract['status']): 'default' | 'success' | 'warning' | 'danger' | 'info' {
+function getStatusBadgeVariant(status: string): 'default' | 'success' | 'warning' | 'danger' | 'info' {
   switch (status) {
     case 'active':
       return 'success';
@@ -32,6 +51,8 @@ function getStatusBadgeVariant(status: Contract['status']): 'default' | 'success
       return 'success';
     case 'draft':
       return 'info';
+    case 'review':
+      return 'warning';
     case 'expired':
     case 'terminated':
       return 'danger';
@@ -40,15 +61,26 @@ function getStatusBadgeVariant(status: Contract['status']): 'default' | 'success
   }
 }
 
+interface Contract {
+  id: string;
+  title: string;
+  contract_type: string;
+  status: string;
+  client_name?: string;
+  supplier_name?: string;
+  contract_value?: number;
+  currency: string;
+  version: number;
+  created_at: string;
+  updated_at?: string;
+}
+
 export default function ContractsPage() {
-  const { 
-    contracts, 
-    pagination,
-    fetchContracts, 
-    isLoading, 
-    error,
-    clearError 
-  } = useContractStore();
+  const { showToast } = useToast();
+  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [pagination, setPagination] = useState({ total: 0, page: 1, size: 20, pages: 0 });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -66,6 +98,41 @@ export default function ContractsPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Fetch contracts function
+  const fetchContracts = useCallback(async (params: {
+    search?: string;
+    contract_type?: string;
+    status?: string;
+    page?: number;
+    size?: number;
+  } = {}) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await ContractService.getContracts({
+        page: params.page || 1,
+        size: params.size || 20,
+        ...(params.search && { search: params.search }),
+        ...(params.contract_type && { contract_type: params.contract_type }),
+        ...(params.status && { status: params.status }),
+      });
+      
+      setContracts(response.contracts);
+      setPagination({
+        total: response.total,
+        page: response.page,
+        size: response.size,
+        pages: response.pages,
+      });
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [showToast]);
+
   // Debounced API call
   const debouncedFetchContracts = useCallback(
     debounce((params: {
@@ -74,9 +141,7 @@ export default function ContractsPage() {
       status?: string;
       page?: number;
     }) => {
-      fetchContracts(params).catch((error) => {
-        console.error('Failed to fetch contracts:', getErrorMessage(error));
-      });
+      fetchContracts(params);
     }, 500),
     [fetchContracts]
   );
@@ -143,6 +208,10 @@ export default function ContractsPage() {
     URL.revokeObjectURL(url);
   }, [sortedContracts]);
   
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   const clearFilters = useCallback(() => {
     setSearchQuery('');
     setStatusFilter('');
@@ -170,7 +239,7 @@ export default function ContractsPage() {
             Export CSV
           </Button>
           <Link to="/contracts/new">
-            <Button icon={<PlusIcon className="h-4 w-4" />}>
+            <Button icon={<PlusIcon className="h-4 w-4" />} data-testid="create-contract-button">
               New Contract
             </Button>
           </Link>
@@ -185,6 +254,7 @@ export default function ContractsPage() {
             leftIcon={<MagnifyingGlassIcon />}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            data-testid="search-input"
           />
           <Select
             placeholder="Filter by status"
@@ -299,9 +369,9 @@ export default function ContractsPage() {
           />
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4" data-testid="contracts-list">
           {sortedContracts.map((contract) => (
-            <Card key={contract.id} variant="bordered" className="hover:shadow-md hover:border-primary-200 dark:hover:border-primary-800 transition-all duration-200 group">
+            <Card key={contract.id} variant="bordered" className="hover:shadow-md hover:border-primary-200 dark:hover:border-primary-800 transition-all duration-200 group" data-testid="contract-row">
               <Link to={`/contracts/${contract.id}`} className="block">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -322,7 +392,7 @@ export default function ContractsPage() {
                         </Badge>
                       </div>
                       <div className={`mt-1 flex items-center space-x-4 ${textStyles.metadata}`}>
-                        <span>{contract.contract_type.replace('_', ' ')}</span>
+                        <span className="capitalize">{contract.contract_type.replace('_', ' ')}</span>
                         <span>•</span>
                         <span>Version {contract.version}</span>
                         <span>•</span>

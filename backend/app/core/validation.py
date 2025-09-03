@@ -2,13 +2,14 @@
 Common validation utilities for API endpoints
 Reduces duplicate validation patterns and provides consistent error handling
 """
-from typing import Optional, Any, Dict
+from typing import Optional, Any, Dict, List
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 
 from app.core.auth import require_company_access
 from app.core.exceptions import APIExceptionFactory, ResourceNotFoundError, CompanyAccessError
-from app.infrastructure.database.models import User, Contract, Company
+from app.infrastructure.database.models import User, Contract, Company, AuditLog
 
 
 class ResourceValidator:
@@ -137,3 +138,102 @@ class AuditLogHelper:
         return {
             field: getattr(model, field, None) for field in fields
         }
+    
+    @staticmethod
+    def log_action(
+        db: Session,
+        user: User,
+        action: str,
+        resource_type: str,
+        resource_id: str,
+        old_values: Optional[Dict[str, Any]] = None,
+        new_values: Optional[Dict[str, Any]] = None,
+        details: Optional[str] = None,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
+        contract_id: Optional[str] = None
+    ) -> AuditLog:
+        """Create and persist an audit log entry"""
+        additional_data = {"details": details} if details else None
+        
+        audit_log = AuditLog(
+            event_type=action,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            user_id=user.id,
+            old_values=old_values,
+            new_values=new_values,
+            additional_data=additional_data,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            contract_id=contract_id
+        )
+        
+        db.add(audit_log)
+        db.commit()
+        return audit_log
+    
+    @staticmethod
+    def log_batch_actions(
+        db: Session,
+        user: User,
+        actions: List[Dict[str, Any]],
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None
+    ) -> List[AuditLog]:
+        """Create multiple audit log entries in a batch"""
+        audit_logs = []
+        
+        for action_data in actions:
+            audit_log = AuditLog(
+                event_type=action_data["action"],
+                resource_type=action_data["resource_type"],
+                resource_id=action_data["resource_id"],
+                user_id=user.id,
+                old_values=action_data.get("old_values"),
+                new_values=action_data.get("new_values"),
+                additional_data=action_data.get("additional_data"),
+                ip_address=ip_address,
+                user_agent=user_agent,
+                contract_id=action_data.get("contract_id")
+            )
+            
+            audit_logs.append(audit_log)
+            db.add(audit_log)
+        
+        db.commit()
+        return audit_logs
+    
+    @staticmethod
+    def get_user_audit_trail(
+        db: Session,
+        user: User,
+        limit: int = 100
+    ) -> List[AuditLog]:
+        """Get audit trail for a specific user"""
+        return (
+            db.query(AuditLog)
+            .filter(AuditLog.user_id == user.id)
+            .order_by(desc(AuditLog.timestamp))
+            .limit(limit)
+            .all()
+        )
+    
+    @staticmethod
+    def get_resource_audit_trail(
+        db: Session,
+        resource_type: str,
+        resource_id: str,
+        limit: int = 100
+    ) -> List[AuditLog]:
+        """Get audit trail for a specific resource"""
+        return (
+            db.query(AuditLog)
+            .filter(
+                AuditLog.resource_type == resource_type,
+                AuditLog.resource_id == resource_id
+            )
+            .order_by(desc(AuditLog.timestamp))
+            .limit(limit)
+            .all()
+        )

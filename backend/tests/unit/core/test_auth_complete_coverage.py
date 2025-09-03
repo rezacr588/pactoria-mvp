@@ -19,11 +19,12 @@ from app.core.auth import (
     get_optional_user,
     has_permission,
     require_role,
-    get_contract_manager_user,
+    get_editor_user,
     get_admin_role_user,
     can_modify_resource,
     require_modify_permission,
-    authenticate_websocket_user
+    authenticate_websocket_user,
+    decode_jwt_token
 )
 from app.infrastructure.database.models import User, Company, UserRole
 
@@ -142,27 +143,30 @@ class TestRequireRole:
         assert "Admin role or higher required" in exc_info.value.detail
 
 
-class TestGetContractManagerUser:
-    """Test get_contract_manager_user function"""
+class TestGetEditorUser:
+    """Test get_editor_user function"""
     
+    @pytest.mark.asyncio
     async def test_contract_manager_user_success(self):
         """Test successful contract manager user retrieval"""
         user = Mock()
         user.role = UserRole.CONTRACT_MANAGER
         user.is_admin = False
         
-        result = await get_contract manager_user(current_user=user)
+        result = await get_editor_user(current_user=user)
         assert result == user
     
-    async def test_admin_user_as_contract manager(self):
+    @pytest.mark.asyncio
+    async def test_admin_user_as_contract_manager(self):
         """Test admin user can act as contract manager"""
         user = Mock()
         user.role = UserRole.ADMIN
         user.is_admin = True
         
-        result = await get_contract manager_user(current_user=user)
+        result = await get_editor_user(current_user=user)
         assert result == user
     
+    @pytest.mark.asyncio
     async def test_viewer_user_denied(self):
         """Test viewer user is denied contract manager access"""
         user = Mock()
@@ -170,7 +174,7 @@ class TestGetContractManagerUser:
         user.is_admin = False
         
         with pytest.raises(HTTPException) as exc_info:
-            await get_contract manager_user(current_user=user)
+            await get_editor_user(current_user=user)
         
         assert exc_info.value.status_code == 403
         assert "Contract manager privileges required" in exc_info.value.detail
@@ -179,6 +183,7 @@ class TestGetContractManagerUser:
 class TestGetAdminRoleUser:
     """Test get_admin_role_user function"""
     
+    @pytest.mark.asyncio
     async def test_admin_role_user_success(self):
         """Test successful admin role user retrieval"""
         user = Mock()
@@ -188,6 +193,7 @@ class TestGetAdminRoleUser:
         result = await get_admin_role_user(current_user=user)
         assert result == user
     
+    @pytest.mark.asyncio
     async def test_system_admin_success(self):
         """Test system admin success"""
         user = Mock()
@@ -197,6 +203,7 @@ class TestGetAdminRoleUser:
         result = await get_admin_role_user(current_user=user)
         assert result == user
     
+    @pytest.mark.asyncio
     async def test_contract_manager_user_denied_admin_role(self):
         """Test contract manager user is denied admin role access"""
         user = Mock()
@@ -235,22 +242,22 @@ class TestCanModifyResource:
     
     def test_contract_manager_can_modify_own_resource(self):
         """Test contract manager can modify their own resource"""
-        contract manager_user = Mock()
-        contract manager_user.is_admin = False
-        contract manager_user.role = UserRole.CONTRACT_MANAGER
-        contract manager_user.id = "contract manager-id"
+        contract_manager_user = Mock()
+        contract_manager_user.is_admin = False
+        contract_manager_user.role = UserRole.CONTRACT_MANAGER
+        contract_manager_user.id = "contract_manager-id"
         
-        result = can_modify_resource(contract manager_user, "contract manager-id")
+        result = can_modify_resource(contract_manager_user, "contract_manager-id")
         assert result is True
     
     def test_contract_manager_cannot_modify_others_resource(self):
         """Test contract manager cannot modify other's resource"""
-        contract manager_user = Mock()
-        contract manager_user.is_admin = False
-        contract manager_user.role = UserRole.CONTRACT_MANAGER
-        contract manager_user.id = "contract manager-id"
+        contract_manager_user = Mock()
+        contract_manager_user.is_admin = False
+        contract_manager_user.role = UserRole.CONTRACT_MANAGER
+        contract_manager_user.id = "contract_manager-id"
         
-        result = can_modify_resource(contract manager_user, "different-owner-id")
+        result = can_modify_resource(contract_manager_user, "different-owner-id")
         assert result is False
     
     def test_viewer_cannot_modify_any_resource(self):
@@ -309,6 +316,7 @@ class TestRequireCompanyAccess:
 class TestGetOptionalUserEdgeCases:
     """Test edge cases for get_optional_user"""
     
+    @pytest.mark.asyncio
     async def test_get_optional_user_database_error(self, mock_db):
         """Test database error handling in get_optional_user"""
         credentials = Mock()
@@ -322,6 +330,7 @@ class TestGetOptionalUserEdgeCases:
             result = await get_optional_user(credentials=credentials, db=mock_db)
             assert result is None
     
+    @pytest.mark.asyncio
     async def test_get_optional_user_inactive_user(self, mock_db):
         """Test inactive user returns None"""
         credentials = Mock()
@@ -339,6 +348,7 @@ class TestGetOptionalUserEdgeCases:
 class TestDatabaseErrorHandling:
     """Test database error handling scenarios"""
     
+    @pytest.mark.asyncio
     async def test_get_current_user_database_exception(self, mock_db):
         """Test database exception in get_current_user"""
         credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="valid-token")
@@ -351,6 +361,7 @@ class TestDatabaseErrorHandling:
             
             assert "Authentication failed" in str(exc_info.value.detail)
     
+    @pytest.mark.asyncio
     async def test_get_user_company_database_exception(self, mock_user, mock_db):
         """Test database exception in get_user_company"""
         mock_db.query.side_effect = Exception("Database error")
@@ -364,6 +375,7 @@ class TestDatabaseErrorHandling:
 class TestTokenVerificationEdgeCases:
     """Test token verification edge cases"""
     
+    @pytest.mark.asyncio
     async def test_get_current_user_token_verification_exception(self, mock_db):
         """Test token verification exception"""
         credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="invalid-token")
@@ -396,6 +408,18 @@ class TestWebSocketAuthentication:
         with patch('app.core.auth.verify_token', side_effect=Exception("Token error")):
             result = authenticate_websocket_user("token", mock_db)
             assert result is None
+    
+    def test_decode_jwt_token_success(self):
+        """Test successful JWT token decoding"""
+        with patch('app.core.security.decode_token', return_value={"user_id": "test-id", "exp": 12345}):
+            result = decode_jwt_token("valid-token")
+            assert result == {"user_id": "test-id", "exp": 12345}
+    
+    def test_decode_jwt_token_exception(self):
+        """Test JWT token decoding with exception"""
+        with patch('app.core.security.decode_token', side_effect=Exception("Decode error")):
+            result = decode_jwt_token("invalid-token")
+            assert result is None
 
 
 class TestRequireModifyPermission:
@@ -427,7 +451,7 @@ class TestRequireModifyPermission:
 class TestSecurityIntegration:
     """Test security integration scenarios"""
     
-    async def test_authentication_error_headers(self):
+    def test_authentication_error_headers(self):
         """Test AuthenticationError includes proper headers"""
         error = AuthenticationError("Custom error message")
         
@@ -435,7 +459,7 @@ class TestSecurityIntegration:
         assert error.detail == "Custom error message"
         assert error.headers == {"WWW-Authenticate": "Bearer"}
     
-    async def test_authentication_error_default_message(self):
+    def test_authentication_error_default_message(self):
         """Test AuthenticationError default message"""
         error = AuthenticationError()
         

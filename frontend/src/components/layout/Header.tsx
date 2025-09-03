@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   BellIcon,
@@ -13,6 +13,9 @@ import {
   GlobeAltIcon,
 } from '@heroicons/react/24/outline';
 import { useAuthStore } from '../../store/authStore';
+import { NotificationsService } from '../../services/api';
+import { Notification, NotificationMessage } from '../../types';
+import { useNotifications } from '../../hooks/useWebSocket';
 import Button from '../ui/Button';
 import ThemeToggle from '../ui/ThemeToggle';
 import DropdownMenu from '../ui/DropdownMenu';
@@ -28,6 +31,9 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const handleSearch = useCallback((query: string) => {
     if (query.trim()) {
@@ -48,25 +54,90 @@ export default function Header({ onMenuClick }: HeaderProps) {
     }
   };
 
-  // Mock notifications - in real app would come from store
-  const notifications = [
-    {
-      id: '1',
-      title: 'Contract Review Due',
-      message: 'Marketing Consultant Agreement requires your review',
-      time: '2 hours ago',
-      unread: true
-    },
-    {
-      id: '2',
-      title: 'Contract Signed',
-      message: 'TechCorp Website Development contract has been signed',
-      time: '1 day ago',
-      unread: false
+  // Fetch notifications from the API
+  const fetchNotifications = useCallback(async () => {
+    if (!user) return;
+    
+    setIsLoadingNotifications(true);
+    try {
+      const response = await NotificationsService.getNotifications({
+        page: 1,
+        size: 10, // Show only the most recent 10 notifications in header
+        read: false // Only show unread for header badge
+      });
+      
+      setNotifications(response.notifications);
+      setUnreadCount(response.unread_count);
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+      // Don't show error in header, just log it
+    } finally {
+      setIsLoadingNotifications(false);
     }
-  ];
+  }, [user]);
 
-  const unreadCount = notifications.filter(n => n.unread).length;
+  // WebSocket notifications
+  useNotifications((message: NotificationMessage) => {
+    // Convert WebSocket notification to local notification format
+    const newNotification: Notification = {
+      id: message.message_id || `ws-${Date.now()}`,
+      type: message.notification_type as any,
+      title: message.title,
+      message: message.message,
+      priority: message.priority.toLowerCase() as 'low' | 'medium' | 'high',
+      action_required: false, // WebSocket message doesn't have this field
+      read: false,
+      timestamp: message.timestamp,
+      user_id: message.target_user_id || '',
+      related_contract: message.data?.contract ? {
+        id: message.data.contract.id,
+        name: message.data.contract.name
+      } : undefined,
+      metadata: message.data
+    };
+    
+    // Add to notifications list
+    setNotifications(prev => [newNotification, ...prev.slice(0, 9)]); // Keep only 10 notifications
+    setUnreadCount(prev => prev + 1);
+    
+    // Show toast notification or other UI feedback
+    console.log('Real-time notification received:', message);
+  });
+
+  // Load notifications on mount and when user changes
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  const handleMarkAsRead = useCallback(async (notificationId: string) => {
+    try {
+      await NotificationsService.markAsRead(notificationId);
+      // Update local state
+      setNotifications(prev => 
+        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  }, []);
+
+  const formatNotificationTime = (timestamp: string): string => {
+    const now = new Date();
+    const notificationTime = new Date(timestamp);
+    const diffInMinutes = Math.floor((now.getTime() - notificationTime.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    
+    return notificationTime.toLocaleDateString();
+  };
 
   return (
     <header className="bg-white dark:bg-secondary-900 border-b border-neutral-200 dark:border-secondary-700 h-16">
@@ -88,7 +159,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
         {/* Mobile menu button */}
         <button
           onClick={onMenuClick}
-          className={`p-2 rounded-md ${textColors.subtle} hover:text-neutral-500 dark:hover:text-secondary-400 hover:bg-neutral-100 dark:hover:bg-secondary-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 lg:hidden`}
+          className={`p-2 rounded-md ${textColors.subtle} hover:text-neutral-500 dark:hover:text-secondary-400 hover:bg-neutral-100 dark:hover:bg-secondary-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:focus:ring-offset-secondary-900 lg:hidden`}
         >
           <span className="sr-only">Open sidebar</span>
           <Bars3Icon className="h-6 w-6" aria-hidden="true" />
@@ -152,22 +223,45 @@ export default function Header({ onMenuClick }: HeaderProps) {
               <div className="p-4">
                 <h3 className={`${textStyles.sectionTitle} mb-3`}>Notifications</h3>
                 <div className="space-y-3">
-                  {notifications.length > 0 ? (
+                  {isLoadingNotifications ? (
+                    // Loading skeleton
+                    [...Array(3)].map((_, i) => (
+                      <div key={i} className="flex items-start space-x-3 animate-pulse">
+                        <div className="flex-shrink-0 w-2 h-2 rounded-full mt-2 bg-neutral-300 dark:bg-secondary-600" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-neutral-200 dark:bg-secondary-700 rounded-lg w-3/4"></div>
+                          <div className="h-3 bg-neutral-200 dark:bg-secondary-700 rounded w-full"></div>
+                          <div className="h-3 bg-neutral-200 dark:bg-secondary-700 rounded w-1/3"></div>
+                        </div>
+                      </div>
+                    ))
+                  ) : notifications.length > 0 ? (
                     notifications.map((notification) => (
-                      <div key={notification.id} className="flex items-start space-x-3">
+                      <div 
+                        key={notification.id} 
+                        className="flex items-start space-x-3 cursor-pointer hover:bg-neutral-50 dark:hover:bg-secondary-800 rounded-lg p-2 -m-2 transition-colors"
+                        onClick={() => handleMarkAsRead(notification.id)}
+                      >
                         <div className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ${
-                          notification.unread ? 'bg-primary-500' : 'bg-neutral-300 dark:bg-secondary-600'
+                          !notification.read ? 'bg-primary-500' : 'bg-neutral-300 dark:bg-secondary-600'
                         }`} />
                         <div className="flex-1 min-w-0">
-                          <p className={`${textStyles.listTitle}`}>
+                          <p className={`${textStyles.listTitle} ${!notification.read ? 'font-semibold' : ''}`}>
                             {notification.title}
                           </p>
                           <p className={`${textStyles.listSubtitle} truncate`}>
                             {notification.message}
                           </p>
-                          <p className={`${textStyles.timestamp} mt-1`}>
-                            {notification.time}
-                          </p>
+                          <div className="flex items-center justify-between mt-1">
+                            <p className={`${textStyles.timestamp}`}>
+                              {formatNotificationTime(notification.timestamp)}
+                            </p>
+                            {notification.action_required && (
+                              <span className="text-xs text-orange-600 dark:text-orange-400 font-medium">
+                                Action Required
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))
@@ -196,6 +290,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                 size="sm"
                 showRing
                 onClick={() => {}}
+                data-testid="user-avatar"
                 className="cursor-pointer"
               />
             }

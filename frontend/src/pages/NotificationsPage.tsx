@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   BellIcon,
   CheckIcon,
@@ -12,84 +12,27 @@ import {
 } from '@heroicons/react/24/outline';
 import { Card, Button, Input, Select, Badge } from '../components/ui';
 import { classNames } from '../utils/classNames';
+import { NotificationsService } from '../services/api';
+import { getErrorMessage } from '../utils/errorHandling';
+import { useToast } from '../contexts/ToastContext';
 
 interface Notification {
   id: string;
-  type: 'deadline' | 'compliance' | 'team' | 'system' | 'contract';
+  type: string;
   title: string;
   message: string;
   timestamp: string;
+  priority: string;
+  action_required: boolean;
   read: boolean;
-  priority: 'low' | 'medium' | 'high';
-  actionRequired?: boolean;
-  relatedContract?: {
+  user_id: string;
+  related_contract?: {
     id: string;
     name: string;
   };
+  metadata?: Record<string, any>;
 }
 
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'deadline',
-    title: 'Contract Review Due Tomorrow',
-    message: 'Marketing Consultant Agreement requires your review and approval before the deadline.',
-    timestamp: '2025-08-30T14:30:00Z',
-    read: false,
-    priority: 'high',
-    actionRequired: true,
-    relatedContract: { id: '1', name: 'Marketing Consultant Agreement' }
-  },
-  {
-    id: '2',
-    type: 'compliance',
-    title: 'GDPR Compliance Alert',
-    message: 'Data Processing Agreement needs GDPR clause updates to maintain compliance.',
-    timestamp: '2025-08-30T10:15:00Z',
-    read: false,
-    priority: 'high',
-    actionRequired: true,
-    relatedContract: { id: '2', name: 'Data Processing Agreement' }
-  },
-  {
-    id: '3',
-    type: 'contract',
-    title: 'Contract Signed',
-    message: 'TechCorp Website Development contract has been signed by all parties.',
-    timestamp: '2025-08-29T16:45:00Z',
-    read: true,
-    priority: 'medium',
-    relatedContract: { id: '3', name: 'TechCorp Website Development' }
-  },
-  {
-    id: '4',
-    type: 'team',
-    title: 'New Team Member Added',
-    message: 'Sarah Johnson has been added to your team with Editor permissions.',
-    timestamp: '2025-08-29T09:20:00Z',
-    read: true,
-    priority: 'low'
-  },
-  {
-    id: '5',
-    type: 'system',
-    title: 'System Maintenance Scheduled',
-    message: 'Planned maintenance scheduled for Sunday 2:00 AM - 4:00 AM GMT.',
-    timestamp: '2025-08-28T18:00:00Z',
-    read: false,
-    priority: 'low'
-  },
-  {
-    id: '6',
-    type: 'deadline',
-    title: 'Contract Renewal Reminder',
-    message: 'Supplier Agreement with ABC Ltd expires in 30 days.',
-    timestamp: '2025-08-28T12:30:00Z',
-    read: true,
-    priority: 'medium',
-    relatedContract: { id: '4', name: 'ABC Ltd Supplier Agreement' }
-  }
-];
 
 const typeOptions = [
   { value: '', label: 'All Types' },
@@ -185,44 +128,117 @@ function formatTimestamp(timestamp: string) {
 }
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const { showToast } = useToast();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [pagination, setPagination] = useState({ total: 0, unread_count: 0, page: 1, size: 20, pages: 0 });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
-  // Filter notifications
-  const filteredNotifications = notifications.filter(notification => {
-    const matchesSearch = 
-      notification.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      notification.message.toLowerCase().includes(searchQuery.toLowerCase());
+  // Fetch notifications
+  const fetchNotifications = useCallback(async (params: {
+    page?: number;
+    size?: number;
+    type?: string;
+    priority?: string;
+    read?: boolean;
+    action_required?: boolean;
+    search?: string;
+  } = {}) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await NotificationsService.getNotifications({
+        page: params.page || 1,
+        size: params.size || 20,
+        ...(params.type && { type: params.type }),
+        ...(params.priority && { priority: params.priority }),
+        ...(params.read !== undefined && { read: params.read }),
+        ...(params.action_required !== undefined && { action_required: params.action_required }),
+        ...(params.search && { search: params.search }),
+      });
+      
+      setNotifications(response.notifications);
+      setPagination({
+        total: response.total,
+        unread_count: response.unread_count,
+        page: response.page,
+        size: response.size,
+        pages: response.pages,
+      });
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [showToast]);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  useEffect(() => {
+    const params: any = {};
     
-    const matchesType = !typeFilter || notification.type === typeFilter;
-    const matchesPriority = !priorityFilter || notification.priority === priorityFilter;
+    if (searchQuery) params.search = searchQuery;
+    if (typeFilter) params.type = typeFilter;
+    if (priorityFilter) params.priority = priorityFilter;
     
-    let matchesStatus = true;
-    if (statusFilter === 'unread') matchesStatus = !notification.read;
-    else if (statusFilter === 'read') matchesStatus = notification.read;
-    else if (statusFilter === 'actionRequired') matchesStatus = notification.actionRequired || false;
+    // Handle status filter mapping
+    if (statusFilter === 'unread') params.read = false;
+    else if (statusFilter === 'read') params.read = true;
+    else if (statusFilter === 'actionRequired') params.action_required = true;
+    
+    fetchNotifications(params);
+  }, [searchQuery, typeFilter, priorityFilter, statusFilter, fetchNotifications]);
 
-    return matchesSearch && matchesType && matchesPriority && matchesStatus;
-  });
+  const handleMarkAsRead = useCallback(async (id: string) => {
+    try {
+      await NotificationsService.markAsRead(id);
+      setNotifications(prev => prev.map(notification => 
+        notification.id === id ? { ...notification, read: true } : notification
+      ));
+      setPagination(prev => ({ ...prev, unread_count: prev.unread_count - 1 }));
+      showToast('Notification marked as read', 'success');
+    } catch (err) {
+      showToast(getErrorMessage(err), 'error');
+    }
+  }, [showToast]);
 
-  const handleMarkAsRead = (id: string) => {
-    setNotifications(prev => prev.map(notification => 
-      notification.id === id ? { ...notification, read: true } : notification
-    ));
-  };
+  const handleMarkAllAsRead = useCallback(async () => {
+    try {
+      const response = await NotificationsService.markAllAsRead();
+      setNotifications(prev => prev.map(notification => ({ ...notification, read: true })));
+      setPagination(prev => ({ ...prev, unread_count: 0 }));
+      showToast(`${response.updated_count} notifications marked as read`, 'success');
+    } catch (err) {
+      showToast(getErrorMessage(err), 'error');
+    }
+  }, [showToast]);
 
-  const handleMarkAllAsRead = () => {
-    setNotifications(prev => prev.map(notification => ({ ...notification, read: true })));
-  };
+  const handleDeleteNotification = useCallback(async (id: string) => {
+    try {
+      await NotificationsService.deleteNotification(id);
+      setNotifications(prev => prev.filter(notification => notification.id !== id));
+      setPagination(prev => ({ 
+        ...prev, 
+        total: prev.total - 1,
+        unread_count: notifications.find(n => n.id === id)?.read ? prev.unread_count : prev.unread_count - 1 
+      }));
+      showToast('Notification deleted', 'success');
+    } catch (err) {
+      showToast(getErrorMessage(err), 'error');
+    }
+  }, [showToast, notifications]);
 
-  const handleDeleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
-  };
-
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
 
   return (
     <div className="p-4 sm:p-6">
@@ -232,9 +248,9 @@ export default function NotificationsPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Notifications</h1>
           <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">
             Stay updated with important alerts and activities
-            {unreadCount > 0 && (
+            {pagination.unread_count > 0 && (
               <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                {unreadCount} unread
+                {pagination.unread_count} unread
               </span>
             )}
           </p>
@@ -244,7 +260,7 @@ export default function NotificationsPage() {
             variant="secondary"
             size="sm"
             onClick={handleMarkAllAsRead}
-            disabled={unreadCount === 0}
+            disabled={pagination.unread_count === 0 || isLoading}
           >
             <CheckIcon className="h-4 w-4 mr-2" />
             Mark All Read
@@ -282,15 +298,42 @@ export default function NotificationsPage() {
         </div>
       </Card>
 
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 text-red-600 text-sm">
+          Error: {error}
+          <button 
+            onClick={clearError} 
+            className="ml-2 text-blue-600 hover:underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Results Summary */}
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-gray-500">
-          Showing {filteredNotifications.length} of {notifications.length} notifications
+          Showing {notifications.length} of {pagination.total} notifications
         </p>
       </div>
 
       {/* Notifications List */}
-      {filteredNotifications.length === 0 ? (
+      {isLoading ? (
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <div className="flex items-center space-x-4 p-4">
+                <div className="h-10 w-10 bg-gray-200 rounded-full"></div>
+                <div className="flex-1 space-y-3">
+                  <div className="h-5 bg-gray-200 rounded-lg w-3/4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : notifications.length === 0 ? (
         <Card>
           <div className="text-center py-12">
             <FunnelIcon className="mx-auto h-12 w-12 text-gray-400" />
@@ -304,7 +347,7 @@ export default function NotificationsPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {filteredNotifications.map((notification) => {
+          {notifications.map((notification) => {
             const Icon = getNotificationIcon(notification.type);
             return (
               <Card 
@@ -319,11 +362,11 @@ export default function NotificationsPage() {
                   <div className="flex items-start space-x-4 flex-1">
                     <div className={classNames(
                       'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center',
-                      notification.actionRequired ? 'bg-orange-100' : 'bg-gray-100'
+                      notification.action_required ? 'bg-orange-100' : 'bg-gray-100'
                     )}>
                       <Icon className={classNames(
                         'h-5 w-5',
-                        notification.actionRequired ? 'text-orange-600' : 'text-gray-600'
+                        notification.action_required ? 'text-orange-600' : 'text-gray-600'
                       )} />
                     </div>
                     
@@ -338,7 +381,7 @@ export default function NotificationsPage() {
                         {!notification.read && (
                           <div className="w-2 h-2 bg-primary-600 rounded-full flex-shrink-0"></div>
                         )}
-                        {notification.actionRequired && (
+                        {notification.action_required && (
                           <Badge variant="warning" className="text-xs">
                             Action Required
                           </Badge>
@@ -371,7 +414,7 @@ export default function NotificationsPage() {
                           {formatTimestamp(notification.timestamp)}
                         </span>
                         
-                        {notification.relatedContract && (
+                        {notification.related_contract && (
                           <button className="text-xs text-primary-600 hover:text-primary-700 font-medium">
                             View Contract →
                           </button>

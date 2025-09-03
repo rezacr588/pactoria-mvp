@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   DocumentTextIcon,
   MagnifyingGlassIcon,
@@ -19,171 +19,29 @@ import {
 import { Card, Button, Input, Select, Badge } from '../components/ui';
 import { classNames } from '../utils/classNames';
 import { textColors, textStyles } from '../utils/typography';
+import { AuditService } from '../services/api';
+import { getErrorMessage } from '../utils/errorHandling';
+import { useToast } from '../contexts/ToastContext';
 
 interface AuditEntry {
   id: string;
   timestamp: string;
-  userId: string;
-  userName: string;
-  userRole: string;
-  action: 'create' | 'view' | 'edit' | 'delete' | 'sign' | 'export' | 'share' | 'approve' | 'reject' | 'archive';
-  resourceType: 'contract' | 'template' | 'user' | 'setting' | 'integration' | 'report';
-  resourceId: string;
-  resourceName: string;
+  user_id: string;
+  user_name: string;
+  user_role: string;
+  action: string;
+  resource_type: string;
+  resource_id: string;
+  resource_name: string;
   details: string;
-  ipAddress: string;
-  userAgent: string;
+  ip_address: string;
+  user_agent: string;
   location?: string;
-  riskLevel: 'low' | 'medium' | 'high';
-  complianceFlag?: boolean;
+  risk_level: string;
+  compliance_flag: boolean;
   metadata?: Record<string, any>;
 }
 
-const mockAuditEntries: AuditEntry[] = [
-  {
-    id: '1',
-    timestamp: '2025-08-30T15:30:00Z',
-    userId: 'user-123',
-    userName: 'Sarah Johnson',
-    userRole: 'Contract Manager',
-    action: 'sign',
-    resourceType: 'contract',
-    resourceId: 'contract-456',
-    resourceName: 'Marketing Services Agreement - TechCorp',
-    details: 'Contract electronically signed using DocuSign integration',
-    ipAddress: '192.168.1.100',
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-    location: 'London, UK',
-    riskLevel: 'low',
-    complianceFlag: false,
-    metadata: { signatureMethod: 'DocuSign', documentVersion: '2.1' }
-  },
-  {
-    id: '2',
-    timestamp: '2025-08-30T14:45:00Z',
-    userId: 'user-789',
-    userName: 'Michael Chen',
-    userRole: 'Legal Counsel',
-    action: 'edit',
-    resourceType: 'contract',
-    resourceId: 'contract-789',
-    resourceName: 'Employment Contract - Jane Smith',
-    details: 'Updated salary terms and benefits section',
-    ipAddress: '10.0.0.15',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-    location: 'Manchester, UK',
-    riskLevel: 'medium',
-    complianceFlag: true,
-    metadata: { fieldsModified: ['salary', 'benefits', 'startDate'], previousVersion: '1.3' }
-  },
-  {
-    id: '3',
-    timestamp: '2025-08-30T13:20:00Z',
-    userId: 'user-456',
-    userName: 'Emma Wilson',
-    userRole: 'HR Manager',
-    action: 'create',
-    resourceType: 'contract',
-    resourceId: 'contract-101',
-    resourceName: 'Consultant Agreement - Alex Brown',
-    details: 'New consultant agreement created using Professional Services template',
-    ipAddress: '172.16.0.5',
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-    location: 'Edinburgh, UK',
-    riskLevel: 'low',
-    complianceFlag: false,
-    metadata: { templateUsed: 'professional-services-v3', estimatedValue: '£25000' }
-  },
-  {
-    id: '4',
-    timestamp: '2025-08-30T12:15:00Z',
-    userId: 'user-321',
-    userName: 'David Thompson',
-    userRole: 'Finance Director',
-    action: 'export',
-    resourceType: 'report',
-    resourceId: 'report-202',
-    resourceName: 'Q3 Contract Analytics Report',
-    details: 'Exported quarterly analytics report in PDF format',
-    ipAddress: '192.168.1.50',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-    location: 'Birmingham, UK',
-    riskLevel: 'medium',
-    complianceFlag: false,
-    metadata: { exportFormat: 'PDF', reportPeriod: 'Q3-2025', recordCount: 127 }
-  },
-  {
-    id: '5',
-    timestamp: '2025-08-30T11:30:00Z',
-    userId: 'system',
-    userName: 'System',
-    userRole: 'System',
-    action: 'archive',
-    resourceType: 'contract',
-    resourceId: 'contract-555',
-    resourceName: 'Expired NDA - StartupXYZ',
-    details: 'Contract automatically archived due to expiration',
-    ipAddress: 'internal',
-    userAgent: 'Pactoria-System/1.0',
-    riskLevel: 'low',
-    complianceFlag: false,
-    metadata: { reason: 'expiration', expiryDate: '2025-08-30', autoAction: true }
-  },
-  {
-    id: '6',
-    timestamp: '2025-08-30T10:45:00Z',
-    userId: 'user-789',
-    userName: 'Michael Chen',
-    userRole: 'Legal Counsel',
-    action: 'reject',
-    resourceType: 'contract',
-    resourceId: 'contract-666',
-    resourceName: 'Supplier Agreement - ABC Ltd',
-    details: 'Contract rejected due to non-compliant liability clauses',
-    ipAddress: '10.0.0.15',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-    location: 'Manchester, UK',
-    riskLevel: 'high',
-    complianceFlag: true,
-    metadata: { rejectionReason: 'liability-clauses', complianceIssues: ['unlimited-liability', 'indemnity-scope'] }
-  },
-  {
-    id: '7',
-    timestamp: '2025-08-30T09:20:00Z',
-    userId: 'user-999',
-    userName: 'Admin User',
-    userRole: 'System Administrator',
-    action: 'edit',
-    resourceType: 'user',
-    resourceId: 'user-888',
-    resourceName: 'Robert Davis',
-    details: 'Updated user permissions and role assignment',
-    ipAddress: '192.168.1.10',
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-    location: 'London, UK',
-    riskLevel: 'high',
-    complianceFlag: true,
-    metadata: { previousRole: 'Viewer', newRole: 'Contract Manager', permissionsGranted: ['edit', 'approve'] }
-  },
-  {
-    id: '8',
-    timestamp: '2025-08-30T08:15:00Z',
-    userId: 'user-456',
-    userName: 'Emma Wilson',
-    userRole: 'HR Manager',
-    action: 'view',
-    resourceType: 'contract',
-    resourceId: 'contract-777',
-    resourceName: 'Confidentiality Agreement - TechStart',
-    details: 'Accessed contract for review and compliance check',
-    ipAddress: '172.16.0.5',
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-    location: 'Edinburgh, UK',
-    riskLevel: 'low',
-    complianceFlag: false,
-    metadata: { accessReason: 'compliance-review', duration: '15-minutes' }
-  }
-];
 
 const actionOptions = [
   { value: '', label: 'All Actions' },
@@ -313,58 +171,138 @@ function formatTimestamp(timestamp: string) {
 }
 
 export default function AuditTrailPage() {
-  const [auditEntries] = useState<AuditEntry[]>(mockAuditEntries);
+  const { showToast } = useToast();
+  const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
+  const [pagination, setPagination] = useState({ total: 0, page: 1, size: 20, pages: 0 });
+  const [auditStats, setAuditStats] = useState({
+    total_events: 0,
+    high_risk_events: 0,
+    compliance_flags: 0,
+    events_today: 0
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [actionFilter, setActionFilter] = useState('');
   const [resourceTypeFilter, setResourceTypeFilter] = useState('');
   const [riskLevelFilter, setRiskLevelFilter] = useState('');
   const [timeRange, setTimeRange] = useState('24h');
 
-  // Filter audit entries
-  const filteredEntries = auditEntries.filter(entry => {
-    const matchesSearch = 
-      entry.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.resourceName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.details.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.ipAddress.includes(searchQuery);
+  // Fetch audit entries
+  const fetchAuditEntries = useCallback(async (params: {
+    page?: number;
+    size?: number;
+    user_id?: string;
+    action?: string;
+    resource_type?: string;
+    risk_level?: string;
+    compliance_flag?: boolean;
+    search?: string;
+    date_from?: string;
+    date_to?: string;
+  } = {}) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await AuditService.getAuditEntries({
+        page: params.page || 1,
+        size: params.size || 20,
+        ...(params.action && { action: params.action }),
+        ...(params.resource_type && { resource_type: params.resource_type }),
+        ...(params.risk_level && { risk_level: params.risk_level }),
+        ...(params.search && { search: params.search }),
+      });
+      
+      setAuditEntries(response.entries);
+      setPagination({
+        total: response.total,
+        page: response.page,
+        size: response.size,
+        pages: response.pages,
+      });
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [showToast]);
+
+  // Fetch audit stats
+  const fetchAuditStats = useCallback(async () => {
+    try {
+      const stats = await AuditService.getAuditStats();
+      setAuditStats(stats);
+    } catch (err) {
+      console.error('Failed to fetch audit stats:', getErrorMessage(err));
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAuditEntries();
+    fetchAuditStats();
+  }, [fetchAuditEntries, fetchAuditStats]);
+
+  useEffect(() => {
+    const params: any = {};
     
-    const matchesAction = !actionFilter || entry.action === actionFilter;
-    const matchesResourceType = !resourceTypeFilter || entry.resourceType === resourceTypeFilter;
-    const matchesRiskLevel = !riskLevelFilter || entry.riskLevel === riskLevelFilter;
-
-    // Time range filtering would be implemented here
-    return matchesSearch && matchesAction && matchesResourceType && matchesRiskLevel;
-  });
-
-  const highRiskEntries = auditEntries.filter(e => e.riskLevel === 'high');
-  const complianceFlags = auditEntries.filter(e => e.complianceFlag);
-  const recentEntries = auditEntries.filter(e => {
-    const entryTime = new Date(e.timestamp).getTime();
-    const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-    return entryTime > oneDayAgo;
-  });
-
-  const handleExportAuditLog = () => {
-    const exportData = filteredEntries.map(entry => ({
-      timestamp: entry.timestamp,
-      user: entry.userName,
-      action: entry.action,
-      resource: entry.resourceName,
-      details: entry.details,
-      ipAddress: entry.ipAddress,
-      riskLevel: entry.riskLevel,
-      complianceFlag: entry.complianceFlag
-    }));
+    if (searchQuery) params.search = searchQuery;
+    if (actionFilter) params.action = actionFilter;
+    if (resourceTypeFilter) params.resource_type = resourceTypeFilter;
+    if (riskLevelFilter) params.risk_level = riskLevelFilter;
     
-    const jsonData = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([jsonData], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `pactoria-audit-log-${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
+    fetchAuditEntries(params);
+  }, [searchQuery, actionFilter, resourceTypeFilter, riskLevelFilter, fetchAuditEntries]);
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  const handleExportAuditLog = useCallback(async () => {
+    try {
+      const response = await AuditService.exportAuditEntries({
+        filters: {
+          ...(searchQuery && { search: searchQuery }),
+          ...(actionFilter && { action: actionFilter }),
+          ...(resourceTypeFilter && { resource_type: resourceTypeFilter }),
+          ...(riskLevelFilter && { risk_level: riskLevelFilter }),
+        },
+        format: 'JSON',
+        include_metadata: true,
+      });
+      
+      if (response.download_url) {
+        window.open(response.download_url, '_blank');
+      } else {
+        // Fallback to client-side export
+        const exportData = auditEntries.map(entry => ({
+          timestamp: entry.timestamp,
+          user: entry.user_name,
+          action: entry.action,
+          resource: entry.resource_name,
+          details: entry.details,
+          ipAddress: entry.ip_address,
+          riskLevel: entry.risk_level,
+          complianceFlag: entry.compliance_flag
+        }));
+        
+        const jsonData = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `pactoria-audit-log-${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+      
+      showToast('Audit log exported successfully', 'success');
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      showToast(errorMessage, 'error');
+    }
+  }, [auditEntries, searchQuery, actionFilter, resourceTypeFilter, riskLevelFilter, showToast]);
 
   return (
     <div className="p-4 sm:p-6">
@@ -398,7 +336,7 @@ export default function AuditTrailPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className={classNames('text-xs sm:text-sm font-medium', textColors.muted)}>Total Events</p>
-              <p className={classNames('text-xl sm:text-2xl font-bold mt-1', textColors.primary)}>{auditEntries.length}</p>
+              <p className={classNames('text-xl sm:text-2xl font-bold mt-1', textColors.primary)}>{auditStats.total_events}</p>
             </div>
             <DocumentTextIcon className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600" />
           </div>
@@ -407,7 +345,7 @@ export default function AuditTrailPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className={classNames('text-xs sm:text-sm font-medium', textColors.muted)}>High Risk</p>
-              <p className={classNames('text-xl sm:text-2xl font-bold mt-1', textColors.primary)}>{highRiskEntries.length}</p>
+              <p className={classNames('text-xl sm:text-2xl font-bold mt-1', textColors.primary)}>{auditStats.high_risk_events}</p>
             </div>
             <ExclamationTriangleIcon className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />
           </div>
@@ -416,7 +354,7 @@ export default function AuditTrailPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className={classNames('text-xs sm:text-sm font-medium', textColors.muted)}>Compliance Flags</p>
-              <p className={classNames('text-xl sm:text-2xl font-bold mt-1', textColors.primary)}>{complianceFlags.length}</p>
+              <p className={classNames('text-xl sm:text-2xl font-bold mt-1', textColors.primary)}>{auditStats.compliance_flags}</p>
             </div>
             <ShieldCheckIcon className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600" />
           </div>
@@ -425,7 +363,7 @@ export default function AuditTrailPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className={classNames('text-xs sm:text-sm font-medium', textColors.muted)}>Last 24h</p>
-              <p className={classNames('text-xl sm:text-2xl font-bold mt-1', textColors.primary)}>{recentEntries.length}</p>
+              <p className={classNames('text-xl sm:text-2xl font-bold mt-1', textColors.primary)}>{auditStats.events_today}</p>
             </div>
             <ClockIcon className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
           </div>
@@ -462,15 +400,42 @@ export default function AuditTrailPage() {
         </div>
       </Card>
 
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 text-red-600 text-sm">
+          Error: {error}
+          <button 
+            onClick={clearError} 
+            className="ml-2 text-blue-600 hover:underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Results Summary */}
       <div className="mb-4 flex items-center justify-between">
         <p className={classNames('text-sm', textColors.muted)}>
-          Showing {filteredEntries.length} of {auditEntries.length} audit entries
+          Showing {auditEntries.length} of {pagination.total} audit entries
         </p>
       </div>
 
       {/* Audit Trail List */}
-      {filteredEntries.length === 0 ? (
+      {isLoading ? (
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <div className="flex items-center space-x-4 p-4">
+                <div className="h-10 w-10 bg-gray-200 rounded-full"></div>
+                <div className="flex-1 space-y-3">
+                  <div className="h-5 bg-gray-200 rounded-lg w-3/4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : auditEntries.length === 0 ? (
         <Card>
           <div className="text-center py-12">
             <FunnelIcon className="mx-auto h-12 w-12 text-gray-400" />
@@ -482,7 +447,7 @@ export default function AuditTrailPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {filteredEntries.map((entry) => {
+          {auditEntries.map((entry) => {
             const ActionIcon = getActionIcon(entry.action);
             return (
               <Card 
@@ -490,8 +455,8 @@ export default function AuditTrailPage() {
                 variant="bordered" 
                 className={classNames(
                   'transition-all duration-200 hover:shadow-md',
-                  entry.complianceFlag && 'ring-2 ring-warning-200 dark:ring-warning-700 bg-warning-50/20 dark:bg-warning-900/10',
-                  entry.riskLevel === 'high' && 'ring-2 ring-danger-200 dark:ring-danger-700 bg-danger-50/20 dark:bg-danger-900/10'
+                  entry.compliance_flag && 'ring-2 ring-warning-200 dark:ring-warning-700 bg-warning-50/20 dark:bg-warning-900/10',
+                  entry.risk_level === 'high' && 'ring-2 ring-danger-200 dark:ring-danger-700 bg-danger-50/20 dark:bg-danger-900/10'
                 )}
               >
                 <div className="p-4">
@@ -499,13 +464,13 @@ export default function AuditTrailPage() {
                     <div className="flex items-start space-x-4 flex-1">
                       <div className={classNames(
                         'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center',
-                        entry.riskLevel === 'high' ? 'bg-danger-100 dark:bg-danger-900/20' : 
-                        entry.riskLevel === 'medium' ? 'bg-warning-100 dark:bg-warning-900/20' : 'bg-neutral-100 dark:bg-neutral-800'
+                        entry.risk_level === 'high' ? 'bg-danger-100 dark:bg-danger-900/20' : 
+                        entry.risk_level === 'medium' ? 'bg-warning-100 dark:bg-warning-900/20' : 'bg-neutral-100 dark:bg-neutral-800'
                       )}>
                         <ActionIcon className={classNames(
                           'h-5 w-5',
-                          entry.riskLevel === 'high' ? 'text-danger-600 dark:text-danger-400' : 
-                          entry.riskLevel === 'medium' ? 'text-warning-600 dark:text-warning-400' : 'text-neutral-600 dark:text-neutral-400'
+                          entry.risk_level === 'high' ? 'text-danger-600 dark:text-danger-400' : 
+                          entry.risk_level === 'medium' ? 'text-warning-600 dark:text-warning-400' : 'text-neutral-600 dark:text-neutral-400'
                         )} />
                       </div>
                       
@@ -515,15 +480,15 @@ export default function AuditTrailPage() {
                             {entry.action.charAt(0).toUpperCase() + entry.action.slice(1)}
                           </Badge>
                           <Badge variant="default" className={classNames('text-xs', textColors.secondary, 'bg-neutral-100 dark:bg-neutral-800')}>
-                            {entry.resourceType.charAt(0).toUpperCase() + entry.resourceType.slice(1)}
+                            {entry.resource_type.charAt(0).toUpperCase() + entry.resource_type.slice(1)}
                           </Badge>
                           <span className={classNames(
                             'text-xs px-2 py-1 rounded border font-medium',
-                            getRiskLevelColor(entry.riskLevel)
+                            getRiskLevelColor(entry.risk_level)
                           )}>
-                            {entry.riskLevel.charAt(0).toUpperCase() + entry.riskLevel.slice(1)} Risk
+                            {entry.risk_level.charAt(0).toUpperCase() + entry.risk_level.slice(1)} Risk
                           </span>
-                          {entry.complianceFlag && (
+                          {entry.compliance_flag && (
                             <Badge variant="warning" className="text-xs">
                               Compliance Flag
                             </Badge>
@@ -531,7 +496,7 @@ export default function AuditTrailPage() {
                         </div>
                         
                         <h3 className={classNames('text-sm font-medium mb-1', textColors.primary)}>
-                          {entry.userName} {entry.action}d {entry.resourceName}
+                          {entry.user_name} {entry.action}d {entry.resource_name}
                         </h3>
                         
                         <p className={classNames('text-sm mb-3', textColors.secondary)}>
@@ -541,7 +506,7 @@ export default function AuditTrailPage() {
                         <div className={classNames('grid grid-cols-2 md:grid-cols-4 gap-4 text-xs', textColors.muted)}>
                           <div className="flex items-center space-x-1">
                             <UserIcon className="h-3 w-3" />
-                            <span>{entry.userRole}</span>
+                            <span>{entry.user_role}</span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <ClockIcon className="h-3 w-3" />
@@ -549,7 +514,7 @@ export default function AuditTrailPage() {
                           </div>
                           <div className="flex items-center space-x-1">
                             <span>🌐</span>
-                            <span>{entry.ipAddress}</span>
+                            <span>{entry.ip_address}</span>
                           </div>
                           {entry.location && (
                             <div className="flex items-center space-x-1">

@@ -137,6 +137,37 @@
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
   }
+  
+  /* Touch-friendly interactive elements */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Responsive images and media */
+  .responsive-media {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  /* Better mobile scrolling */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* Enhanced mobile forms */
+  .mobile-form-input {
+    @apply min-h-[44px] text-base leading-normal;
+  }
+  
+  /* Prevent zoom on iOS */
+  @supports (-webkit-touch-callout: none) {
+    .mobile-form-input {
+      font-size: 16px;
+    }
+  }
 
   /* Print styles */
   @media print {
@@ -171,6 +202,36 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
+    }
+    
+    /* Remove parallax and other motion effects */
+    .animate-fade-in,
+    .animate-pulse,
+    .animate-bounce,
+    .animate-spin {
+      animation: none !important;
+    }
+    
+    /* Maintain functionality but remove motion */
+    .hover\:scale-105:hover,
+    .hover\:scale-\[1\.02\]:hover,
+    .group-hover\:scale-110,
+    .group-hover\:translate-x-1 {
+      transform: none !important;
+    }
+  }
+  
+  /* Enhanced focus styles for keyboard navigation */
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-secondary-900;
+  }
+  
+  /* Better motion support for users who prefer motion */
+  @media (prefers-reduced-motion: no-preference) {
+    .smooth-transitions {
+      transition-property: all;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      transition-duration: 200ms;
     }
   }
 }

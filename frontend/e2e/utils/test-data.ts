@@ -3,15 +3,20 @@ import { faker } from '@faker-js/faker';
 export interface TestUserData {
   email: string;
   password: string;
+  name?: string;
   full_name: string;
+  company?: string;
   company_name?: string;
   timezone?: string;
+  role?: string;
 }
 
 export interface TestContractData {
   title: string;
+  description?: string;
   contract_type: string;
   plain_english_input: string;
+  content?: string;
   client_name?: string;
   client_email?: string;
   supplier_name?: string;
@@ -19,6 +24,8 @@ export interface TestContractData {
   currency?: string;
   start_date?: string;
   end_date?: string;
+  status?: string;
+  type?: string;
 }
 
 export class TestUser {
@@ -26,9 +33,12 @@ export class TestUser {
     return {
       email: 'admin@test.com',
       password: 'TestPassword123!',
+      name: 'Admin User',
       full_name: 'Admin User',
+      company: 'Test Company',
       company_name: 'Test Company',
-      timezone: 'Europe/London'
+      timezone: 'Europe/London',
+      role: 'admin'
     };
   }
 
@@ -36,9 +46,12 @@ export class TestUser {
     return {
       email: 'user@test.com',
       password: 'TestPassword123!',
+      name: 'Regular User',
       full_name: 'Regular User',
+      company: 'Test Company',
       company_name: 'Test Company',
-      timezone: 'Europe/London'
+      timezone: 'Europe/London',
+      role: 'user'
     };
   }
 
@@ -50,9 +63,12 @@ export class TestUser {
     return {
       email,
       password: 'TestPassword123!',
+      name: `${firstName} ${lastName}`,
       full_name: `${firstName} ${lastName}`,
+      company: faker.company.name(),
       company_name: faker.company.name(),
-      timezone: 'Europe/London'
+      timezone: 'Europe/London',
+      role: 'user'
     };
   }
 }
@@ -231,3 +247,12 @@ export const MockResponses = {
     }
   }
 };
+
+// Utility functions to generate test data
+export function generateTestUser(): TestUserData {
+  return TestUser.random();
+}
+
+export function generateTestContract(): TestContractData {
+  return TestContract.random();
+}

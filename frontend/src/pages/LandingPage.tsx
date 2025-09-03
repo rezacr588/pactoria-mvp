@@ -19,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Button } from '../components/ui';
 import Card, { CardContent, CardTitle } from '../components/ui/Card';
+import ThemeToggle from '../components/ui/ThemeToggle';
 import { useAuthStore } from '../store/authStore';
 import { textColors, textStyles, typography } from '../utils/typography';
 
@@ -176,7 +177,7 @@ export default function LandingPage() {
       {/* Navbar */}
       <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         scrolled 
-          ? 'bg-white/95 backdrop-blur-md border-b border-neutral-200/50 shadow-sm' 
+          ? 'bg-white/95 dark:bg-secondary-900/95 backdrop-blur-md border-b border-neutral-200/50 dark:border-secondary-700/50 shadow-sm dark:shadow-secondary-950/20' 
           : 'bg-transparent'
       }`}>
         <nav className="flex items-center justify-between p-6 lg:px-8 max-w-7xl mx-auto" aria-label="Global">
@@ -192,15 +193,16 @@ export default function LandingPage() {
                   width="40"
                   height="40"
                 />
-                <span className={`${typography.heading.h3} sm:${typography.heading.h2} font-bold transition-colors text-primary-600 group-hover:text-primary-700`}>Pactoria</span>
+                <span className={`${typography.heading.h3} sm:${typography.heading.h2} font-bold transition-colors text-primary-600 dark:text-primary-400 group-hover:text-primary-700 dark:group-hover:text-primary-300`}>Pactoria</span>
               </div>
             </Link>
           </div>
           <div className="flex lg:hidden">
             <button
               type="button"
-              className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700"
+              className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 dark:text-secondary-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open main navigation menu"
             >
               <span className="sr-only">Open main menu</span>
               <Bars3Icon className="h-6 w-6" aria-hidden="true" />
@@ -241,7 +243,10 @@ export default function LandingPage() {
               </Link>
             )}
           </div>
-          <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
+          <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4 lg:items-center">
+            {/* Theme Toggle */}
+            <ThemeToggle size="sm" variant="button" />
+            
             {user ? (
               <Link to="/dashboard">
                 <Button size="sm" className="px-4">
@@ -267,8 +272,15 @@ export default function LandingPage() {
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="lg:hidden">
-            <div className="fixed inset-0 z-50" />
-            <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
+            <div 
+              className="fixed inset-0 z-50 bg-black/20 dark:bg-black/40" 
+              onClick={() => setMobileMenuOpen(false)}
+              onKeyDown={(e) => e.key === 'Escape' && setMobileMenuOpen(false)}
+              role="button"
+              tabIndex={0}
+              aria-label="Close menu"
+            />
+            <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white dark:bg-secondary-900 px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10 dark:sm:ring-secondary-700/50">
               <div className="flex items-center justify-between">
                 <Link to="/" className="-m-1.5 p-1.5">
                   <div className="flex items-center space-x-3">
@@ -281,12 +293,12 @@ export default function LandingPage() {
                       width="40"
                       height="40"
                     />
-                    <span className="text-xl sm:text-2xl font-bold text-primary-600">Pactoria</span>
+                    <span className="text-xl sm:text-2xl font-bold text-primary-600 dark:text-primary-400">Pactoria</span>
                   </div>
                 </Link>
                 <button
                   type="button"
-                  className="-m-2.5 rounded-md p-2.5 text-gray-700"
+                  className="-m-2.5 rounded-md p-2.5 text-gray-700 dark:text-secondary-300"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <span className="sr-only">Close menu</span>
@@ -301,7 +313,7 @@ export default function LandingPage() {
                         scrollToSection('features');
                         setMobileMenuOpen(false);
                       }}
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50 w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-secondary-100 hover:bg-gray-50 dark:hover:bg-secondary-800 w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900"
                       aria-label="Navigate to Features section"
                     >
                       Features
@@ -311,7 +323,7 @@ export default function LandingPage() {
                         scrollToSection('use-cases');
                         setMobileMenuOpen(false);
                       }}
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50 w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-secondary-100 hover:bg-gray-50 dark:hover:bg-secondary-800 w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900"
                       aria-label="Navigate to Use Cases section"
                     >
                       Use Cases
@@ -321,14 +333,14 @@ export default function LandingPage() {
                         scrollToSection('testimonials');
                         setMobileMenuOpen(false);
                       }}
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50 w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-secondary-100 hover:bg-gray-50 dark:hover:bg-secondary-800 w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900"
                       aria-label="Navigate to Testimonials section"
                     >
                       Testimonials
                     </button>
                     <Link
                       to="/login"
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-secondary-100 hover:bg-gray-50 dark:hover:bg-secondary-800"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Pricing
@@ -336,7 +348,7 @@ export default function LandingPage() {
                     {user && (
                       <Link
                         to="/dashboard"
-                        className="-mx-3 flex items-center gap-2 rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                        className="-mx-3 flex items-center gap-2 rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-secondary-100 hover:bg-gray-50 dark:hover:bg-secondary-800"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <HomeIcon className="h-5 w-5" />
@@ -345,6 +357,12 @@ export default function LandingPage() {
                     )}
                   </div>
                   <div className="py-6 space-y-2">
+                    {/* Theme Toggle for Mobile */}
+                    <div className="flex items-center justify-between -mx-3 px-3 py-2">
+                      <span className="text-base font-semibold leading-7 text-gray-900 dark:text-secondary-100">Theme</span>
+                      <ThemeToggle size="sm" variant="button" />
+                    </div>
+                    
                     {user ? (
                       <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
                         <Button fullWidth className="mt-2">
@@ -356,7 +374,7 @@ export default function LandingPage() {
                       <>
                         <Link
                           to="/login"
-                          className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                          className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-secondary-100 hover:bg-gray-50 dark:hover:bg-secondary-800"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           Sign In
@@ -392,7 +410,7 @@ export default function LandingPage() {
           <div className="px-6 lg:px-0 lg:pt-4">
             <div className="mx-auto max-w-2xl lg:mx-0">
               <div className="max-w-xl">
-                <div className="inline-flex items-center rounded-full px-3 py-1 text-xs sm:text-sm font-medium text-primary-700 bg-primary-100 mb-6 sm:mb-8 ring-1 ring-primary-200 animate-fade-in shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+                <div className="inline-flex items-center rounded-full px-3 py-1 text-xs sm:text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/50 mb-6 sm:mb-8 ring-1 ring-primary-200 dark:ring-primary-700 animate-fade-in shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
                   <BoltIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2 animate-pulse" />
                   <span className="hidden sm:inline">AI-Powered • UK-Compliant • SME-Focused</span>
                   <span className="sm:hidden">AI-Powered • UK-Compliant</span>
@@ -400,7 +418,7 @@ export default function LandingPage() {
                 
                 <h1 className={`${typography.display.large} font-bold tracking-tight ${textColors.primary} leading-tight`}>
                   UK Contract Management
-                  <span className="bg-gradient-to-r from-primary-600 via-primary-600 to-primary-700 bg-clip-text text-transparent animate-pulse"> Made Simple</span>
+                  <span className="bg-gradient-to-r from-primary-600 via-primary-600 to-primary-700 dark:from-primary-400 dark:via-primary-400 dark:to-primary-500 bg-clip-text text-transparent animate-pulse"> Made Simple</span>
                 </h1>
                 
                 <p className={`mt-6 sm:mt-8 ${typography.body.large} leading-8 sm:leading-9 ${textColors.secondary} max-w-2xl`}>
@@ -453,16 +471,16 @@ export default function LandingPage() {
           <div className="mt-16 sm:mt-20 md:mx-auto md:max-w-2xl lg:mx-0 lg:mt-0 lg:w-screen lg:max-w-none">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-primary-600/10 rounded-3xl transform rotate-1" />
-              <div className="relative bg-white rounded-2xl shadow-2xl ring-1 ring-gray-900/10 overflow-hidden">
-                <div className="bg-gradient-to-br from-primary-50 to-primary-100 px-6 pt-8 sm:px-10 sm:pt-10">
+              <div className="relative bg-white dark:bg-secondary-800 rounded-2xl shadow-2xl ring-1 ring-gray-900/10 dark:ring-secondary-700/50 overflow-hidden">
+                <div className="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-950/40 dark:to-primary-900/40 px-6 pt-8 sm:px-10 sm:pt-10">
                   <div className="relative">
                     <img
                       src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=80"
                       alt="Contract management dashboard showing modern interface with contract list, analytics, and team collaboration features"
-                      className="w-full rounded-t-xl shadow-xl ring-1 ring-gray-900/10 transform hover:scale-105 transition-transform duration-300"
+                      className="w-full rounded-t-xl shadow-xl ring-1 ring-gray-900/10 dark:ring-secondary-700/50 transform hover:scale-105 transition-transform duration-300"
                       width={2432}
                       height={1442}
-                      loading="eager"
+                      loading="lazy"
                     />
                     {/* Floating elements for visual appeal */}
                     <div className="absolute -top-4 -right-4 w-20 h-20 bg-primary-500 rounded-full opacity-20 animate-pulse" />
@@ -479,7 +497,7 @@ export default function LandingPage() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8 py-16 sm:py-20">
         <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-none">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium text-primary-700 bg-primary-100 mb-4 ring-1 ring-primary-200">
+            <div className="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/50 mb-4 ring-1 ring-primary-200 dark:ring-primary-700">
               <CheckCircleIcon className="h-4 w-4 mr-2" />
               Trusted by hundreds of UK SMEs
             </div>
@@ -510,10 +528,10 @@ export default function LandingPage() {
       </div>
 
       {/* Problem/Solution Section */}
-      <div className="bg-gradient-to-b from-secondary-50/50 via-secondary-50/30 to-white py-24 sm:py-32">
+      <div className="bg-gradient-to-b from-secondary-50/50 via-secondary-50/30 to-white dark:from-secondary-950/50 dark:via-secondary-950/30 dark:to-secondary-950 py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
-            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-danger-700 bg-danger-100 mb-6 ring-1 ring-danger-200">
+            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-danger-700 bg-danger-100 dark:text-danger-300 dark:bg-danger-900/50 mb-6 ring-1 ring-danger-200 dark:ring-danger-700">
               <ScaleIcon className="h-4 w-4 mr-2" />
               The Challenge
             </div>
@@ -530,7 +548,7 @@ export default function LandingPage() {
 
           <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-success-700 bg-success-100 mb-6 ring-1 ring-success-200">
+              <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-success-700 bg-success-100 dark:text-success-300 dark:bg-success-900/50 mb-6 ring-1 ring-success-200 dark:ring-success-700">
                 <LightBulbIcon className="h-4 w-4 mr-2" />
                 Our Solution
               </div>
@@ -565,14 +583,14 @@ export default function LandingPage() {
       </div>
 
       {/* Features Grid */}
-      <div id="features" className="py-24 sm:py-32 bg-gradient-to-b from-white via-secondary-50/30 to-white">
+      <section id="features" className="py-24 sm:py-32 bg-gradient-to-b from-white via-secondary-50/30 to-white dark:from-secondary-950 dark:via-secondary-950/30 dark:to-secondary-950" aria-labelledby="features-heading">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16 sm:mb-20">
-            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 mb-6 ring-1 ring-primary-200">
+            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/50 mb-6 ring-1 ring-primary-200 dark:ring-primary-700">
               <SparklesIcon className="h-4 w-4 mr-2" />
               Everything you need
             </div>
-            <h2 className={`${typography.display.medium} font-bold tracking-tight ${textColors.primary} mb-6`}>
+            <h2 id="features-heading" className={`${typography.display.medium} font-bold tracking-tight ${textColors.primary} mb-6`}>
               Enterprise-grade features for 
               <span className="bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">SME budgets</span>
             </h2>
@@ -621,17 +639,17 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Use Cases */}
-      <div id="use-cases" className="bg-gradient-to-br from-primary-50/30 via-primary-50/50 to-primary-100/30 py-24 sm:py-32">
+      <section id="use-cases" className="bg-gradient-to-br from-primary-50/30 via-primary-50/50 to-primary-100/30 dark:from-primary-950/30 dark:via-primary-950/50 dark:to-primary-900/30 py-24 sm:py-32" aria-labelledby="use-cases-heading">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
-            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 mb-6 ring-1 ring-primary-200">
+            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/50 mb-6 ring-1 ring-primary-200 dark:ring-primary-700">
               <DocumentTextIcon className="h-4 w-4 mr-2" />
               Use Cases
             </div>
-            <h2 className={`${typography.display.medium} font-bold tracking-tight ${textColors.primary} mb-6`}>
+            <h2 id="use-cases-heading" className={`${typography.display.medium} font-bold tracking-tight ${textColors.primary} mb-6`}>
               One platform, 
               <span className="bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">endless possibilities</span>
             </h2>
@@ -662,17 +680,17 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Testimonials */}
-      <div id="testimonials" className="bg-gradient-to-b from-white via-secondary-50/20 to-white py-24 sm:py-32">
+      <section id="testimonials" className="bg-gradient-to-b from-white via-secondary-50/20 to-white dark:from-secondary-950 dark:via-secondary-950/20 dark:to-secondary-950 py-24 sm:py-32" aria-labelledby="testimonials-heading">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
-            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 mb-6 ring-1 ring-primary-200">
+            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/50 mb-6 ring-1 ring-primary-200 dark:ring-primary-700">
               <UserGroupIcon className="h-4 w-4 mr-2" />
               Customer Stories
             </div>
-            <h2 className={`${typography.display.medium} font-bold tracking-tight ${textColors.primary} mb-6`}>
+            <h2 id="testimonials-heading" className={`${typography.display.medium} font-bold tracking-tight ${textColors.primary} mb-6`}>
               Trusted by UK's 
               <span className="bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">fastest-growing SMEs</span>
             </h2>
@@ -707,8 +725,8 @@ export default function LandingPage() {
                       <p className={`${typography.body.large} leading-8 font-medium`}>"{testimonial.content}"</p>
                     </blockquote>
                     <figcaption className="mt-8 flex items-center gap-x-4">
-                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center ring-2 ring-white shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                        <span className={`${typography.body.medium} font-bold text-primary-700`}>
+                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-800 dark:to-primary-900 flex items-center justify-center ring-2 ring-white dark:ring-secondary-700 shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                        <span className={`${typography.body.medium} font-bold text-primary-700 dark:text-primary-300`}>
                           {testimonial.author.split(' ').map(n => n[0]).join('')}
                         </span>
                       </div>
@@ -723,10 +741,10 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* CTA Section */}
-      <div className="relative isolate overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 px-6 py-24 shadow-2xl sm:px-24 xl:py-32">
+      <section className="relative isolate overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 px-6 py-24 shadow-2xl sm:px-24 xl:py-32" aria-labelledby="cta-heading">
         {/* Background patterns */}
         <div className="absolute inset-0 -z-10">
           <svg className="absolute inset-0 h-full w-full stroke-white/10 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]" aria-hidden="true">
@@ -752,7 +770,7 @@ export default function LandingPage() {
             <BoltIcon className="h-4 w-4 mr-2" />
             Transform Your Business Today
           </div>
-          <h2 className={`${typography.display.medium} font-bold tracking-tight text-white mb-6`}>
+          <h2 id="cta-heading" className={`${typography.display.medium} font-bold tracking-tight text-white mb-6`}>
             Ready to transform your 
             <span className="bg-gradient-to-r from-primary-200 to-white bg-clip-text text-transparent">contract management?</span>
           </h2>
@@ -807,10 +825,10 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-secondary-50 to-secondary-100 border-t border-secondary-200">
+      <footer className="bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-950 dark:to-secondary-900 border-t border-secondary-200 dark:border-secondary-700">
         <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             {/* Company Info */}
@@ -870,7 +888,7 @@ export default function LandingPage() {
             </div>
           </div>
           
-          <div className="mt-12 pt-8 border-t border-secondary-200">
+          <div className="mt-12 pt-8 border-t border-secondary-200 dark:border-secondary-700">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <p className={`${typography.body.small} ${textColors.muted}`}>
                 &copy; 2025 Pactoria Ltd. All rights reserved. Company Number: 12345678. VAT: GB123456789.

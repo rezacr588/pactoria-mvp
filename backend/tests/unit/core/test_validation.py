@@ -165,7 +165,7 @@ class TestAuditLogHelper:
         # Get the audit log that was added
         audit_log_call = mock_db.add.call_args[0][0]
         assert hasattr(audit_log_call, 'user_id')
-        assert hasattr(audit_log_call, 'action')
+        assert hasattr(audit_log_call, 'event_type')
         assert hasattr(audit_log_call, 'resource_type')
     
     def test_create_audit_log_with_details(self):
@@ -310,7 +310,14 @@ class TestValidationHelpers:
             ResourceValidator.validate_required_fields(data, required_fields)
         
         assert exc_info.value.status_code == 422
-        assert "email" in exc_info.value.detail or "type" in exc_info.value.detail
+        detail = exc_info.value.detail
+        # Check if it's a structured response or string response
+        if isinstance(detail, dict):
+            errors = detail.get("errors", {})
+            missing_fields = errors.get("missing_fields", [])
+            assert "email" in missing_fields or "type" in missing_fields
+        else:
+            assert "email" in detail or "type" in detail
     
     def test_validate_required_fields_empty(self):
         """Test required field validation with empty fields"""

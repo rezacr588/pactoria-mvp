@@ -383,13 +383,15 @@ async def get_time_series_metrics(
     start_date = end_date - timedelta(days=days)
     
     if metric == "contracts_created":
-        # Group contracts by creation date
+        # Group contracts by creation date - SQLite compatible
         if period == MetricPeriod.DAILY:
             date_format = func.date(Contract.created_at)
         elif period == MetricPeriod.WEEKLY:
-            date_format = func.date_trunc('week', Contract.created_at)
+            # SQLite: Use strftime to get year and week
+            date_format = func.strftime('%Y-%W', Contract.created_at)
         else:  # monthly
-            date_format = func.date_trunc('month', Contract.created_at)
+            # SQLite: Use strftime to get year and month
+            date_format = func.strftime('%Y-%m', Contract.created_at)
         
         results = db.query(
             date_format.label('date'),
@@ -400,12 +402,15 @@ async def get_time_series_metrics(
         ).group_by(date_format).order_by(date_format).all()
         
     elif metric == "contract_value":
+        # Group by value creation date - SQLite compatible
         if period == MetricPeriod.DAILY:
             date_format = func.date(Contract.created_at)
         elif period == MetricPeriod.WEEKLY:
-            date_format = func.date_trunc('week', Contract.created_at)
+            # SQLite: Use strftime to get year and week
+            date_format = func.strftime('%Y-%W', Contract.created_at)
         else:  # monthly
-            date_format = func.date_trunc('month', Contract.created_at)
+            # SQLite: Use strftime to get year and month
+            date_format = func.strftime('%Y-%m', Contract.created_at)
         
         results = db.query(
             date_format.label('date'),

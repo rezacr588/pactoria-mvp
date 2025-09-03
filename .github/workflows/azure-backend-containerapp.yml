@@ -1,0 +1,294 @@
+name: Azure Container Apps Backend CI/CD
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/azure-backend-containerapp.yml'
+      - 'backend/Dockerfile'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+# Cost-optimized environment variables
+env:
+  REGISTRY_NAME: 'pactoriaacr'
+  CONTAINER_APP_NAME: 'pactoria-backend'
+  RESOURCE_GROUP_NAME: 'pactoria-rg'
+  CONTAINER_APP_ENVIRONMENT: 'pactoria-env'
+  IMAGE_NAME: 'pactoria-backend'
+  
+jobs:
+  # Build and Test Job
+  build-and-test:
+    runs-on: ubuntu-latest
+    name: Build, Test & Security Scan
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    # Install dependencies and run tests
+    - name: Install dependencies
+      run: |
+        cd backend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov pytest-asyncio
+
+    # Run comprehensive tests
+    - name: Run tests with coverage
+      run: |
+        cd backend
+        python -m pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
+      env:
+        ENVIRONMENT: testing
+        SECRET_KEY: test-secret-key
+        JWT_SECRET_KEY: test-jwt-secret
+        DATABASE_URL: sqlite:///./test.db
+
+    # Upload test coverage to artifacts
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: backend/coverage.xml
+
+    # Security vulnerability scan
+    - name: Run security scan
+      run: |
+        cd backend
+        pip install safety bandit
+        safety check || true
+        bandit -r app/ -f json -o bandit-report.json || true
+      continue-on-error: true
+
+    # Build Docker image for testing
+    - name: Build Docker image
+      run: |
+        cd backend
+        docker build -t ${{ env.IMAGE_NAME }}:test .
+
+    # Test Docker image
+    - name: Test Docker container
+      run: |
+        # Start container in background
+        docker run -d --name test-container -p 8000:8000 \
+          -e ENVIRONMENT=testing \
+          -e SECRET_KEY=test-secret \
+          -e DATABASE_URL=sqlite:///./test.db \
+          ${{ env.IMAGE_NAME }}:test
+        
+        # Wait for container to start
+        sleep 10
+        
+        # Test health endpoint
+        curl -f http://localhost:8000/health || exit 1
+        
+        # Clean up
+        docker stop test-container
+        docker rm test-container
+
+  # Deploy to Azure Container Apps
+  deploy-production:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    name: Deploy to Production
+    environment: 
+      name: production
+      url: https://${{ env.CONTAINER_APP_NAME }}.azurecontainerapps.io
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Login to Azure
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # Build and push to Azure Container Registry
+    - name: Build and push container image
+      run: |
+        # Login to ACR
+        az acr login --name ${{ env.REGISTRY_NAME }}
+        
+        # Build image with latest tag and commit SHA
+        cd backend
+        docker build -t ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest \
+                     -t ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+        
+        # Push both tags
+        docker push ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+        docker push ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+    # Deploy to Container Apps with cost optimization
+    - name: Deploy to Container Apps
+      run: |
+        # Update container app with cost-optimized settings
+        az containerapp update \
+          --name ${{ env.CONTAINER_APP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
+          --image ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+          --min-replicas 0 \
+          --max-replicas 3 \
+          --target-port 8000 \
+          --ingress external \
+          --cpu 0.5 \
+          --memory 1.0Gi \
+          --revision-suffix ${{ github.run_number }} \
+          --set-env-vars \
+            ENVIRONMENT=production \
+            SECRET_KEY=secretref:secret-key \
+            JWT_SECRET_KEY=secretref:jwt-secret-key \
+            GROQ_API_KEY=secretref:groq-api-key \
+            DATABASE_URL=secretref:database-url \
+            AZURE_STORAGE_ACCOUNT_NAME=secretref:storage-account-name \
+            AZURE_STORAGE_ACCOUNT_KEY=secretref:storage-account-key \
+            CORS_ORIGINS=${{ secrets.FRONTEND_URL }}
+
+    # Health check after deployment
+    - name: Health check
+      run: |
+        echo "Waiting for deployment to complete..."
+        sleep 60
+        
+        # Get the app URL
+        APP_URL=$(az containerapp show \
+          --name ${{ env.CONTAINER_APP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
+          --query "properties.configuration.ingress.fqdn" \
+          --output tsv)
+        
+        echo "Testing health endpoint: https://$APP_URL/health"
+        
+        # Retry health check up to 5 times
+        for i in {1..5}; do
+          if curl -f "https://$APP_URL/health"; then
+            echo "✅ Health check passed on attempt $i"
+            break
+          else
+            echo "❌ Health check failed on attempt $i"
+            if [ $i -eq 5 ]; then
+              echo "Health check failed after 5 attempts"
+              exit 1
+            fi
+            sleep 30
+          fi
+        done
+
+    # Run post-deployment smoke tests
+    - name: Run smoke tests
+      run: |
+        APP_URL=$(az containerapp show \
+          --name ${{ env.CONTAINER_APP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
+          --query "properties.configuration.ingress.fqdn" \
+          --output tsv)
+        
+        echo "Running smoke tests against: https://$APP_URL"
+        
+        # Test critical endpoints
+        curl -f "https://$APP_URL/" || exit 1
+        curl -f "https://$APP_URL/health" || exit 1
+        curl -f "https://$APP_URL/ready" || exit 1
+        curl -f "https://$APP_URL/api/v1/health" || exit 1
+        
+        echo "✅ All smoke tests passed!"
+
+  # Deploy staging environment for PRs
+  deploy-staging:
+    if: github.event_name == 'pull_request'
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    name: Deploy to Staging
+    environment: 
+      name: staging
+      url: https://${{ env.CONTAINER_APP_NAME }}-staging.azurecontainerapps.io
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # Build and deploy to staging revision
+    - name: Deploy staging revision
+      run: |
+        az acr login --name ${{ env.REGISTRY_NAME }}
+        
+        cd backend
+        STAGING_TAG="staging-pr-${{ github.event.number }}"
+        
+        # Build staging image
+        docker build -t ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:$STAGING_TAG .
+        docker push ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:$STAGING_TAG
+        
+        # Deploy to staging revision
+        az containerapp revision copy \
+          --name ${{ env.CONTAINER_APP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
+          --from-revision $(az containerapp revision list \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
+            --query "[0].name" -o tsv) \
+          --image ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:$STAGING_TAG \
+          --revision-suffix staging-${{ github.run_number }} \
+          --set-env-vars ENVIRONMENT=staging
+
+    # Add PR comment with staging URL
+    - name: Comment staging URL on PR
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `🚀 **Staging deployment ready!**\n\nStaging URL: https://${{ env.CONTAINER_APP_NAME }}-staging.azurecontainerapps.io\n\nRevision: staging-${{ github.run_number }}\nCommit: ${{ github.sha }}`
+          })
+
+  # Cost monitoring job
+  cost-monitoring:
+    if: github.ref == 'refs/heads/main'
+    needs: deploy-production
+    runs-on: ubuntu-latest
+    name: Monitor Costs
+    
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Check resource costs
+      run: |
+        echo "📊 Checking current month costs..."
+        
+        # Get cost data for the resource group
+        az costmanagement query \
+          --type Usage \
+          --dataset-aggregation '{"totalCost":{"name":"PreTaxCost","function":"Sum"}}' \
+          --dataset-grouping name=ResourceGroup type=Dimension \
+          --dataset-filter '{"dimensions":{"name":"ResourceGroup","operator":"In","values":["${{ env.RESOURCE_GROUP_NAME }}"]}}' \
+          --timeframe MonthToDate \
+          --query 'rows[0][0]' -o tsv || echo "Cost data unavailable"
+        
+        echo "💡 Cost optimization tips:"
+        echo "- Container Apps scale to zero when not in use"
+        echo "- Using minimal resource allocations (0.5 CPU, 1GB RAM)"
+        echo "- Staging environments are temporary and cost-efficient"

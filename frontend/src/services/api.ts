@@ -570,5 +570,1031 @@ export class AnalyticsService {
   }
 }
 
+// Advanced Search Service
+export class SearchService {
+  static async searchContracts(request: {
+    query?: string;
+    operator?: 'AND' | 'OR' | 'NOT';
+    fields?: string[];
+    filters?: any;
+    sort?: Array<{ field: string; direction: 'ASC' | 'DESC' }>;
+    page?: number;
+    size?: number;
+    select_fields?: string[];
+    include_total?: boolean;
+    highlight?: boolean;
+  }) {
+    return api.post<{
+      items: Array<{
+        id: string;
+        title: string;
+        contract_type: string;
+        status: string;
+        client_name?: string;
+        supplier_name?: string;
+        contract_value?: number;
+        currency?: string;
+        start_date?: string;
+        end_date?: string;
+        created_at: string;
+        updated_at?: string;
+        version: number;
+        compliance_score?: number;
+        risk_score?: number;
+        highlights?: Array<{
+          field: string;
+          fragments: string[];
+        }>;
+      }>;
+      total?: number;
+      page: number;
+      size: number;
+      pages?: number;
+      took_ms: number;
+      query: string;
+      filters_applied: Record<string, any>;
+    }>('/search/contracts', request);
+  }
+
+  static async searchUsers(request: {
+    query?: string;
+    operator?: 'AND' | 'OR' | 'NOT';
+    fields?: string[];
+    filters?: any;
+    sort?: Array<{ field: string; direction: 'ASC' | 'DESC' }>;
+    page?: number;
+    size?: number;
+    select_fields?: string[];
+    include_total?: boolean;
+  }) {
+    return api.post<{
+      items: Array<{
+        id: string;
+        email: string;
+        full_name: string;
+        role: string;
+        department?: string;
+        is_active: boolean;
+        created_at: string;
+        last_login_at?: string;
+        highlights?: Array<{
+          field: string;
+          fragments: string[];
+        }>;
+      }>;
+      total?: number;
+      page: number;
+      size: number;
+      pages?: number;
+      took_ms: number;
+      query: string;
+      filters_applied: Record<string, any>;
+    }>('/search/users', request);
+  }
+
+  static async searchTemplates(request: {
+    query?: string;
+    operator?: 'AND' | 'OR' | 'NOT';
+    fields?: string[];
+    filters?: any;
+    sort?: Array<{ field: string; direction: 'ASC' | 'DESC' }>;
+    page?: number;
+    size?: number;
+    select_fields?: string[];
+    include_total?: boolean;
+  }) {
+    return api.post<{
+      items: Array<{
+        id: string;
+        name: string;
+        category: string;
+        contract_type: string;
+        description: string;
+        version: string;
+        is_active: boolean;
+        suitable_for: string[];
+        created_at: string;
+        updated_at?: string;
+        highlights?: Array<{
+          field: string;
+          fragments: string[];
+        }>;
+      }>;
+      total?: number;
+      page: number;
+      size: number;
+      pages?: number;
+      took_ms: number;
+      query: string;
+      filters_applied: Record<string, any>;
+    }>('/search/templates', request);
+  }
+
+  static async quickSearchContracts(params: {
+    q?: string;
+    status?: string;
+    type?: string;
+    client?: string;
+    page?: number;
+    size?: number;
+  }) {
+    return api.get<{
+      items: Array<{
+        id: string;
+        title: string;
+        contract_type: string;
+        status: string;
+        client_name?: string;
+        supplier_name?: string;
+        contract_value?: number;
+        currency?: string;
+        start_date?: string;
+        end_date?: string;
+        created_at: string;
+        updated_at?: string;
+        version: number;
+        compliance_score?: number;
+        risk_score?: number;
+      }>;
+      total?: number;
+      page: number;
+      size: number;
+      pages?: number;
+      took_ms: number;
+      query: string;
+      filters_applied: Record<string, any>;
+    }>('/search/contracts/quick', params);
+  }
+
+  static async getContractSearchSuggestions(params: {
+    q: string;
+    limit?: number;
+    type?: string;
+  }) {
+    return api.get<{
+      suggestions: string[];
+      query: string;
+      total: number;
+    }>('/search/suggestions/contracts', params);
+  }
+
+  static async getContractSearchFacets() {
+    return api.get<{
+      facets: {
+        status: Array<{ value: string; count: number }>;
+        contract_type: Array<{ value: string; count: number }>;
+        value_ranges: Array<{ min?: number; max?: number; count: number }>;
+      };
+      generated_at: string;
+    }>('/search/facets/contracts');
+  }
+}
+
+// Bulk Operations Service
+export class BulkService {
+  static async bulkUpdateContracts(request: {
+    contract_ids: string[];
+    updates: {
+      status?: string;
+      client_name?: string;
+      supplier_name?: string;
+      contract_value?: number;
+      currency?: string;
+      start_date?: string;
+      end_date?: string;
+      final_content?: string;
+    };
+  }) {
+    return api.post<{
+      operation_type: string;
+      total_requested: number;
+      success_count: number;
+      failed_count: number;
+      processing_time_ms: number;
+      updated_ids?: string[];
+      errors?: Array<{
+        resource_id: string;
+        error_code: string;
+        error_message: string;
+        details?: Record<string, any>;
+      }>;
+      warnings?: string[];
+    }>('/bulk/contracts/update', request);
+  }
+
+  static async bulkDeleteContracts(request: {
+    contract_ids: string[];
+    deletion_reason?: string;
+    hard_delete?: boolean;
+  }) {
+    return api.post<{
+      operation_type: string;
+      total_requested: number;
+      success_count: number;
+      failed_count: number;
+      processing_time_ms: number;
+      deleted_ids?: string[];
+      errors?: Array<{
+        resource_id: string;
+        error_code: string;
+        error_message: string;
+        details?: Record<string, any>;
+      }>;
+      warnings?: string[];
+    }>('/bulk/contracts/delete', request);
+  }
+
+  static async bulkExportContracts(request: {
+    contract_ids: string[];
+    format: 'CSV' | 'EXCEL' | 'PDF' | 'JSON';
+    fields?: string[];
+    include_content?: boolean;
+    include_versions?: boolean;
+  }) {
+    return api.post<{
+      export_id: string;
+      format: 'CSV' | 'EXCEL' | 'PDF' | 'JSON';
+      total_records: number;
+      file_size_bytes?: number;
+      download_url?: string;
+      expires_at?: string;
+      processing_time_ms: number;
+    }>('/bulk/contracts/export', request);
+  }
+
+  static async bulkInviteUsers(request: {
+    invitations: Array<{
+      email: string;
+      full_name: string;
+      role: string;
+      department?: string;
+      send_email?: boolean;
+    }>;
+  }) {
+    return api.post<{
+      operation_type: string;
+      total_requested: number;
+      success_count: number;
+      failed_count: number;
+      processing_time_ms: number;
+      invited_emails?: string[];
+      errors?: Array<{
+        resource_id: string;
+        error_code: string;
+        error_message: string;
+        details?: Record<string, any>;
+      }>;
+      warnings?: string[];
+    }>('/bulk/users/invite', request);
+  }
+
+  static async bulkChangeUserRoles(request: {
+    user_ids: string[];
+    new_role: string;
+  }) {
+    return api.post<{
+      operation_type: string;
+      total_requested: number;
+      success_count: number;
+      failed_count: number;
+      processing_time_ms: number;
+      updated_ids?: string[];
+      errors?: Array<{
+        resource_id: string;
+        error_code: string;
+        error_message: string;
+        details?: Record<string, any>;
+      }>;
+      warnings?: string[];
+    }>('/bulk/users/role-change', request);
+  }
+
+  static async getBulkOperationStatus(operationId: string) {
+    return api.get<{
+      operation_id: string;
+      status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+      progress_percentage: number;
+      message?: string;
+      started_at: string;
+      completed_at?: string;
+      result?: any;
+    }>(`/bulk/status/${operationId}`);
+  }
+}
+
+// Enhanced Template Service
+export class TemplateService {
+  static async getTemplates(params?: {
+    page?: number;
+    size?: number;
+    contract_type?: string;
+    category?: string;
+    search?: string;
+  }) {
+    return api.get<{
+      templates: Array<{
+        id: string;
+        name: string;
+        category: string;
+        contract_type: string;
+        description: string;
+        template_content: string;
+        compliance_features: string[];
+        legal_notes?: string;
+        version: string;
+        is_active: boolean;
+        suitable_for: string[];
+        created_at: string;
+        updated_at?: string;
+      }>;
+      total: number;
+      page: number;
+      size: number;
+      pages: number;
+    }>('/templates', params);
+  }
+
+  static async getTemplate(id: string) {
+    return api.get<{
+      id: string;
+      name: string;
+      category: string;
+      contract_type: string;
+      description: string;
+      template_content: string;
+      compliance_features: string[];
+      legal_notes?: string;
+      version: string;
+      is_active: boolean;
+      suitable_for: string[];
+      created_at: string;
+      updated_at?: string;
+    }>(`/templates/${id}`);
+  }
+
+  static async createTemplate(data: {
+    name: string;
+    category: string;
+    contract_type: string;
+    description: string;
+    template_content: string;
+    compliance_features?: string[];
+    legal_notes?: string;
+    version?: string;
+    suitable_for?: string[];
+  }) {
+    return api.post<{
+      id: string;
+      name: string;
+      category: string;
+      contract_type: string;
+      description: string;
+      template_content: string;
+      compliance_features: string[];
+      legal_notes?: string;
+      version: string;
+      is_active: boolean;
+      suitable_for: string[];
+      created_at: string;
+      updated_at?: string;
+    }>('/templates', data);
+  }
+
+  static async updateTemplate(id: string, data: {
+    name?: string;
+    category?: string;
+    description?: string;
+    template_content?: string;
+    compliance_features?: string[];
+    legal_notes?: string;
+    version?: string;
+    is_active?: boolean;
+    suitable_for?: string[];
+  }) {
+    return api.put<{
+      id: string;
+      name: string;
+      category: string;
+      contract_type: string;
+      description: string;
+      template_content: string;
+      compliance_features: string[];
+      legal_notes?: string;
+      version: string;
+      is_active: boolean;
+      suitable_for: string[];
+      created_at: string;
+      updated_at?: string;
+    }>(`/templates/${id}`, data);
+  }
+
+  static async deleteTemplate(id: string) {
+    return api.delete<void>(`/templates/${id}`);
+  }
+
+  static async getTemplateCategories() {
+    return api.get<string[]>('/templates/categories');
+  }
+
+  static async getTemplateContractTypes() {
+    return api.get<string[]>('/templates/contract-types');
+  }
+}
+
+// WebSocket Service
+export class WebSocketService {
+  private ws: WebSocket | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 5;
+  private reconnectDelay = 1000;
+  private messageHandlers: Map<string, (message: any) => void> = new Map();
+  private connectionHandlers: Array<(connected: boolean) => void> = [];
+
+  connect(token: string) {
+    try {
+      const wsUrl = `${API_BASE_URL.replace('http', 'ws')}/ws/connect?token=${encodeURIComponent(token)}`;
+      this.ws = new WebSocket(wsUrl);
+
+      this.ws.onopen = () => {
+        console.log('WebSocket connected');
+        this.reconnectAttempts = 0;
+        this.connectionHandlers.forEach(handler => handler(true));
+      };
+
+      this.ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          const handler = this.messageHandlers.get(message.type);
+          if (handler) {
+            handler(message);
+          }
+          // Also call generic message handler
+          const genericHandler = this.messageHandlers.get('*');
+          if (genericHandler) {
+            genericHandler(message);
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      };
+
+      this.ws.onclose = (event) => {
+        console.log('WebSocket disconnected:', event.code, event.reason);
+        this.connectionHandlers.forEach(handler => handler(false));
+        
+        // Attempt reconnection
+        if (this.reconnectAttempts < this.maxReconnectAttempts && event.code !== 1000) {
+          setTimeout(() => {
+            this.reconnectAttempts++;
+            this.connect(token);
+          }, this.reconnectDelay * Math.pow(2, this.reconnectAttempts));
+        }
+      };
+
+      this.ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+    } catch (error) {
+      console.error('Error connecting to WebSocket:', error);
+    }
+  }
+
+  disconnect() {
+    if (this.ws) {
+      this.ws.close(1000, 'Client disconnect');
+      this.ws = null;
+    }
+  }
+
+  send(message: any) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify(message));
+    } else {
+      console.warn('WebSocket not connected, message not sent:', message);
+    }
+  }
+
+  onMessage(type: string, handler: (message: any) => void) {
+    this.messageHandlers.set(type, handler);
+  }
+
+  onConnection(handler: (connected: boolean) => void) {
+    this.connectionHandlers.push(handler);
+  }
+
+  ping() {
+    this.send({ type: 'ping' });
+  }
+
+  subscribe(topics: string[]) {
+    this.send({ type: 'subscribe', topics });
+  }
+
+  isConnected(): boolean {
+    return this.ws?.readyState === WebSocket.OPEN;
+  }
+
+  static async getStats() {
+    return api.get<{
+      websocket_stats: {
+        active_connections: number;
+        uptime_seconds: number;
+      };
+      generated_at: string;
+    }>('/ws/stats');
+  }
+
+  static async getHealth() {
+    return api.get<{
+      status: string;
+      service: string;
+      active_connections: number;
+      uptime_seconds: number;
+      background_tasks: string;
+    }>('/ws/health');
+  }
+}
+
+// Audit Service
+export class AuditService {
+  static async getAuditEntries(params?: {
+    page?: number;
+    size?: number;
+    user_id?: string;
+    action?: string;
+    resource_type?: string;
+    risk_level?: string;
+    compliance_flag?: boolean;
+    search?: string;
+    date_from?: string;
+    date_to?: string;
+  }) {
+    return api.get<{
+      entries: Array<{
+        id: string;
+        timestamp: string;
+        user_id: string;
+        user_name: string;
+        user_role: string;
+        action: string;
+        resource_type: string;
+        resource_id: string;
+        resource_name: string;
+        details: string;
+        ip_address: string;
+        user_agent: string;
+        location?: string;
+        risk_level: string;
+        compliance_flag: boolean;
+        metadata?: Record<string, any>;
+      }>;
+      total: number;
+      page: number;
+      size: number;
+      pages: number;
+    }>('/audit/entries', params);
+  }
+
+  static async getAuditEntry(entryId: string) {
+    return api.get<{
+      id: string;
+      timestamp: string;
+      user_id: string;
+      user_name: string;
+      user_role: string;
+      action: string;
+      resource_type: string;
+      resource_id: string;
+      resource_name: string;
+      details: string;
+      ip_address: string;
+      user_agent: string;
+      location?: string;
+      risk_level: string;
+      compliance_flag: boolean;
+      metadata?: Record<string, any>;
+    }>(`/audit/entries/${entryId}`);
+  }
+
+  static async getAuditStats() {
+    return api.get<{
+      total_events: number;
+      high_risk_events: number;
+      compliance_flags: number;
+      events_today: number;
+      events_this_week: number;
+      events_this_month: number;
+      most_active_users: Array<{
+        user_name: string;
+        action_count: number;
+      }>;
+      most_common_actions: Array<{
+        action: string;
+        count: number;
+      }>;
+      risk_distribution: Record<string, number>;
+    }>('/audit/stats');
+  }
+
+  static async exportAuditEntries(exportRequest: {
+    filters?: any;
+    format?: string;
+    include_metadata?: boolean;
+  }) {
+    return api.post<{
+      export_id: string;
+      format: string;
+      total_records: number;
+      file_size_bytes?: number;
+      download_url?: string;
+      expires_at?: string;
+      processing_time_ms: number;
+    }>('/audit/entries/export', exportRequest);
+  }
+}
+
+// Notifications Service
+export class NotificationsService {
+  static async getNotifications(params?: {
+    page?: number;
+    size?: number;
+    type?: string;
+    priority?: string;
+    read?: boolean;
+    action_required?: boolean;
+    search?: string;
+  }) {
+    return api.get<{
+      notifications: Array<{
+        id: string;
+        type: string;
+        title: string;
+        message: string;
+        priority: string;
+        action_required: boolean;
+        read: boolean;
+        timestamp: string;
+        user_id: string;
+        related_contract?: {
+          id: string;
+          name: string;
+        };
+        metadata?: Record<string, any>;
+      }>;
+      total: number;
+      unread_count: number;
+      page: number;
+      size: number;
+      pages: number;
+    }>('/notifications', params);
+  }
+
+  static async getNotification(notificationId: string) {
+    return api.get<{
+      id: string;
+      type: string;
+      title: string;
+      message: string;
+      priority: string;
+      action_required: boolean;
+      read: boolean;
+      timestamp: string;
+      user_id: string;
+      related_contract?: {
+        id: string;
+        name: string;
+      };
+      metadata?: Record<string, any>;
+    }>(`/notifications/${notificationId}`);
+  }
+
+  static async markAsRead(notificationId: string) {
+    return api.put<{
+      message: string;
+      notification_id: string;
+      read: boolean;
+      updated_at: string;
+    }>(`/notifications/${notificationId}/read`);
+  }
+
+  static async markAllAsRead() {
+    return api.put<{
+      message: string;
+      updated_count: number;
+      updated_at: string;
+    }>('/notifications/read-all');
+  }
+
+  static async deleteNotification(notificationId: string) {
+    return api.delete<{
+      message: string;
+      notification_id: string;
+      deleted_at: string;
+    }>(`/notifications/${notificationId}`);
+  }
+
+  static async getNotificationStats() {
+    return api.get<{
+      total_notifications: number;
+      unread_count: number;
+      high_priority_count: number;
+      action_required_count: number;
+      notifications_by_type: Record<string, number>;
+      recent_activity: Array<{
+        type: string;
+        count: number;
+        last_occurred: string;
+      }>;
+    }>('/notifications/stats/summary');
+  }
+
+  static async createNotification(data: {
+    type: string;
+    title: string;
+    message: string;
+    priority?: string;
+    action_required?: boolean;
+    target_user_id?: string;
+    target_role?: string;
+    related_contract_id?: string;
+    expires_at?: string;
+    metadata?: Record<string, any>;
+  }) {
+    return api.post<{
+      id: string;
+      type: string;
+      title: string;
+      message: string;
+      priority: string;
+      action_required: boolean;
+      read: boolean;
+      timestamp: string;
+      user_id: string;
+      related_contract?: {
+        id: string;
+        name: string;
+      };
+      metadata?: Record<string, any>;
+    }>('/notifications', data);
+  }
+}
+
+// Team Management Service
+export class TeamService {
+  static async getTeamMembers(params?: {
+    include_inactive?: boolean;
+    role?: string;
+    department?: string;
+  }) {
+    return api.get<Array<{
+      id: string;
+      full_name: string;
+      email: string;
+      role: string;
+      department?: string;
+      is_active: boolean;
+      joined_at: string;
+      last_active: string;
+      avatar_url?: string;
+      invitation_status?: string;
+      invited_by?: string;
+      invited_at?: string;
+    }>>('/team/members', params);
+  }
+
+  static async getTeamMember(memberId: string) {
+    return api.get<{
+      id: string;
+      full_name: string;
+      email: string;
+      role: string;
+      department?: string;
+      is_active: boolean;
+      joined_at: string;
+      last_active: string;
+      avatar_url?: string;
+      invitation_status?: string;
+      invited_by?: string;
+      invited_at?: string;
+    }>(`/team/members/${memberId}`);
+  }
+
+  static async inviteTeamMember(data: {
+    full_name: string;
+    email: string;
+    role: string;
+    department?: string;
+    send_email?: boolean;
+  }) {
+    return api.post<{
+      id: string;
+      full_name: string;
+      email: string;
+      role: string;
+      department?: string;
+      is_active: boolean;
+      joined_at: string;
+      last_active: string;
+      avatar_url?: string;
+      invitation_status?: string;
+      invited_by?: string;
+      invited_at?: string;
+    }>('/team/invite', data);
+  }
+
+  static async updateMemberRole(memberId: string, role: string) {
+    return api.put<{
+      message: string;
+      member_id: string;
+      new_role: string;
+      updated_by: string;
+      updated_at: string;
+    }>(`/team/members/${memberId}/role`, { role });
+  }
+
+  static async removeTeamMember(memberId: string) {
+    return api.delete<{
+      message: string;
+      member_id: string;
+      removed_by: string;
+      removed_at: string;
+    }>(`/team/members/${memberId}`);
+  }
+
+  static async resendInvitation(memberId: string, sendEmail = true) {
+    return api.post<{
+      message: string;
+      member_id: string;
+      email_sent: boolean;
+      resent_by: string;
+      resent_at: string;
+    }>(`/team/members/${memberId}/resend-invite`, { send_email: sendEmail });
+  }
+
+  static async getTeamStats() {
+    return api.get<{
+      total_members: number;
+      active_members: number;
+      pending_invitations: number;
+      members_by_role: Record<string, number>;
+      members_by_department: Record<string, number>;
+      recent_activity: Array<{
+        type: string;
+        member_name: string;
+        date: string;
+      }>;
+    }>('/team/stats');
+  }
+
+  static async getAvailableRoles() {
+    return api.get<{
+      roles: Array<{
+        value: string;
+        name: string;
+        description: string;
+        permissions: string;
+      }>;
+    }>('/team/roles');
+  }
+}
+
+// Integrations Service
+export class IntegrationsService {
+  static async getIntegrations(params?: {
+    category?: string;
+    status?: string;
+    price_tier?: string;
+    popular_only?: boolean;
+    search?: string;
+  }) {
+    return api.get<Array<{
+      id: string;
+      name: string;
+      description: string;
+      category: string;
+      provider: string;
+      logo_url?: string;
+      features: string[];
+      status: string;
+      is_popular: boolean;
+      is_premium: boolean;
+      setup_time_minutes: number;
+      last_sync?: string;
+      sync_status?: string;
+      connections_count: number;
+      rating: number;
+      price_tier: string;
+      documentation_url?: string;
+      webhook_url?: string;
+      api_key_required: boolean;
+    }>>('/integrations', params);
+  }
+
+  static async getIntegration(integrationId: string) {
+    return api.get<{
+      id: string;
+      name: string;
+      description: string;
+      category: string;
+      provider: string;
+      logo_url?: string;
+      features: string[];
+      status: string;
+      is_popular: boolean;
+      is_premium: boolean;
+      setup_time_minutes: number;
+      last_sync?: string;
+      sync_status?: string;
+      connections_count: number;
+      rating: number;
+      price_tier: string;
+      documentation_url?: string;
+      webhook_url?: string;
+      api_key_required: boolean;
+    }>(`/integrations/${integrationId}`);
+  }
+
+  static async connectIntegration(integrationId: string, data: {
+    configuration?: Record<string, any>;
+    api_key?: string;
+    webhook_url?: string;
+  }) {
+    return api.post<{
+      message: string;
+      connection_id: string;
+      integration_id: string;
+      status: string;
+      connected_at: string;
+    }>(`/integrations/${integrationId}/connect`, data);
+  }
+
+  static async disconnectIntegration(integrationId: string) {
+    return api.delete<{
+      message: string;
+      integration_id: string;
+      disconnected_at: string;
+    }>(`/integrations/${integrationId}/disconnect`);
+  }
+
+  static async configureIntegration(integrationId: string, data: {
+    configuration: Record<string, any>;
+    webhook_url?: string;
+  }) {
+    return api.put<{
+      message: string;
+      integration_id: string;
+      updated_at: string;
+    }>(`/integrations/${integrationId}/configure`, data);
+  }
+
+  static async getSyncStatus(integrationId: string) {
+    return api.get<{
+      integration_id: string;
+      status: string;
+      last_sync: string;
+      next_sync: string;
+      error_message?: string;
+      sync_frequency: string;
+      records_synced: number;
+    }>(`/integrations/${integrationId}/sync-status`);
+  }
+
+  static async triggerSync(integrationId: string) {
+    return api.post<{
+      message: string;
+      integration_id: string;
+      sync_job_id: string;
+      estimated_completion: string;
+    }>(`/integrations/${integrationId}/sync`);
+  }
+
+  static async getIntegrationStats() {
+    return api.get<{
+      total_available: number;
+      connected_count: number;
+      available_count: number;
+      error_count: number;
+      pending_count: number;
+      by_category: Record<string, number>;
+      by_status: Record<string, number>;
+      most_popular: Array<{
+        name: string;
+        connections: number;
+        rating: number;
+      }>;
+    }>('/integrations/stats/summary');
+  }
+
+  static async getIntegrationCategories() {
+    return api.get<{
+      categories: Array<{
+        value: string;
+        name: string;
+        description: string;
+      }>;
+    }>('/integrations/categories/list');
+  }
+}
+
 // Export types
 export type { ApiResponse, ApiError };
