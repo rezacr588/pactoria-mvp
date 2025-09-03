@@ -200,7 +200,7 @@ export default function LandingPage() {
           <div className="flex lg:hidden">
             <button
               type="button"
-              className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 dark:text-secondary-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-secondary-700 dark:text-secondary-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-w-[44px] min-h-[44px]"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open main navigation menu"
             >
@@ -212,7 +212,7 @@ export default function LandingPage() {
             <button
               onClick={() => scrollToSection('features')}
               onKeyDown={(e) => handleKeyDown(e, () => scrollToSection('features'))}
-              className={`${typography.body.medium} font-semibold leading-6 transition-all duration-200 ${textColors.secondary} ${textStyles.link} focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/20`}
+              className={`${typography.body.medium} font-semibold leading-6 transition-all duration-200 text-secondary-600 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/20 min-h-[44px] flex items-center`}
               aria-label="Navigate to Features section"
             >
               Features
@@ -220,7 +220,7 @@ export default function LandingPage() {
             <button
               onClick={() => scrollToSection('use-cases')}
               onKeyDown={(e) => handleKeyDown(e, () => scrollToSection('use-cases'))}
-              className={`${typography.body.medium} font-semibold leading-6 transition-all duration-200 ${textColors.secondary} ${textStyles.link} focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/20`}
+              className={`${typography.body.medium} font-semibold leading-6 transition-all duration-200 text-secondary-600 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/20 min-h-[44px] flex items-center`}
               aria-label="Navigate to Use Cases section"
             >
               Use Cases
@@ -228,16 +228,16 @@ export default function LandingPage() {
             <button
               onClick={() => scrollToSection('testimonials')}
               onKeyDown={(e) => handleKeyDown(e, () => scrollToSection('testimonials'))}
-              className={`${typography.body.medium} font-semibold leading-6 transition-all duration-200 ${textColors.secondary} ${textStyles.link} focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/20`}
+              className={`${typography.body.medium} font-semibold leading-6 transition-all duration-200 text-secondary-600 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/20 min-h-[44px] flex items-center`}
               aria-label="Navigate to Testimonials section"
             >
               Testimonials
             </button>
-            <Link to="/login" className={`${typography.body.medium} font-semibold leading-6 transition-all duration-200 ${textStyles.link} rounded-lg px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/20`}>
+            <Link to="/login" className={`${typography.body.medium} font-semibold leading-6 transition-all duration-200 text-secondary-600 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/20 min-h-[44px] flex items-center`}>
               Pricing
             </Link>
             {user && (
-              <Link to="/dashboard" className={`${typography.body.medium} font-semibold leading-6 transition-colors ${textStyles.link} flex items-center gap-1`}>
+              <Link to="/dashboard" className={`${typography.body.medium} font-semibold leading-6 transition-colors text-secondary-600 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 min-h-[44px]`}>
                 <HomeIcon className="h-4 w-4" />
                 Back to App
               </Link>
@@ -256,7 +256,7 @@ export default function LandingPage() {
               </Link>
             ) : (
               <>
-                <Link to="/login" className={`${typography.body.medium} font-semibold leading-6 transition-colors ${textStyles.link}`}>
+                <Link to="/login" className={`${typography.body.medium} font-semibold leading-6 transition-colors text-secondary-600 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 min-h-[44px] flex items-center`}>
                   Sign In
                 </Link>
                 <Link to="/login">
@@ -280,7 +280,7 @@ export default function LandingPage() {
               tabIndex={0}
               aria-label="Close menu"
             />
-            <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white dark:bg-secondary-900 px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10 dark:sm:ring-secondary-700/50">
+            <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white dark:bg-secondary-900 px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-secondary-900/10 dark:sm:ring-secondary-700/50">
               <div className="flex items-center justify-between">
                 <Link to="/" className="-m-1.5 p-1.5">
                   <div className="flex items-center space-x-3">
@@ -298,7 +298,7 @@ export default function LandingPage() {
                 </Link>
                 <button
                   type="button"
-                  className="-m-2.5 rounded-md p-2.5 text-gray-700 dark:text-secondary-300"
+                  className="-m-2.5 rounded-md p-2.5 text-secondary-700 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors duration-200"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <span className="sr-only">Close menu</span>
@@ -306,14 +306,14 @@ export default function LandingPage() {
                 </button>
               </div>
               <div className="mt-6 flow-root">
-                <div className="-my-6 divide-y divide-gray-500/10">
+                <div className="-my-6 divide-y divide-secondary-200 dark:divide-secondary-700">
                   <div className="space-y-2 py-6">
                     <button
                       onClick={() => {
                         scrollToSection('features');
                         setMobileMenuOpen(false);
                       }}
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-secondary-100 hover:bg-gray-50 dark:hover:bg-secondary-800 w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900"
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary-900 dark:text-secondary-100 hover:bg-secondary-50 dark:hover:bg-secondary-800 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-secondary-900 min-h-[44px] flex items-center transition-colors duration-200"
                       aria-label="Navigate to Features section"
                     >
                       Features
@@ -323,7 +323,7 @@ export default function LandingPage() {
                         scrollToSection('use-cases');
                         setMobileMenuOpen(false);
                       }}
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-secondary-100 hover:bg-gray-50 dark:hover:bg-secondary-800 w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900"
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary-900 dark:text-secondary-100 hover:bg-secondary-50 dark:hover:bg-secondary-800 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-secondary-900 min-h-[44px] flex items-center transition-colors duration-200"
                       aria-label="Navigate to Use Cases section"
                     >
                       Use Cases
@@ -333,14 +333,14 @@ export default function LandingPage() {
                         scrollToSection('testimonials');
                         setMobileMenuOpen(false);
                       }}
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-secondary-100 hover:bg-gray-50 dark:hover:bg-secondary-800 w-full text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900"
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary-900 dark:text-secondary-100 hover:bg-secondary-50 dark:hover:bg-secondary-800 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-secondary-900 min-h-[44px] flex items-center transition-colors duration-200"
                       aria-label="Navigate to Testimonials section"
                     >
                       Testimonials
                     </button>
                     <Link
                       to="/login"
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-secondary-100 hover:bg-gray-50 dark:hover:bg-secondary-800"
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary-900 dark:text-secondary-100 hover:bg-secondary-50 dark:hover:bg-secondary-800 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-h-[44px] flex items-center transition-colors duration-200"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Pricing
@@ -348,7 +348,7 @@ export default function LandingPage() {
                     {user && (
                       <Link
                         to="/dashboard"
-                        className="-mx-3 flex items-center gap-2 rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-secondary-100 hover:bg-gray-50 dark:hover:bg-secondary-800"
+                        className="-mx-3 flex items-center gap-2 rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary-900 dark:text-secondary-100 hover:bg-secondary-50 dark:hover:bg-secondary-800 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-h-[44px] transition-colors duration-200"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <HomeIcon className="h-5 w-5" />
@@ -359,7 +359,7 @@ export default function LandingPage() {
                   <div className="py-6 space-y-2">
                     {/* Theme Toggle for Mobile */}
                     <div className="flex items-center justify-between -mx-3 px-3 py-2">
-                      <span className="text-base font-semibold leading-7 text-gray-900 dark:text-secondary-100">Theme</span>
+                      <span className="text-base font-semibold leading-7 text-secondary-900 dark:text-secondary-100">Theme</span>
                       <ThemeToggle size="sm" variant="button" />
                     </div>
                     
@@ -374,7 +374,7 @@ export default function LandingPage() {
                       <>
                         <Link
                           to="/login"
-                          className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-secondary-100 hover:bg-gray-50 dark:hover:bg-secondary-800"
+                          className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary-900 dark:text-secondary-100 hover:bg-secondary-50 dark:hover:bg-secondary-800 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-h-[44px] flex items-center transition-colors duration-200"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           Sign In
@@ -410,24 +410,24 @@ export default function LandingPage() {
           <div className="px-6 lg:px-0 lg:pt-4">
             <div className="mx-auto max-w-2xl lg:mx-0">
               <div className="max-w-xl">
-                <div className="inline-flex items-center rounded-full px-3 py-1 text-xs sm:text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/50 mb-6 sm:mb-8 ring-1 ring-primary-200 dark:ring-primary-700 animate-fade-in shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
-                  <BoltIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2 animate-pulse" />
+                <div className="inline-flex items-center rounded-full px-3 py-1 text-xs sm:text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-6 sm:mb-8 ring-1 ring-primary-200 dark:ring-primary-800/50 animate-fade-in shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100">
+                  <BoltIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2 motion-safe:animate-pulse" />
                   <span className="hidden sm:inline">AI-Powered • UK-Compliant • SME-Focused</span>
                   <span className="sm:hidden">AI-Powered • UK-Compliant</span>
                 </div>
                 
-                <h1 className={`${typography.display.large} font-bold tracking-tight ${textColors.primary} leading-tight`}>
+                <h1 className={`${typography.display.large} font-bold tracking-tight text-secondary-900 dark:text-secondary-100 leading-tight`}>
                   UK Contract Management
-                  <span className="bg-gradient-to-r from-primary-600 via-primary-600 to-primary-700 dark:from-primary-400 dark:via-primary-400 dark:to-primary-500 bg-clip-text text-transparent animate-pulse"> Made Simple</span>
+                  <span className="text-primary-600 dark:text-primary-400 font-extrabold"> Made Simple</span>
                 </h1>
                 
-                <p className={`mt-6 sm:mt-8 ${typography.body.large} leading-8 sm:leading-9 ${textColors.secondary} max-w-2xl`}>
+                <p className={`mt-6 sm:mt-8 ${typography.body.large} leading-8 sm:leading-9 text-secondary-600 dark:text-secondary-400 max-w-2xl`}>
                   Generate legally binding, UK-compliant contracts in seconds. 
-                  Save <span className="font-semibold text-success-600">£8,000+ annually</span> on legal fees while ensuring <span className="font-semibold text-primary-600">95% compliance accuracy</span> 
+                  Save <span className="font-semibold text-success-600 dark:text-success-400">£8,000+ annually</span> on legal fees while ensuring <span className="font-semibold text-primary-600 dark:text-primary-400">95% compliance accuracy</span> 
                   with our AI-powered platform built specifically for UK SMEs.
                 </p>
                 
-                <div className="mt-10 sm:mt-12 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-x-6 animate-fade-in" style={{ animationDelay: '300ms' }}>
+                <div className="mt-10 sm:mt-12 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-x-6 motion-safe:animate-fade-in" style={{ animationDelay: '300ms' }}>
                   <Link to={user ? "/dashboard" : "/login"} className="w-full sm:w-auto">
                     <Button size="lg" className="px-8 py-4 w-full sm:w-auto text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group">
                       {user ? (
@@ -444,21 +444,21 @@ export default function LandingPage() {
                     </Button>
                   </Link>
                   {!user && (
-                    <Link to="/login" className={`${typography.body.large} font-semibold leading-6 ${textStyles.linkMuted} transition-all duration-200 flex items-center justify-center sm:justify-start group hover:scale-105`}>
+                    <Link to="/login" className={`${typography.body.large} font-semibold leading-6 text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-200 flex items-center justify-center sm:justify-start group hover:scale-105 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 min-h-[44px]`}>
                       View Demo <ArrowRightIcon className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
                     </Link>
                   )}
                 </div>
 
                 {!user && (
-                  <div className={`mt-8 sm:mt-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-x-8 ${typography.body.small} ${textColors.secondary} animate-fade-in`} style={{ animationDelay: '500ms' }}>
+                  <div className={`mt-8 sm:mt-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-x-8 ${typography.body.small} text-secondary-600 dark:text-secondary-400 motion-safe:animate-fade-in`} style={{ animationDelay: '500ms' }}>
                     {[
                       'No credit card required',
                       '14-day free trial', 
                       'Cancel anytime'
                     ].map((text, index) => (
-                      <div key={text} className="flex items-center animate-fade-in" style={{ animationDelay: `${600 + index * 100}ms` }}>
-                        <CheckCircleIcon className="h-5 w-5 text-success-600 mr-2 flex-shrink-0" />
+                      <div key={text} className="flex items-center motion-safe:animate-fade-in" style={{ animationDelay: `${600 + index * 100}ms` }}>
+                        <CheckCircleIcon className="h-5 w-5 text-success-600 dark:text-success-400 mr-2 flex-shrink-0" />
                         {text}
                       </div>
                     ))}
@@ -471,20 +471,20 @@ export default function LandingPage() {
           <div className="mt-16 sm:mt-20 md:mx-auto md:max-w-2xl lg:mx-0 lg:mt-0 lg:w-screen lg:max-w-none">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-primary-600/10 rounded-3xl transform rotate-1" />
-              <div className="relative bg-white dark:bg-secondary-800 rounded-2xl shadow-2xl ring-1 ring-gray-900/10 dark:ring-secondary-700/50 overflow-hidden">
+              <div className="relative bg-white dark:bg-secondary-800 rounded-2xl shadow-2xl ring-1 ring-secondary-900/10 dark:ring-secondary-700/50 overflow-hidden">
                 <div className="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-950/40 dark:to-primary-900/40 px-6 pt-8 sm:px-10 sm:pt-10">
                   <div className="relative">
                     <img
                       src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=80"
                       alt="Contract management dashboard showing modern interface with contract list, analytics, and team collaboration features"
-                      className="w-full rounded-t-xl shadow-xl ring-1 ring-gray-900/10 dark:ring-secondary-700/50 transform hover:scale-105 transition-transform duration-300"
+                      className="w-full rounded-t-xl shadow-xl ring-1 ring-secondary-900/10 dark:ring-secondary-700/50 transform hover:scale-105 transition-transform duration-300 motion-reduce:transform-none motion-reduce:hover:scale-100"
                       width={2432}
                       height={1442}
                       loading="lazy"
                     />
                     {/* Floating elements for visual appeal */}
-                    <div className="absolute -top-4 -right-4 w-20 h-20 bg-primary-500 rounded-full opacity-20 animate-pulse" />
-                    <div className="absolute -bottom-6 -left-6 w-16 h-16 bg-primary-300 rounded-full opacity-30 animate-bounce" style={{ animationDelay: '1s' }} />
+                    <div className="absolute -top-4 -right-4 w-20 h-20 bg-primary-500 rounded-full opacity-20 motion-safe:animate-pulse" />
+                    <div className="absolute -bottom-6 -left-6 w-16 h-16 bg-primary-300 rounded-full opacity-30 motion-safe:animate-bounce" style={{ animationDelay: '1s' }} />
                   </div>
                 </div>
               </div>
@@ -497,11 +497,11 @@ export default function LandingPage() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8 py-16 sm:py-20">
         <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-none">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/50 mb-4 ring-1 ring-primary-200 dark:ring-primary-700">
+            <div className="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-4 ring-1 ring-primary-200 dark:ring-primary-800/50">
               <CheckCircleIcon className="h-4 w-4 mr-2" />
               Trusted by hundreds of UK SMEs
             </div>
-            <h2 className={`${typography.heading.h2} font-bold ${textColors.primary}`}>Proven results that speak for themselves</h2>
+            <h2 className={`${typography.heading.h2} font-bold text-secondary-900 dark:text-secondary-100`}>Proven results that speak for themselves</h2>
           </div>
           <div className="grid grid-cols-2 gap-6 sm:gap-8 text-center lg:grid-cols-4">
             {stats.map((stat, index) => (
@@ -510,14 +510,14 @@ export default function LandingPage() {
                 variant="elevated"
                 padding="lg"
                 hover
-                className="group animate-fade-in hover:scale-[1.02] transition-all duration-300"
+                className="group motion-safe:animate-fade-in hover:scale-[1.02] transition-all duration-300 motion-reduce:hover:scale-100"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <CardContent className="text-center">
-                  <dd className={`${typography.display.small} font-bold tracking-tight text-primary-600 mb-3 group-hover:text-primary-700 transition-colors duration-300`}>
+                  <dd className={`${typography.display.small} font-bold tracking-tight text-primary-600 dark:text-primary-400 mb-3 group-hover:text-primary-700 dark:group-hover:text-primary-300 transition-colors duration-300`}>
                     {stat.value}
                   </dd>
-                  <dt className={`${typography.body.small} ${textColors.secondary} font-medium group-hover:${textColors.primary} transition-colors duration-300`}>
+                  <dt className={`${typography.body.small} text-secondary-600 dark:text-secondary-400 font-medium group-hover:text-secondary-800 dark:group-hover:text-secondary-200 transition-colors duration-300`}>
                     {stat.name}
                   </dt>
                 </CardContent>
@@ -531,16 +531,16 @@ export default function LandingPage() {
       <div className="bg-gradient-to-b from-secondary-50/50 via-secondary-50/30 to-white dark:from-secondary-950/50 dark:via-secondary-950/30 dark:to-secondary-950 py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
-            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-danger-700 bg-danger-100 dark:text-danger-300 dark:bg-danger-900/50 mb-6 ring-1 ring-danger-200 dark:ring-danger-700">
+            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-danger-700 bg-danger-100 dark:text-danger-300 dark:bg-danger-900/30 mb-6 ring-1 ring-danger-200 dark:ring-danger-800/50">
               <ScaleIcon className="h-4 w-4 mr-2" />
               The Challenge
             </div>
-            <h2 className={`${typography.display.medium} font-bold tracking-tight ${textColors.primary} mb-6`}>
+            <h2 className={`${typography.display.medium} font-bold tracking-tight text-secondary-900 dark:text-secondary-100 mb-6`}>
               UK SMEs waste 
-              <span className="bg-gradient-to-r from-danger-600 to-danger-700 bg-clip-text text-transparent">£12,000+ annually</span>
+              <span className="text-danger-600 dark:text-danger-400 font-extrabold">£12,000+ annually</span>
               <br />on contract management
             </h2>
-            <p className={`${typography.body.large} leading-8 ${textColors.secondary} max-w-3xl mx-auto`}>
+            <p className={`${typography.body.large} leading-8 text-secondary-600 dark:text-secondary-400 max-w-3xl mx-auto`}>
               Traditional legal services are expensive, slow, and complex. Most contract software 
               isn't built for UK law. SMEs risk non-compliance, costly disputes, and missed opportunities.
             </p>
@@ -548,11 +548,11 @@ export default function LandingPage() {
 
           <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-success-700 bg-success-100 dark:text-success-300 dark:bg-success-900/50 mb-6 ring-1 ring-success-200 dark:ring-success-700">
+              <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-success-700 bg-success-100 dark:text-success-300 dark:bg-success-900/30 mb-6 ring-1 ring-success-200 dark:ring-success-800/50">
                 <LightBulbIcon className="h-4 w-4 mr-2" />
                 Our Solution
               </div>
-              <h3 className={`${typography.heading.h2} font-bold ${textColors.primary} mb-4`}>Transform your contract management with measurable results</h3>
+              <h3 className={`${typography.heading.h2} font-bold text-secondary-900 dark:text-secondary-100 mb-4`}>Transform your contract management with measurable results</h3>
             </div>
             <div className="grid max-w-xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-3 mx-auto">
               {benefits.map((benefit, index) => (
@@ -561,17 +561,17 @@ export default function LandingPage() {
                   variant="elevated"
                   padding="lg"
                   hover
-                  className="group animate-fade-in hover:scale-[1.02] transition-all duration-300"
+                  className="group motion-safe:animate-fade-in hover:scale-[1.02] transition-all duration-300 motion-reduce:hover:scale-100"
                   style={{ animationDelay: `${index * 200}ms` }}
                 >
                   <CardContent>
-                    <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-primary-100 to-primary-200 rounded-2xl mb-6 group-hover:from-primary-200 group-hover:to-primary-300 transition-all duration-300 shadow-lg group-hover:shadow-xl">
-                      <benefit.icon className="h-7 w-7 text-primary-600" aria-hidden="true" />
+                    <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/30 rounded-2xl mb-6 group-hover:from-primary-200 group-hover:to-primary-300 dark:group-hover:from-primary-800/40 dark:group-hover:to-primary-700/40 transition-all duration-300 shadow-lg group-hover:shadow-xl">
+                      <benefit.icon className="h-7 w-7 text-primary-600 dark:text-primary-400" aria-hidden="true" />
                     </div>
-                    <CardTitle className={`${textStyles.cardTitle} mb-4 group-hover:${textColors.interactive} transition-colors duration-300`}>
+                    <CardTitle className={`text-xl font-semibold text-secondary-900 dark:text-secondary-100 mb-4 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-300`}>
                       {benefit.title}
                     </CardTitle>
-                    <p className={`${typography.body.medium} ${textColors.secondary} leading-relaxed group-hover:${textColors.primary} transition-colors duration-300`}>
+                    <p className={`${typography.body.medium} text-secondary-600 dark:text-secondary-400 leading-relaxed group-hover:text-secondary-800 dark:group-hover:text-secondary-200 transition-colors duration-300`}>
                       {benefit.description}
                     </p>
                   </CardContent>
@@ -586,15 +586,15 @@ export default function LandingPage() {
       <section id="features" className="py-24 sm:py-32 bg-gradient-to-b from-white via-secondary-50/30 to-white dark:from-secondary-950 dark:via-secondary-950/30 dark:to-secondary-950" aria-labelledby="features-heading">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16 sm:mb-20">
-            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/50 mb-6 ring-1 ring-primary-200 dark:ring-primary-700">
+            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-6 ring-1 ring-primary-200 dark:ring-primary-800/50">
               <SparklesIcon className="h-4 w-4 mr-2" />
               Everything you need
             </div>
-            <h2 id="features-heading" className={`${typography.display.medium} font-bold tracking-tight ${textColors.primary} mb-6`}>
+            <h2 id="features-heading" className={`${typography.display.medium} font-bold tracking-tight text-secondary-900 dark:text-secondary-100 mb-6`}>
               Enterprise-grade features for 
-              <span className="bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">SME budgets</span>
+              <span className="text-primary-600 dark:text-primary-400 font-extrabold">SME budgets</span>
             </h2>
-            <p className={`${typography.body.large} leading-8 ${textColors.secondary} max-w-3xl mx-auto`}>
+            <p className={`${typography.body.large} leading-8 text-secondary-600 dark:text-secondary-400 max-w-3xl mx-auto`}>
               Built specifically for UK businesses, Pactoria combines cutting-edge AI with deep legal expertise 
               to deliver a contract management platform that actually works for you.
             </p>
@@ -608,13 +608,13 @@ export default function LandingPage() {
                 padding="lg"
                 hover
                 interactive
-                className={`group transition-all duration-300 hover:scale-[1.02] animate-fade-in bg-gradient-to-br ${feature.bgGradient} dark:from-secondary-900 dark:to-secondary-800 border-0 hover:shadow-strong`}
+                className={`group transition-all duration-300 hover:scale-[1.02] motion-safe:animate-fade-in bg-gradient-to-br ${feature.bgGradient} dark:bg-gradient-to-br dark:from-secondary-800/50 dark:to-secondary-900/50 border border-primary-200/50 dark:border-secondary-700/50 hover:shadow-strong motion-reduce:hover:scale-100`}
                 style={{ animationDelay: `${index * 150}ms` }}
               >
                 <CardContent className="relative">
                   {/* Icon with enhanced styling */}
                   <div className="relative mb-6">
-                    <div className={`inline-flex h-14 w-14 items-center justify-center rounded-2xl ${feature.iconBg} shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300 ring-1 ring-white/20`}>
+                    <div className={`inline-flex h-14 w-14 items-center justify-center rounded-2xl ${feature.iconBg} dark:opacity-90 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300 ring-1 ring-white/20 motion-reduce:group-hover:scale-100`}>
                       <feature.icon className="h-7 w-7 text-white" aria-hidden="true" />
                     </div>
                     {/* Glow effect */}
@@ -645,15 +645,15 @@ export default function LandingPage() {
       <section id="use-cases" className="bg-gradient-to-br from-primary-50/30 via-primary-50/50 to-primary-100/30 dark:from-primary-950/30 dark:via-primary-950/50 dark:to-primary-900/30 py-24 sm:py-32" aria-labelledby="use-cases-heading">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
-            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/50 mb-6 ring-1 ring-primary-200 dark:ring-primary-700">
+            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-6 ring-1 ring-primary-200 dark:ring-primary-800/50">
               <DocumentTextIcon className="h-4 w-4 mr-2" />
               Use Cases
             </div>
-            <h2 id="use-cases-heading" className={`${typography.display.medium} font-bold tracking-tight ${textColors.primary} mb-6`}>
+            <h2 id="use-cases-heading" className={`${typography.display.medium} font-bold tracking-tight text-secondary-900 dark:text-secondary-100 mb-6`}>
               One platform, 
-              <span className="bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">endless possibilities</span>
+              <span className="text-primary-600 dark:text-primary-400 font-extrabold">endless possibilities</span>
             </h2>
-            <p className={`${typography.body.large} leading-8 ${textColors.secondary} max-w-3xl mx-auto`}>
+            <p className={`${typography.body.large} leading-8 text-secondary-600 dark:text-secondary-400 max-w-3xl mx-auto`}>
               From employment contracts to supplier agreements, Pactoria handles every type of business contract with UK legal precision.
             </p>
           </div>
@@ -669,10 +669,10 @@ export default function LandingPage() {
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <CardContent className="flex items-center">
-                  <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl mr-4 group-hover:from-primary-200 group-hover:to-primary-300 transition-all duration-300 shadow-sm group-hover:shadow-md">
-                    <CheckCircleIcon className="h-5 w-5 text-primary-600" />
+                  <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/30 rounded-xl mr-4 group-hover:from-primary-200 group-hover:to-primary-300 dark:group-hover:from-primary-800/40 dark:group-hover:to-primary-700/40 transition-all duration-300 shadow-sm group-hover:shadow-md">
+                    <CheckCircleIcon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                   </div>
-                  <span className={`${typography.body.medium} font-medium ${textColors.primary} group-hover:${textColors.interactive} transition-colors duration-300`}>
+                  <span className={`${typography.body.medium} font-medium text-secondary-900 dark:text-secondary-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-300`}>
                     {useCase}
                   </span>
                 </CardContent>
@@ -686,15 +686,15 @@ export default function LandingPage() {
       <section id="testimonials" className="bg-gradient-to-b from-white via-secondary-50/20 to-white dark:from-secondary-950 dark:via-secondary-950/20 dark:to-secondary-950 py-24 sm:py-32" aria-labelledby="testimonials-heading">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
-            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/50 mb-6 ring-1 ring-primary-200 dark:ring-primary-700">
+            <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-6 ring-1 ring-primary-200 dark:ring-primary-800/50">
               <UserGroupIcon className="h-4 w-4 mr-2" />
               Customer Stories
             </div>
-            <h2 id="testimonials-heading" className={`${typography.display.medium} font-bold tracking-tight ${textColors.primary} mb-6`}>
+            <h2 id="testimonials-heading" className={`${typography.display.medium} font-bold tracking-tight text-secondary-900 dark:text-secondary-100 mb-6`}>
               Trusted by UK's 
-              <span className="bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">fastest-growing SMEs</span>
+              <span className="text-primary-600 dark:text-primary-400 font-extrabold">fastest-growing SMEs</span>
             </h2>
-            <p className={`${typography.body.large} leading-8 ${textColors.secondary} max-w-3xl mx-auto`}>
+            <p className={`${typography.body.large} leading-8 text-secondary-600 dark:text-secondary-400 max-w-3xl mx-auto`}>
               See how businesses like yours are transforming their contract management and saving thousands of pounds annually.
             </p>
           </div>
@@ -706,12 +706,12 @@ export default function LandingPage() {
                 variant="elevated"
                 padding="lg"
                 hover
-                className="group overflow-hidden animate-fade-in hover:scale-[1.02] transition-all duration-300"
+                className="group overflow-hidden motion-safe:animate-fade-in hover:scale-[1.02] transition-all duration-300 motion-reduce:hover:scale-100"
                 style={{ animationDelay: `${index * 200}ms` }}
               >
                 <CardContent className="relative">
                   {/* Background decoration */}
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary-50 to-primary-100 transform rotate-45 translate-x-6 -translate-y-6 opacity-60 group-hover:opacity-100 transition-opacity duration-300 dark:from-primary-900 dark:to-primary-800" />
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 transform rotate-45 translate-x-6 -translate-y-6 opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
                   
                   <div className="relative">
                     <div className="flex gap-x-1 text-warning-400 mb-6">
@@ -721,7 +721,7 @@ export default function LandingPage() {
                         </svg>
                       ))}
                     </div>
-                    <blockquote className={textColors.primary}>
+                    <blockquote className="text-secondary-900 dark:text-secondary-100">
                       <p className={`${typography.body.large} leading-8 font-medium`}>"{testimonial.content}"</p>
                     </blockquote>
                     <figcaption className="mt-8 flex items-center gap-x-4">
@@ -731,8 +731,8 @@ export default function LandingPage() {
                         </span>
                       </div>
                       <div>
-                        <div className={`${typography.body.medium} font-semibold ${textColors.primary}`}>{testimonial.author}</div>
-                        <div className={`${typography.body.small} ${textColors.secondary}`}>{testimonial.role} • {testimonial.company}</div>
+                        <div className={`${typography.body.medium} font-semibold text-secondary-900 dark:text-secondary-100`}>{testimonial.author}</div>
+                        <div className={`${typography.body.small} text-secondary-600 dark:text-secondary-400`}>{testimonial.role} • {testimonial.company}</div>
                       </div>
                     </figcaption>
                   </div>
@@ -766,13 +766,13 @@ export default function LandingPage() {
         </div>
         
         <div className="mx-auto max-w-4xl text-center">
-          <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-200 bg-primary-800/50 mb-8 ring-1 ring-primary-700/50 backdrop-blur-sm">
+          <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-100 bg-primary-800/40 mb-8 ring-1 ring-primary-600/30 backdrop-blur-sm">
             <BoltIcon className="h-4 w-4 mr-2" />
             Transform Your Business Today
           </div>
           <h2 id="cta-heading" className={`${typography.display.medium} font-bold tracking-tight text-white mb-6`}>
             Ready to transform your 
-            <span className="bg-gradient-to-r from-primary-200 to-white bg-clip-text text-transparent">contract management?</span>
+            <span className="text-primary-100 font-extrabold">contract management?</span>
           </h2>
           <p className={`mx-auto max-w-2xl ${typography.body.large} leading-8 text-primary-100 mb-10`}>
             Join hundreds of UK SMEs saving time and money with Pactoria. 
@@ -780,7 +780,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12">
             <Link to={user ? "/dashboard" : "/login"}>
-              <Button size="lg" variant="secondary" className="bg-white text-primary-600 hover:bg-gray-50 px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+              <Button size="lg" variant="secondary" className="bg-white text-primary-700 hover:bg-secondary-50 px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-800 motion-reduce:hover:scale-100">
                 {user ? (
                   <>
                     <HomeIcon className="mr-2 h-5 w-5" />
@@ -795,7 +795,7 @@ export default function LandingPage() {
               </Button>
             </Link>
             {!user && (
-              <Link to="/login" className={`${typography.body.large} font-semibold leading-6 text-white hover:text-primary-200 transition-colors duration-200 flex items-center group`}>
+              <Link to="/login" className={`${typography.body.large} font-semibold leading-6 text-white hover:text-primary-200 transition-colors duration-200 flex items-center group focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-800 rounded-lg px-3 py-2`}>
                 Book a Demo 
                 <ArrowRightIcon className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
               </Link>
@@ -812,11 +812,11 @@ export default function LandingPage() {
                 key={item.title}
                 variant="glass"
                 padding="md"
-                className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-300 animate-fade-in"
+                className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-300 motion-safe:animate-fade-in motion-reduce:hover:bg-white/10"
                 style={{ animationDelay: `${index * 150}ms` }}
               >
                 <CardContent className="flex flex-col items-center text-center">
-                  <div className="flex items-center justify-center w-12 h-12 bg-white/20 rounded-xl mb-3 group-hover:bg-white/30 transition-colors duration-300">
+                  <div className="flex items-center justify-center w-12 h-12 bg-white/20 rounded-xl mb-3 hover:bg-white/30 transition-colors duration-300">
                     <item.icon className="h-6 w-6 text-primary-200" />
                   </div>
                   <p className={`${typography.body.small} text-primary-100 font-medium`}>{item.title}</p>
@@ -828,7 +828,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-950 dark:to-secondary-900 border-t border-secondary-200 dark:border-secondary-700">
+      <footer className="bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-950 dark:to-secondary-900 border-t border-secondary-200 dark:border-secondary-800">
         <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             {/* Company Info */}
@@ -843,20 +843,20 @@ export default function LandingPage() {
                   width="48"
                   height="48"
                 />
-                <span className={`${typography.heading.h3} sm:${typography.heading.h2} font-bold ${textColors.primary}`}>Pactoria</span>
+                <span className={`${typography.heading.h3} sm:${typography.heading.h2} font-bold text-secondary-900 dark:text-secondary-100`}>Pactoria</span>
               </div>
-              <p className={`${typography.body.medium} ${textColors.secondary} mb-6 max-w-md`}>
+              <p className={`${typography.body.medium} text-secondary-600 dark:text-secondary-400 mb-6 max-w-md`}>
                 AI-powered contract management platform built specifically for UK SMEs. 
                 Streamline your legal processes and ensure compliance with confidence.
               </p>
               <div className="flex space-x-6">
-                <a href="#" className={`${textColors.muted} hover:${textColors.interactive} transition-colors duration-200`} aria-label="Follow us on Twitter">
+                <a href="#" className={`text-secondary-500 dark:text-secondary-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg p-1`} aria-label="Follow us on Twitter">
                   <span className="sr-only">Twitter</span>
                   <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
                   </svg>
                 </a>
-                <a href="#" className={`${textColors.muted} hover:${textColors.interactive} transition-colors duration-200`} aria-label="Follow us on LinkedIn">
+                <a href="#" className={`text-secondary-500 dark:text-secondary-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg p-1`} aria-label="Follow us on LinkedIn">
                   <span className="sr-only">LinkedIn</span>
                   <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path fillRule="evenodd" d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" clipRule="evenodd" />
@@ -867,39 +867,39 @@ export default function LandingPage() {
 
             {/* Product Links */}
             <div>
-              <h3 className={`${typography.label.medium} font-semibold ${textColors.primary} uppercase tracking-wider mb-4`}>Product</h3>
+              <h3 className={`${typography.label.medium} font-semibold text-secondary-900 dark:text-secondary-100 uppercase tracking-wider mb-4`}>Product</h3>
               <ul className="space-y-3">
-                <li><button onClick={() => scrollToSection('features')} className={`${typography.body.small} ${textColors.secondary} hover:${textColors.interactive} transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg px-2 py-1`}>Features</button></li>
-                <li><button onClick={() => scrollToSection('use-cases')} className={`${typography.body.small} ${textColors.secondary} hover:${textColors.interactive} transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg px-2 py-1`}>Use Cases</button></li>
-                <li><Link to="/login" className={`${typography.body.small} ${textColors.secondary} hover:${textColors.interactive} transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg px-2 py-1`}>Pricing</Link></li>
-                <li><button onClick={() => scrollToSection('testimonials')} className={`${typography.body.small} ${textColors.secondary} hover:${textColors.interactive} transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg px-2 py-1`}>Reviews</button></li>
+                <li><button onClick={() => scrollToSection('features')} className={`${typography.body.small} text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-2 py-1 min-h-[32px] flex items-center`}>Features</button></li>
+                <li><button onClick={() => scrollToSection('use-cases')} className={`${typography.body.small} text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-2 py-1 min-h-[32px] flex items-center`}>Use Cases</button></li>
+                <li><Link to="/login" className={`${typography.body.small} text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-2 py-1 min-h-[32px] flex items-center`}>Pricing</Link></li>
+                <li><button onClick={() => scrollToSection('testimonials')} className={`${typography.body.small} text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-2 py-1 min-h-[32px] flex items-center`}>Reviews</button></li>
               </ul>
             </div>
 
             {/* Company Links */}
             <div>
-              <h3 className={`${typography.label.medium} font-semibold ${textColors.primary} uppercase tracking-wider mb-4`}>Company</h3>
+              <h3 className={`${typography.label.medium} font-semibold text-secondary-900 dark:text-secondary-100 uppercase tracking-wider mb-4`}>Company</h3>
               <ul className="space-y-3">
-                <li><a href="#" className={`${typography.body.small} ${textColors.secondary} hover:${textColors.interactive} transition-colors duration-200`}>About</a></li>
-                <li><a href="#" className={`${typography.body.small} ${textColors.secondary} hover:${textColors.interactive} transition-colors duration-200`}>Privacy Policy</a></li>
-                <li><a href="#" className={`${typography.body.small} ${textColors.secondary} hover:${textColors.interactive} transition-colors duration-200`}>Terms of Service</a></li>
-                <li><a href="#" className={`${typography.body.small} ${textColors.secondary} hover:${textColors.interactive} transition-colors duration-200`}>Contact</a></li>
+                <li><a href="#" className={`${typography.body.small} text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded px-1 py-0.5 inline-block`}>About</a></li>
+                <li><a href="#" className={`${typography.body.small} text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded px-1 py-0.5 inline-block`}>Privacy Policy</a></li>
+                <li><a href="#" className={`${typography.body.small} text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded px-1 py-0.5 inline-block`}>Terms of Service</a></li>
+                <li><a href="#" className={`${typography.body.small} text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded px-1 py-0.5 inline-block`}>Contact</a></li>
               </ul>
             </div>
           </div>
           
-          <div className="mt-12 pt-8 border-t border-secondary-200 dark:border-secondary-700">
+          <div className="mt-12 pt-8 border-t border-secondary-200 dark:border-secondary-800">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-              <p className={`${typography.body.small} ${textColors.muted}`}>
+              <p className={`${typography.body.small} text-secondary-500 dark:text-secondary-500`}>
                 &copy; 2025 Pactoria Ltd. All rights reserved. Company Number: 12345678. VAT: GB123456789.
               </p>
               <div className="mt-4 md:mt-0 flex items-center space-x-6">
-                <span className={`${typography.body.small} ${textColors.muted} flex items-center`}>
-                  <ShieldCheckIcon className="h-4 w-4 mr-1 text-success-600" />
+                <span className={`${typography.body.small} text-secondary-500 dark:text-secondary-500 flex items-center`}>
+                  <ShieldCheckIcon className="h-4 w-4 mr-1 text-success-600 dark:text-success-400" />
                   GDPR Compliant
                 </span>
-                <span className={`${typography.body.small} ${textColors.muted} flex items-center`}>
-                  <LightBulbIcon className="h-4 w-4 mr-1 text-warning-600" />
+                <span className={`${typography.body.small} text-secondary-500 dark:text-secondary-500 flex items-center`}>
+                  <LightBulbIcon className="h-4 w-4 mr-1 text-warning-600 dark:text-warning-400" />
                   UK Innovation Visa
                 </span>
               </div>

@@ -142,3 +142,44 @@ class AIServiceError(DomainError):
             "service_name": service_name,
             "operation": operation
         })
+
+
+class TeamManagementError(DomainError):
+    """Raised for team management specific errors"""
+    
+    def __init__(self, message: str, team_id: Optional[str] = None, member_id: Optional[str] = None):
+        super().__init__(message, "TEAM_MANAGEMENT_ERROR")
+        self.team_id = team_id
+        self.member_id = member_id
+        if team_id:
+            self.details["team_id"] = team_id
+        if member_id:
+            self.details["member_id"] = member_id
+
+
+class InvitationError(DomainError):
+    """Raised for invitation-related errors"""
+    
+    def __init__(self, message: str, invitation_id: Optional[str] = None, email: Optional[str] = None):
+        super().__init__(message, "INVITATION_ERROR")
+        self.invitation_id = invitation_id
+        self.email = email
+        if invitation_id:
+            self.details["invitation_id"] = invitation_id
+        if email:
+            self.details["email"] = email
+
+
+class CompanyLimitExceededError(DomainError):
+    """Raised when company limits are exceeded"""
+    
+    def __init__(self, message: str, limit_type: str, current_value: int, max_allowed: int):
+        super().__init__(message, "COMPANY_LIMIT_EXCEEDED")
+        self.limit_type = limit_type
+        self.current_value = current_value
+        self.max_allowed = max_allowed
+        self.details.update({
+            "limit_type": limit_type,
+            "current_value": current_value,
+            "max_allowed": max_allowed
+        })

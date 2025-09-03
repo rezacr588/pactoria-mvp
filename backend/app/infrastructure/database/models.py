@@ -40,6 +40,90 @@ class UserRole(str, enum.Enum):
     VIEWER = "viewer"
 
 
+class NotificationPriority(str, enum.Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
+class NotificationType(str, enum.Enum):
+    DEADLINE = "deadline"
+    COMPLIANCE = "compliance"
+    CONTRACT = "contract"
+    TEAM = "team"
+    SYSTEM = "system"
+
+
+class IntegrationStatus(str, enum.Enum):
+    AVAILABLE = "available"
+    CONNECTED = "connected"
+    PENDING = "pending"
+    ERROR = "error"
+    DISCONNECTED = "disconnected"
+
+
+class IntegrationCategory(str, enum.Enum):
+    CRM = "crm"
+    ACCOUNTING = "accounting"
+    STORAGE = "storage"
+    COMMUNICATION = "communication"
+    HR = "hr"
+    PRODUCTIVITY = "productivity"
+    LEGAL = "legal"
+    ANALYTICS = "analytics"
+
+
+class PriceTier(str, enum.Enum):
+    FREE = "free"
+    PREMIUM = "premium"
+    ENTERPRISE = "enterprise"
+
+
+class SyncStatus(str, enum.Enum):
+    SUCCESS = "success"
+    WARNING = "warning"
+    ERROR = "error"
+    PENDING = "pending"
+
+
+class InvitationStatus(str, enum.Enum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    EXPIRED = "expired"
+    REVOKED = "revoked"
+
+
+class AuditRiskLevel(str, enum.Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
+class AuditAction(str, enum.Enum):
+    CREATE = "create"
+    VIEW = "view"
+    EDIT = "edit"
+    DELETE = "delete"
+    SIGN = "sign"
+    EXPORT = "export"
+    SHARE = "share"
+    APPROVE = "approve"
+    REJECT = "reject"
+    ARCHIVE = "archive"
+    LOGIN = "login"
+    LOGOUT = "logout"
+
+
+class AuditResourceType(str, enum.Enum):
+    CONTRACT = "contract"
+    TEMPLATE = "template"
+    USER = "user"
+    COMPANY = "company"
+    SETTING = "setting"
+    INTEGRATION = "integration"
+    REPORT = "report"
+
+
 class User(Base):
     __tablename__ = "users"
     
@@ -250,7 +334,7 @@ class AuditLog(Base):
     
     old_values = Column(JSON, nullable=True)
     new_values = Column(JSON, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    additional_metadata = Column(JSON, nullable=True)
     
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
     
@@ -275,20 +359,6 @@ class SystemMetrics(Base):
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
 
 
-class NotificationPriority(str, enum.Enum):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-
-
-class NotificationType(str, enum.Enum):
-    DEADLINE = "deadline"
-    COMPLIANCE = "compliance"
-    CONTRACT = "contract"
-    TEAM = "team"
-    SYSTEM = "system"
-
-
 class Notification(Base):
     __tablename__ = "notifications"
     
@@ -306,38 +376,13 @@ class Notification(Base):
     
     related_contract_id = Column(String, ForeignKey("contracts.id"), nullable=True)
     expires_at = Column(DateTime(timezone=True), nullable=True)
-    metadata = Column(JSON, default={})
+    notification_metadata = Column(JSON, default={})
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     read_at = Column(DateTime(timezone=True), nullable=True)
     
     user = relationship("User")
     related_contract = relationship("Contract")
-
-
-class IntegrationStatus(str, enum.Enum):
-    AVAILABLE = "available"
-    CONNECTED = "connected"
-    PENDING = "pending"
-    ERROR = "error"
-    DISCONNECTED = "disconnected"
-
-
-class IntegrationCategory(str, enum.Enum):
-    CRM = "crm"
-    ACCOUNTING = "accounting"
-    STORAGE = "storage"
-    COMMUNICATION = "communication"
-    HR = "hr"
-    PRODUCTIVITY = "productivity"
-    LEGAL = "legal"
-    ANALYTICS = "analytics"
-
-
-class PriceTier(str, enum.Enum):
-    FREE = "free"
-    PREMIUM = "premium"
-    ENTERPRISE = "enterprise"
 
 
 class Integration(Base):
@@ -372,13 +417,6 @@ class Integration(Base):
     connections = relationship("IntegrationConnection", back_populates="integration")
 
 
-class SyncStatus(str, enum.Enum):
-    SUCCESS = "success"
-    WARNING = "warning"
-    ERROR = "error"
-    PENDING = "pending"
-
-
 class IntegrationConnection(Base):
     __tablename__ = "integration_connections"
     
@@ -411,13 +449,6 @@ class IntegrationConnection(Base):
     company = relationship("Company")
 
 
-class InvitationStatus(str, enum.Enum):
-    PENDING = "pending"
-    ACCEPTED = "accepted"
-    EXPIRED = "expired"
-    REVOKED = "revoked"
-
-
 class TeamInvitation(Base):
     __tablename__ = "team_invitations"
     
@@ -445,34 +476,3 @@ class TeamInvitation(Base):
     
     company = relationship("Company")
     inviter = relationship("User", foreign_keys=[invited_by])
-
-
-class AuditRiskLevel(str, enum.Enum):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-
-
-class AuditAction(str, enum.Enum):
-    CREATE = "create"
-    VIEW = "view"
-    EDIT = "edit"
-    DELETE = "delete"
-    SIGN = "sign"
-    EXPORT = "export"
-    SHARE = "share"
-    APPROVE = "approve"
-    REJECT = "reject"
-    ARCHIVE = "archive"
-    LOGIN = "login"
-    LOGOUT = "logout"
-
-
-class AuditResourceType(str, enum.Enum):
-    CONTRACT = "contract"
-    TEMPLATE = "template"
-    USER = "user"
-    COMPANY = "company"
-    SETTING = "setting"
-    INTEGRATION = "integration"
-    REPORT = "report"

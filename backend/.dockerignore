@@ -88,3 +88,7 @@ azure-pipelines.yml
 # Docker
 Dockerfile.dev
 docker-compose*.yml
+
+# Important: Include migrations for deployment
+!migrations/
+!alembic.ini

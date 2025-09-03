@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.core.database import create_tables
+from app.core.template_seeder import async_seed_templates
 from app.api.v1.api import api_router
 from fastapi.security import HTTPBearer
 
@@ -31,8 +32,16 @@ async def lifespan(app: FastAPI):
     
     # Create database tables
     await create_tables()
-    
     logger.info("✅ Database tables created")
+    
+    # Seed templates
+    try:
+        await async_seed_templates()
+        logger.info("✅ Templates seeded successfully")
+    except Exception as e:
+        logger.error(f"❌ Template seeding failed: {e}")
+        # Don't fail startup if template seeding fails
+    
     logger.info("✅ Pactoria MVP Backend started successfully")
     
     yield

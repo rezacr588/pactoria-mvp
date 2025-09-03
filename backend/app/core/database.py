@@ -26,9 +26,6 @@ engine = create_engine(
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create declarative base for models
-Base = declarative_base()
-
 # Naming convention for constraints
 convention = {
     "ix": "ix_%(column_0_label)s",
@@ -38,7 +35,8 @@ convention = {
     "pk": "pk_%(table_name)s"
 }
 
-Base.metadata = MetaData(naming_convention=convention)
+# Create declarative base for models with naming convention
+Base = declarative_base(metadata=MetaData(naming_convention=convention))
 
 
 async def create_tables():

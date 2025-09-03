@@ -2,13 +2,20 @@
 Team Management API endpoints
 Provides team member management, invitations, and role management
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, EmailStr
+from sqlalchemy.orm import Session
+from sqlalchemy import func, and_, or_
 
-from app.core.auth import get_current_user
-from app.infrastructure.database.models import User
+from app.core.auth import get_current_user, get_user_company
+from app.core.database import get_db
+from app.infrastructure.database.models import (
+    User, Company, TeamInvitation, UserRole, InvitationStatus
+)
+import secrets
+import uuid
 
 router = APIRouter(prefix="/team", tags=["Team Management"])
 
@@ -61,68 +68,45 @@ class InvitationResend(BaseModel):
     send_email: bool = Field(default=True)
 
 
-# Mock data for demonstration
-def get_mock_team_members(company_id: str) -> List[TeamMember]:
-    """Get mock team members for a company"""
-    return [
-        TeamMember(
-            id="user-123",
-            full_name="Sarah Johnson",
-            email="sarah.johnson@techcorp.com",
-            role="admin",
-            department="Legal",
-            is_active=True,
-            joined_at=datetime.now() - timedelta(days=120),
-            last_active=datetime.now() - timedelta(hours=2),
-            avatar_url="https://ui-avatars.com/api/?name=Sarah Johnson&background=3b82f6&color=fff"
-        ),
-        TeamMember(
-            id="user-456",
-            full_name="Michael Chen",
-            email="michael.chen@techcorp.com",
-            role="editor",
-            department="Operations",
-            is_active=True,
-            joined_at=datetime.now() - timedelta(days=85),
-            last_active=datetime.now() - timedelta(hours=8),
-            avatar_url="https://ui-avatars.com/api/?name=Michael Chen&background=10b981&color=fff"
-        ),
-        TeamMember(
-            id="user-789",
-            full_name="Emma Wilson",
-            email="emma.wilson@techcorp.com",
-            role="viewer",
-            department="HR",
-            is_active=True,
-            joined_at=datetime.now() - timedelta(days=45),
-            last_active=datetime.now() - timedelta(days=3),
-            avatar_url="https://ui-avatars.com/api/?name=Emma Wilson&background=f59e0b&color=fff"
-        ),
-        TeamMember(
-            id="user-101",
-            full_name="David Thompson",
-            email="david.thompson@techcorp.com",
-            role="editor",
-            department="Finance",
-            is_active=True,
-            joined_at=datetime.now() - timedelta(days=30),
-            last_active=datetime.now() - timedelta(hours=12),
-            avatar_url="https://ui-avatars.com/api/?name=David Thompson&background=8b5cf6&color=fff"
-        ),
-        TeamMember(
-            id="user-202",
-            full_name="Lisa Anderson",
-            email="lisa.anderson@techcorp.com",
-            role="viewer",
-            department="Marketing",
-            is_active=False,
-            joined_at=datetime.now() - timedelta(days=15),
-            last_active=datetime.now() - timedelta(days=7),
-            invitation_status="pending",
-            invited_at=datetime.now() - timedelta(days=15),
-            invited_by="user-123"
-        )
-    ]
+def generate_avatar_url(name: str) -> str:
+    """Generate an avatar URL for a user"""
+    return f"https://ui-avatars.com/api/?name={name.replace(' ', '+')}&background=3b82f6&color=fff"
+
+
+def user_to_team_member(user: User, invitation: Optional[TeamInvitation] = None) -> TeamMember:
+    """Convert a User model to TeamMember response"""
+    return TeamMember(
+        id=user.id,
+        full_name=user.full_name,
+        email=user.email,
+        role=user.role.value,
+        department=user.department,
+        is_active=user.is_active,
+        joined_at=user.created_at,
+        last_active=user.last_login_at or user.created_at,
+        avatar_url=generate_avatar_url(user.full_name),
+        invitation_status=invitation.status.value if invitation else None,
+        invited_by=invitation.invited_by if invitation else user.invited_by,
+        invited_at=invitation.created_at if invitation else user.invited_at
+    )
+
+
+def invitation_to_team_member(invitation: TeamInvitation) -> TeamMember:
+    """Convert a TeamInvitation to TeamMember response (for pending invitations)"""
+    return TeamMember(
+        id=f"pending_{invitation.id}",
+        full_name=invitation.full_name,
+        email=invitation.email,
+        role=invitation.role.value,
+        department=invitation.department,
+        is_active=False,
+        joined_at=invitation.created_at,
+        last_active=invitation.created_at,
+        avatar_url=generate_avatar_url(invitation.full_name),
+        invitation_status=invitation.status.value,
+        invited_by=invitation.invited_by,
+        invited_at=invitation.created_at
+    )
 
 
 @router.get("/members", response_model=List[TeamMember])
@@ -130,7 +114,8 @@ async def get_team_members(
     include_inactive: bool = Query(False, description="Include inactive members"),
     role: Optional[str] = Query(None, description="Filter by role"),
     department: Optional[str] = Query(None, description="Filter by department"),
-    current_user: User = Depends(get_current_user)
+    company: Company = Depends(get_user_company),
+    db: Session = Depends(get_db)
 ):
     """
     Get team members for the current user's company
@@ -139,25 +124,52 @@ async def get_team_members(
     and active status.
     """
     try:
-        # TODO: Implement actual database query
-        # For now, return mock data
-        team_members = get_mock_team_members(current_user.company_id)
+        # Base query for users in the company
+        query = db.query(User).filter(User.company_id == company.id)
         
         # Apply filters
         if not include_inactive:
-            team_members = [m for m in team_members if m.is_active]
+            query = query.filter(User.is_active == True)
         
         if role:
-            team_members = [m for m in team_members if m.role == role]
+            try:
+                role_enum = UserRole(role)
+                query = query.filter(User.role == role_enum)
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"Invalid role: {role}")
         
         if department:
-            team_members = [m for m in team_members if m.department == department]
+            query = query.filter(User.department == department)
         
-        # Sort by joined_at (newest first)
-        team_members.sort(key=lambda x: x.joined_at, reverse=True)
+        # Get users
+        users = query.order_by(User.created_at.desc()).all()
+        
+        # Get pending invitations if including inactive
+        team_members = []
+        for user in users:
+            team_members.append(user_to_team_member(user))
+        
+        # Add pending invitations if requested
+        if include_inactive:
+            pending_invitations = db.query(TeamInvitation).filter(
+                TeamInvitation.company_id == company.id,
+                TeamInvitation.status == InvitationStatus.PENDING
+            ).all()
+            
+            for invitation in pending_invitations:
+                # Apply role filter to invitations too
+                if role and invitation.role.value != role:
+                    continue
+                # Apply department filter to invitations
+                if department and invitation.department != department:
+                    continue
+                    
+                team_members.append(invitation_to_team_member(invitation))
         
         return team_members
     
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve team members: {str(e)}")
 
@@ -165,18 +177,34 @@ async def get_team_members(
 @router.get("/members/{member_id}", response_model=TeamMember)
 async def get_team_member(
     member_id: str,
-    current_user: User = Depends(get_current_user)
+    company: Company = Depends(get_user_company),
+    db: Session = Depends(get_db)
 ):
     """Get a specific team member by ID"""
     try:
-        # TODO: Implement actual database query
-        team_members = get_mock_team_members(current_user.company_id)
+        # Check if it's a pending invitation
+        if member_id.startswith("pending_"):
+            invitation_id = member_id.replace("pending_", "")
+            invitation = db.query(TeamInvitation).filter(
+                TeamInvitation.id == invitation_id,
+                TeamInvitation.company_id == company.id
+            ).first()
+            
+            if not invitation:
+                raise HTTPException(status_code=404, detail="Team member not found")
+            
+            return invitation_to_team_member(invitation)
         
-        for member in team_members:
-            if member.id == member_id:
-                return member
+        # Look for regular user
+        user = db.query(User).filter(
+            User.id == member_id,
+            User.company_id == company.id
+        ).first()
         
-        raise HTTPException(status_code=404, detail="Team member not found")
+        if not user:
+            raise HTTPException(status_code=404, detail="Team member not found")
+        
+        return user_to_team_member(user)
     
     except HTTPException:
         raise
@@ -187,7 +215,9 @@ async def get_team_member(
 @router.post("/invite", response_model=TeamMember)
 async def invite_team_member(
     invitation: TeamMemberInvite,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    company: Company = Depends(get_user_company),
+    db: Session = Depends(get_db)
 ):
     """
     Invite a new team member
@@ -196,30 +226,93 @@ async def invite_team_member(
     The invited user must accept the invitation to become active.
     """
     try:
-        # TODO: Check if user has permission to invite (admin/editor roles)
-        # TODO: Check company user limit (Professional plan: 5 users)
-        # TODO: Check if email already exists in the company
-        # TODO: Generate invitation token
-        # TODO: Send invitation email if requested
+        # Check if user has permission to invite (admin/contract_manager roles)
+        if current_user.role not in [UserRole.ADMIN, UserRole.CONTRACT_MANAGER]:
+            raise HTTPException(
+                status_code=403, 
+                detail="Only admin and contract manager users can invite team members"
+            )
         
-        # Mock implementation
-        new_member = TeamMember(
-            id=f"user_{int(datetime.now().timestamp())}",
-            full_name=invitation.full_name,
+        # Check if email already exists in the company
+        existing_user = db.query(User).filter(
+            User.email == invitation.email,
+            User.company_id == company.id
+        ).first()
+        
+        if existing_user:
+            raise HTTPException(
+                status_code=400, 
+                detail="A user with this email already exists in your company"
+            )
+        
+        # Check for existing pending invitation
+        existing_invitation = db.query(TeamInvitation).filter(
+            TeamInvitation.email == invitation.email,
+            TeamInvitation.company_id == company.id,
+            TeamInvitation.status == InvitationStatus.PENDING
+        ).first()
+        
+        if existing_invitation:
+            raise HTTPException(
+                status_code=400,
+                detail="An invitation for this email is already pending"
+            )
+        
+        # Check company user limit based on subscription tier
+        current_user_count = db.query(User).filter(
+            User.company_id == company.id,
+            User.is_active == True
+        ).count()
+        
+        pending_invitations_count = db.query(TeamInvitation).filter(
+            TeamInvitation.company_id == company.id,
+            TeamInvitation.status == InvitationStatus.PENDING
+        ).count()
+        
+        total_projected_users = current_user_count + pending_invitations_count + 1  # +1 for this new invitation
+        
+        if total_projected_users > company.max_users:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Company user limit exceeded. Your {company.subscription_tier.value} plan allows {company.max_users} users."
+            )
+        
+        # Validate role
+        try:
+            role_enum = UserRole(invitation.role)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid role: {invitation.role}")
+        
+        # Generate invitation token
+        invitation_token = secrets.token_urlsafe(32)
+        
+        # Create invitation
+        new_invitation = TeamInvitation(
             email=invitation.email,
-            role=invitation.role,
+            full_name=invitation.full_name,
+            role=role_enum,
             department=invitation.department,
-            is_active=False,
-            joined_at=datetime.now(),
-            last_active=datetime.now(),
-            invitation_status="pending",
-            invited_at=datetime.now(),
-            invited_by=current_user.id
+            company_id=company.id,
+            invited_by=current_user.id,
+            invitation_token=invitation_token,
+            expires_at=datetime.now(UTC) + timedelta(days=7),  # 7 days to accept
+            email_sent=invitation.send_email
         )
         
-        return new_member
+        if invitation.send_email:
+            new_invitation.email_sent_at = datetime.now(UTC)
+            # TODO: Send invitation email
+        
+        db.add(new_invitation)
+        db.commit()
+        db.refresh(new_invitation)
+        
+        return invitation_to_team_member(new_invitation)
     
+    except HTTPException:
+        raise
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to invite team member: {str(e)}")
 
 
@@ -227,7 +320,9 @@ async def invite_team_member(
 async def update_member_role(
     member_id: str,
     role_update: dict,  # Should contain {"role": "new_role"}
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    company: Company = Depends(get_user_company),
+    db: Session = Depends(get_db)
 ):
     """
     Update a team member's role
@@ -235,36 +330,80 @@ async def update_member_role(
     Only admin users can update roles. Cannot demote the last admin.
     """
     try:
-        # TODO: Implement permission check (only admin can update roles)
-        # TODO: Prevent removing the last admin
-        # TODO: Update database record
-        # TODO: Log audit trail
+        # Check if current user has admin privileges
+        if current_user.role != UserRole.ADMIN:
+            raise HTTPException(
+                status_code=403,
+                detail="Only admin users can update member roles"
+            )
         
+        # Validate new role
         new_role = role_update.get("role")
-        if new_role not in ["admin", "editor", "viewer"]:
-            raise HTTPException(status_code=400, detail="Invalid role")
+        if not new_role:
+            raise HTTPException(status_code=400, detail="Role is required")
+            
+        try:
+            role_enum = UserRole(new_role)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid role: {new_role}")
+        
+        # Get target user
+        target_user = db.query(User).filter(
+            User.id == member_id,
+            User.company_id == company.id
+        ).first()
+        
+        if not target_user:
+            raise HTTPException(status_code=404, detail="Team member not found")
+        
+        # Prevent users from changing their own role
+        if target_user.id == current_user.id:
+            raise HTTPException(status_code=400, detail="Cannot change your own role")
+        
+        # Prevent demoting the last admin
+        if target_user.role == UserRole.ADMIN and role_enum != UserRole.ADMIN:
+            admin_count = db.query(User).filter(
+                User.company_id == company.id,
+                User.role == UserRole.ADMIN,
+                User.is_active == True
+            ).count()
+            
+            if admin_count <= 1:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Cannot demote the last admin. At least one admin must remain."
+                )
+        
+        # Update user role
+        old_role = target_user.role
+        target_user.role = role_enum
+        target_user.updated_at = datetime.now(UTC)
+        
+        db.commit()
+        db.refresh(target_user)
         
         return {
-            "success": True,
-            "data": {
-                "message": "Member role updated successfully",
-                "member_id": member_id,
-                "new_role": new_role,
-                "updated_by": current_user.id,
-                "updated_at": datetime.now()
-            }
+            "message": "Member role updated successfully",
+            "member_id": member_id,
+            "new_role": new_role,
+            "old_role": old_role.value,
+            "updated_by": current_user.id,
+            "updated_at": target_user.updated_at
         }
     
     except HTTPException:
         raise
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to update member role: {str(e)}")
 
 
 @router.delete("/members/{member_id}")
 async def remove_team_member(
     member_id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    company: Company = Depends(get_user_company),
+    db: Session = Depends(get_db)
 ):
     """
     Remove a team member from the company
@@ -272,28 +411,86 @@ async def remove_team_member(
     Only admin users can remove members. Cannot remove yourself or the last admin.
     """
     try:
-        # TODO: Implement permission check (only admin can remove members)
-        # TODO: Prevent self-removal
-        # TODO: Prevent removing the last admin
-        # TODO: Deactivate user and transfer their contracts
-        # TODO: Log audit trail
+        # Check if current user has admin privileges
+        if current_user.role != UserRole.ADMIN:
+            raise HTTPException(
+                status_code=403,
+                detail="Only admin users can remove team members"
+            )
         
+        # Prevent self-removal
         if member_id == current_user.id:
             raise HTTPException(status_code=400, detail="Cannot remove yourself")
         
-        return {
-            "success": True,
-            "data": {
-                "message": "Team member removed successfully",
+        # Check if it's a pending invitation
+        if member_id.startswith("pending_"):
+            invitation_id = member_id.replace("pending_", "")
+            invitation = db.query(TeamInvitation).filter(
+                TeamInvitation.id == invitation_id,
+                TeamInvitation.company_id == company.id
+            ).first()
+            
+            if not invitation:
+                raise HTTPException(status_code=404, detail="Team member not found")
+            
+            # Remove the invitation
+            db.delete(invitation)
+            db.commit()
+            
+            return {
+                "message": "Pending invitation removed successfully",
                 "member_id": member_id,
                 "removed_by": current_user.id,
-                "removed_at": datetime.now()
+                "removed_at": datetime.now(UTC)
             }
+        
+        # Get target user
+        target_user = db.query(User).filter(
+            User.id == member_id,
+            User.company_id == company.id
+        ).first()
+        
+        if not target_user:
+            raise HTTPException(status_code=404, detail="Team member not found")
+        
+        # Prevent removing the last admin
+        if target_user.role == UserRole.ADMIN:
+            admin_count = db.query(User).filter(
+                User.company_id == company.id,
+                User.role == UserRole.ADMIN,
+                User.is_active == True
+            ).count()
+            
+            if admin_count <= 1:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Cannot remove the last admin. At least one admin must remain."
+                )
+        
+        # Deactivate user instead of hard delete (to preserve data integrity)
+        target_user.is_active = False
+        target_user.updated_at = datetime.now(UTC)
+        
+        # Note: In a more sophisticated implementation, we would:
+        # 1. Transfer ownership of their contracts to another user
+        # 2. Create an audit log entry
+        # 3. Send notification emails
+        # 4. Handle any pending workflows they're involved in
+        
+        db.commit()
+        db.refresh(target_user)
+        
+        return {
+            "message": "Team member removed successfully",
+            "member_id": member_id,
+            "removed_by": current_user.id,
+            "removed_at": target_user.updated_at
         }
     
     except HTTPException:
         raise
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to remove team member: {str(e)}")
 
 
@@ -301,7 +498,9 @@ async def remove_team_member(
 async def resend_invitation(
     member_id: str,
     resend_request: InvitationResend,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    company: Company = Depends(get_user_company),
+    db: Session = Depends(get_db)
 ):
     """
     Resend invitation to a pending team member
@@ -309,67 +508,150 @@ async def resend_invitation(
     Generates a new invitation token and optionally sends a new email.
     """
     try:
-        # TODO: Check if member exists and has pending invitation
-        # TODO: Generate new invitation token
-        # TODO: Send invitation email if requested
-        # TODO: Update invitation timestamp
+        # Check if current user has permission to invite
+        if current_user.role not in [UserRole.ADMIN, UserRole.CONTRACT_MANAGER]:
+            raise HTTPException(
+                status_code=403, 
+                detail="Only admin and contract manager users can resend invitations"
+            )
+        
+        # Check if it's a pending invitation
+        if not member_id.startswith("pending_"):
+            raise HTTPException(
+                status_code=400,
+                detail="Can only resend invitations for pending team members"
+            )
+        
+        invitation_id = member_id.replace("pending_", "")
+        invitation = db.query(TeamInvitation).filter(
+            TeamInvitation.id == invitation_id,
+            TeamInvitation.company_id == company.id,
+            TeamInvitation.status == InvitationStatus.PENDING
+        ).first()
+        
+        if not invitation:
+            raise HTTPException(
+                status_code=404,
+                detail="Pending invitation not found or already processed"
+            )
+        
+        # Check if invitation has expired
+        if invitation.expires_at < datetime.now(UTC):
+            # Update status to expired
+            invitation.status = InvitationStatus.EXPIRED
+            db.commit()
+            raise HTTPException(
+                status_code=400,
+                detail="Invitation has expired. Please create a new invitation."
+            )
+        
+        # Generate new invitation token
+        new_token = secrets.token_urlsafe(32)
+        invitation.invitation_token = new_token
+        invitation.updated_at = datetime.now(UTC)
+        
+        # Extend expiry date
+        invitation.expires_at = datetime.now(UTC) + timedelta(days=7)
+        
+        # Update email sending flags
+        if resend_request.send_email:
+            invitation.email_sent = True
+            invitation.email_sent_at = datetime.now(UTC)
+            # TODO: Send actual email using email service
+        
+        db.commit()
+        db.refresh(invitation)
         
         return {
-            "success": True,
-            "data": {
-                "message": "Invitation resent successfully",
-                "member_id": member_id,
-                "email_sent": resend_request.send_email,
-                "resent_by": current_user.id,
-                "resent_at": datetime.now()
-            }
+            "message": "Invitation resent successfully",
+            "member_id": member_id,
+            "email_sent": resend_request.send_email,
+            "resent_by": current_user.id,
+            "resent_at": invitation.updated_at,
+            "expires_at": invitation.expires_at
         }
     
+    except HTTPException:
+        raise
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to resend invitation: {str(e)}")
 
 
 @router.get("/stats", response_model=TeamStats)
 async def get_team_stats(
-    current_user: User = Depends(get_current_user)
+    company: Company = Depends(get_user_company),
+    db: Session = Depends(get_db)
 ):
     """Get team statistics for the current user's company"""
     try:
-        # TODO: Implement actual database queries
-        team_members = get_mock_team_members(current_user.company_id)
+        # Get active users
+        active_users = db.query(User).filter(
+            User.company_id == company.id,
+            User.is_active == True
+        ).all()
         
-        active_members = [m for m in team_members if m.is_active]
-        pending_invitations = [m for m in team_members if m.invitation_status == "pending"]
+        # Get all users (including inactive)
+        all_users = db.query(User).filter(User.company_id == company.id).all()
+        
+        # Get pending invitations
+        pending_invitations = db.query(TeamInvitation).filter(
+            TeamInvitation.company_id == company.id,
+            TeamInvitation.status == InvitationStatus.PENDING
+        ).all()
         
         # Group by role
         members_by_role = {}
-        for member in active_members:
-            members_by_role[member.role] = members_by_role.get(member.role, 0) + 1
+        for user in active_users:
+            role = user.role.value
+            members_by_role[role] = members_by_role.get(role, 0) + 1
         
         # Group by department
         members_by_department = {}
-        for member in active_members:
-            dept = member.department or "Unassigned"
+        for user in active_users:
+            dept = user.department or "Unassigned"
             members_by_department[dept] = members_by_department.get(dept, 0) + 1
         
+        # Recent activity (last 30 days)
+        thirty_days_ago = datetime.now(UTC) - timedelta(days=30)
+        
+        recent_users = db.query(User).filter(
+            User.company_id == company.id,
+            User.created_at >= thirty_days_ago
+        ).order_by(User.created_at.desc()).limit(5).all()
+        
+        recent_invitations = db.query(TeamInvitation).filter(
+            TeamInvitation.company_id == company.id,
+            TeamInvitation.created_at >= thirty_days_ago
+        ).order_by(TeamInvitation.created_at.desc()).limit(5).all()
+        
+        recent_activity = []
+        
+        for user in recent_users:
+            recent_activity.append({
+                "type": "member_joined",
+                "member_name": user.full_name,
+                "date": user.created_at
+            })
+        
+        for invitation in recent_invitations:
+            recent_activity.append({
+                "type": "invitation_sent",
+                "member_name": invitation.full_name,
+                "date": invitation.created_at
+            })
+        
+        # Sort by date (most recent first)
+        recent_activity.sort(key=lambda x: x["date"], reverse=True)
+        recent_activity = recent_activity[:10]  # Keep only top 10
+        
         return TeamStats(
-            total_members=len(team_members),
-            active_members=len(active_members),
+            total_members=len(all_users) + len(pending_invitations),
+            active_members=len(active_users),
             pending_invitations=len(pending_invitations),
             members_by_role=members_by_role,
             members_by_department=members_by_department,
-            recent_activity=[
-                {
-                    "type": "member_joined",
-                    "member_name": "David Thompson",
-                    "date": datetime.now() - timedelta(days=1)
-                },
-                {
-                    "type": "invitation_sent",
-                    "member_name": "Lisa Anderson",
-                    "date": datetime.now() - timedelta(days=3)
-                }
-            ]
+            recent_activity=recent_activity
         )
     
     except Exception as e:

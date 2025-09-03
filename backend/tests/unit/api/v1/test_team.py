@@ -8,7 +8,7 @@ from unittest.mock import Mock
 
 from app.main import app
 from app.core.auth import get_current_user
-from app.models.user import User
+from app.infrastructure.database.models import User
 
 client = TestClient(app)
 

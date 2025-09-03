@@ -35,11 +35,19 @@ def test_database():
     # Import all models to ensure they're registered with Base
     from app.infrastructure.database.models import (
         User, Company, Contract, Template, AIGeneration, 
-        ComplianceScore, AuditLog, ContractVersion, SystemMetrics
+        ComplianceScore, AuditLog, ContractVersion, SystemMetrics,
+        Notification, Integration, IntegrationConnection, TeamInvitation,
+        Base
     )
     
     # Create all tables for testing
     Base.metadata.create_all(bind=test_engine)
+    
+    # Verify tables were created (for debugging)
+    from sqlalchemy import inspect
+    inspector = inspect(test_engine)
+    tables = inspector.get_table_names()
+    print(f"Test database created with tables: {tables}")
     
     # Override the database dependency for testing
     from app.core.database import get_db
@@ -52,6 +60,8 @@ def test_database():
         finally:
             db.close()
     
+    # Clear existing overrides first
+    app.dependency_overrides.clear()
     # Override dependency and patch direct SessionLocal usage
     app.dependency_overrides[get_db] = override_get_db
     
@@ -257,3 +267,78 @@ This Agreement shall be governed by and construed in accordance with the laws of
 
 IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.
 """
+
+
+# Helper functions for database setup
+def create_test_company(db, **kwargs):
+    """Create a test company with default values"""
+    from app.infrastructure.database.models import Company, SubscriptionTier
+    import uuid
+    
+    defaults = {
+        "id": str(uuid.uuid4()),
+        "name": "Test Company Ltd",
+        "registration_number": "12345678",
+        "address": "123 Test St, London, UK",
+        "subscription_tier": SubscriptionTier.PROFESSIONAL,
+        "max_users": 10,
+        "settings": {}
+    }
+    defaults.update(kwargs)
+    
+    company = Company(**defaults)
+    
+    if db:
+        db.add(company)
+        db.commit()
+        db.refresh(company)
+    
+    return company
+
+
+def create_test_user(db, company_id, role=None, **kwargs):
+    """Create a test user with default values"""
+    from app.infrastructure.database.models import User, UserRole
+    from app.core.security import get_password_hash
+    import uuid
+    
+    defaults = {
+        "id": str(uuid.uuid4()),
+        "email": f"test-{uuid.uuid4().hex[:8]}@example.com",
+        "full_name": "Test User",
+        "hashed_password": get_password_hash("testpassword"),
+        "is_active": True,
+        "is_admin": False,
+        "role": role or UserRole.CONTRACT_MANAGER,
+        "company_id": company_id,
+        "department": "Test Department",
+        "timezone": "Europe/London",
+        "notification_preferences": {}
+    }
+    defaults.update(kwargs)
+    
+    user = User(**defaults)
+    
+    if db:
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    
+    return user
+
+
+def override_get_db():
+    """Override database dependency for tests"""
+    pass  # This will be implemented per test fixture
+
+
+@pytest.fixture
+def db_session(test_database):
+    """Provide database session for tests"""
+    from sqlalchemy.orm import sessionmaker
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_database)
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
