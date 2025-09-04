@@ -40,6 +40,7 @@ class Settings(BaseSettings):
         super().__init__(**kwargs)
         self._setup_cors_origins()
         self._setup_azure_config()
+        self._check_production_connection_safety()
     
     def _setup_cors_origins(self):
         """Setup CORS origins dynamically based on environment"""
@@ -75,6 +76,38 @@ class Settings(BaseSettings):
             user = os.getenv("AZURE_POSTGRESQL_USER")
             password = os.getenv("AZURE_POSTGRESQL_PASSWORD")
             self.DATABASE_URL = f"postgresql://{user}:{password}@{host}:5432/{database}?sslmode=require"
+    
+    def _check_production_connection_safety(self):
+        """Check and warn about production connections from local environment"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Detect local-to-production mode
+        local_to_prod = os.getenv("LOCAL_TO_PROD_MODE", "false").lower() == "true"
+        is_postgres_connection = "postgresql://" in self.DATABASE_URL
+        is_development_host = any(origin in ["http://localhost:3000", "http://localhost:5173"] 
+                                for origin in self.CORS_ORIGINS)
+        
+        if local_to_prod or (is_postgres_connection and is_development_host):
+            # This is a local-to-production connection
+            logger.warning("="*80)
+            logger.warning("⚠️  PRODUCTION CONNECTION DETECTED")
+            logger.warning("="*80)
+            logger.warning("🔴 Local environment is connecting to PRODUCTION resources")
+            logger.warning(f"🔴 Database: {self.DATABASE_URL.split('@')[1].split('/')[0] if '@' in self.DATABASE_URL else 'Unknown'}")
+            logger.warning("🔴 All data changes will be PERMANENT")
+            logger.warning("🔴 Use with extreme caution")
+            logger.warning("="*80)
+            
+            # Add safety headers for API responses
+            self.PRODUCTION_CONNECTION_WARNING = True
+            
+            # Enable additional logging for production connections
+            if not self.DEBUG:
+                self.DEBUG = True  # Force debug mode for better visibility
+                logger.info("🔧 Debug mode enabled for production connection monitoring")
+        else:
+            self.PRODUCTION_CONNECTION_WARNING = False
     
     # File Upload - Azure optimized
     MAX_FILE_SIZE_MB: int = int(os.getenv("MAX_FILE_SIZE_MB", "10"))

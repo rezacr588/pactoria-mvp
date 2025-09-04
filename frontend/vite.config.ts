@@ -30,6 +30,8 @@ export default defineConfig(({ command, mode }) => {
       port: 5173,
       strictPort: true,
       host: true,
+      // Only proxy when using local backend (development mode)
+      // When using prod-backend mode, frontend will connect directly to production API
       proxy: mode === 'development' ? {
         // Proxy API requests to local backend in development
         '/api': {
