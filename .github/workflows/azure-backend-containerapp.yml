@@ -203,7 +203,7 @@ jobs:
         curl -f "https://$APP_URL/" || exit 1
         curl -f "https://$APP_URL/health" || exit 1
         curl -f "https://$APP_URL/ready" || exit 1
-        curl -f "https://$APP_URL/api/v1/health" || exit 1
+        curl -f "https://$APP_URL/api/health" || exit 1
         
         echo "✅ All smoke tests passed!"
 

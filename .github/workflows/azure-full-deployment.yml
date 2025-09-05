@@ -164,10 +164,13 @@ jobs:
       run: |
         echo "🚀 Deploying backend to Azure Container Apps..."
         
-        # Build and push container image using ACR task for better efficiency and cost
-        az acr build --registry ${{ env.REGISTRY_NAME }} \
-          --image ${{ env.BACKEND_IMAGE_NAME }}:${{ github.sha }} \
-          --file backend/Dockerfile backend/
+        # Login to Container Registry
+        az acr login --name ${{ env.REGISTRY_NAME }}
+        
+        # Build and push container image using Docker (Basic ACR tier compatible)
+        cd backend
+        docker build -t ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.BACKEND_IMAGE_NAME }}:${{ github.sha }} .
+        docker push ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.BACKEND_IMAGE_NAME }}:${{ github.sha }}
         
         # Deploy to Container Apps with blue-green deployment
         az containerapp update \
@@ -322,7 +325,7 @@ jobs:
           
           echo "🔍 Testing backend endpoints..."
           curl -f "https://$BACKEND_URL/health" && echo "✅ Backend health: OK"
-          curl -f "https://$BACKEND_URL/api/v1/health" && echo "✅ Backend API: OK"
+          curl -f "https://$BACKEND_URL/api/health" && echo "✅ Backend API: OK"
         fi
         
         # Frontend health check

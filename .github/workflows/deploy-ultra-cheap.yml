@@ -19,8 +19,13 @@ jobs:
     
     - name: Build and deploy backend
       run: |
-        # Build container image
-        az acr build --registry pactoriaacr --image pactoria-backend:latest ./backend
+        # Login to Container Registry
+        az acr login --name pactoriaacr
+        
+        # Build and push container image
+        cd backend
+        docker build -t pactoriaacr.azurecr.io/pactoria-backend:latest .
+        docker push pactoriaacr.azurecr.io/pactoria-backend:latest
         
         # Update container app
         az containerapp update \

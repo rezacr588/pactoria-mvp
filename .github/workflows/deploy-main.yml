@@ -208,7 +208,7 @@ jobs:
         npm ci --prefer-offline
         npm run build
       env:
-        VITE_API_URL: https://${{ env.CONTAINER_APP_NAME }}.azurecontainerapps.io/api/v1
+        VITE_API_URL: https://${{ env.CONTAINER_APP_NAME }}.azurecontainerapps.io/api
         VITE_APP_NAME: 'Pactoria MVP'
         VITE_ENVIRONMENT: 'production'
 
@@ -278,7 +278,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "## 🔗 URLs" >> $GITHUB_STEP_SUMMARY
         echo "- **Frontend:** https://${{ env.STATIC_WEB_APP_NAME }}.azurestaticapps.net" >> $GITHUB_STEP_SUMMARY
-        echo "- **Backend API:** https://${{ env.CONTAINER_APP_NAME }}.azurecontainerapps.io/api/v1" >> $GITHUB_STEP_SUMMARY
+        echo "- **Backend API:** https://${{ env.CONTAINER_APP_NAME }}.azurecontainerapps.io/api" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "## 💰 Estimated Monthly Cost" >> $GITHUB_STEP_SUMMARY
         echo "- Container Apps: $0-15 (scale-to-zero enabled)" >> $GITHUB_STEP_SUMMARY
