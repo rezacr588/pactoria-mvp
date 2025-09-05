@@ -67,7 +67,7 @@ jobs:
         fi
 
     - name: Azure Login
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
@@ -124,7 +124,7 @@ jobs:
       continue-on-error: true
 
     - name: Azure Login
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
@@ -150,8 +150,8 @@ jobs:
           --image $FULL_IMAGE_NAME \
           --min-replicas 0 \
           --max-replicas 2 \
-          --cpu 0.5 \
-          --memory 1.0Gi \
+          --cpu 0.25 \
+          --memory 0.5Gi \
           --revision-suffix $(date +%s)
 
     - name: Health Check

@@ -9,20 +9,21 @@ python-dotenv==1.0.1
 pydantic==2.10.3
 pydantic-settings==2.6.1
 
-# Database - optimized for Azure PostgreSQL
+# Database - SQLite for cost optimization, PostgreSQL optional
 sqlalchemy==2.0.35
-psycopg2-binary==2.9.10
-# Removed alembic for F1 tier - using direct table creation
+# psycopg2-binary==2.9.10  # Uncomment if using PostgreSQL
+alembic==1.14.0  # Keep for database migrations
 
 # Authentication
 python-jose[cryptography]==3.5.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.17
 
-# AI/LLM - Groq only for efficiency  
-groq==0.13.0
-# Removed langchain packages to reduce memory footprint
-# Will use Groq SDK directly
+# AI/LLM - Groq with langchain for flexibility
+groq==0.9.0
+langchain==0.3.9
+langchain-groq==0.2.2
+langchain-community==0.3.8
 
 # Email validation (required for user registration)
 email-validator==2.1.1
@@ -37,8 +38,8 @@ httpx==0.28.1
 # File handling - PDF support
 pypdf==5.1.0
 
-# Removed Redis for F1 tier - using in-memory caching instead
-# Removed testing dependencies for production
+# Redis (optional for caching - can be disabled in production)
+redis==5.2.0
 
 # Azure specific dependencies
 azure-storage-blob==12.19.0
