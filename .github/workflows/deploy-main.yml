@@ -25,7 +25,9 @@ env:
   REGISTRY_NAME: 'pactoriaacr'
   CONTAINER_APP_NAME: 'pactoria-backend'
   STATIC_WEB_APP_NAME: 'pactoria-frontend'
-  RESOURCE_GROUP_NAME: 'pactoria-mvp-rg'
+  BACKEND_RESOURCE_GROUP_NAME: 'pactoria-mvp-rg'
+  FRONTEND_RESOURCE_GROUP_NAME: 'pactoria-rg'
+  REGISTRY_RESOURCE_GROUP_NAME: 'pactoria-rg'
   AZURE_LOCATION: 'eastus'
   NODE_VERSION: '18.x'
 
@@ -76,19 +78,22 @@ jobs:
         echo "🔍 Validating Azure resources..."
         
         # Check if resources exist
-        az group show --name ${{ env.RESOURCE_GROUP_NAME }} > /dev/null
-        echo "✅ Resource Group exists"
+        az group show --name ${{ env.BACKEND_RESOURCE_GROUP_NAME }} > /dev/null
+        echo "✅ Backend Resource Group exists"
         
-        az acr show --name ${{ env.REGISTRY_NAME }} > /dev/null
+        az group show --name ${{ env.FRONTEND_RESOURCE_GROUP_NAME }} > /dev/null
+        echo "✅ Frontend Resource Group exists"
+        
+        az acr show --name ${{ env.REGISTRY_NAME }} --resource-group ${{ env.REGISTRY_RESOURCE_GROUP_NAME }} > /dev/null
         echo "✅ Container Registry exists"
         
         if [ "${{ steps.changes.outputs.backend }}" = "true" ]; then
-          az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }} > /dev/null
+          az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.BACKEND_RESOURCE_GROUP_NAME }} > /dev/null
           echo "✅ Container App exists"
         fi
         
         if [ "${{ steps.changes.outputs.frontend }}" = "true" ]; then
-          az staticwebapp show --name ${{ env.STATIC_WEB_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }} > /dev/null
+          az staticwebapp show --name ${{ env.STATIC_WEB_APP_NAME }} --resource-group ${{ env.FRONTEND_RESOURCE_GROUP_NAME }} > /dev/null
           echo "✅ Static Web App exists"
         fi
 
@@ -146,7 +151,7 @@ jobs:
         echo "🔄 Updating Container App..."
         az containerapp update \
           --name ${{ env.CONTAINER_APP_NAME }} \
-          --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
+          --resource-group ${{ env.BACKEND_RESOURCE_GROUP_NAME }} \
           --image $FULL_IMAGE_NAME \
           --min-replicas 0 \
           --max-replicas 2 \
@@ -161,7 +166,7 @@ jobs:
         
         APP_URL=$(az containerapp show \
           --name ${{ env.CONTAINER_APP_NAME }} \
-          --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
+          --resource-group ${{ env.BACKEND_RESOURCE_GROUP_NAME }} \
           --query "properties.configuration.ingress.fqdn" -o tsv)
         
         echo "🔍 Testing backend at: https://$APP_URL"
@@ -204,12 +209,18 @@ jobs:
     - name: Build Frontend
       run: |
         cd frontend
-        npm ci --prefer-offline
+        npm ci --prefer-offline --production=false
         npm run build
+        # Clean up node_modules to reduce deployment size
+        rm -rf node_modules
+        # Show build size for debugging
+        du -sh dist/
+        find dist -type f -name "*.js" -o -name "*.css" | wc -l
       env:
         VITE_API_URL: https://${{ env.CONTAINER_APP_NAME }}.azurecontainerapps.io/api
         VITE_APP_NAME: 'Pactoria MVP'
         VITE_ENVIRONMENT: 'production'
+        NODE_ENV: 'production'
 
     - name: Deploy to Static Web Apps
       uses: Azure/static-web-apps-deploy@v1
