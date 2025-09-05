@@ -52,7 +52,7 @@ structlog==23.2.0
 # Security enhancements - fixed compatibility
 cryptography>=42.0.0,<44.0.0
 bcrypt==4.1.2
-pyasn1>=0.4.6,<0.5.0
+pyasn1>=0.5.0  # Compatible with python-jose requirements
 
 # Performance optimization
 orjson==3.9.10  # Faster JSON serialization
