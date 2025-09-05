@@ -140,10 +140,10 @@ class VATNumber:
 class BusinessAddress:
     """UK business address value object"""
     line1: str
-    line2: Optional[str] = None
     city: str
-    county: Optional[str] = None
     postcode: str
+    line2: Optional[str] = None
+    county: Optional[str] = None
     country: str = "United Kingdom"
     
     def __post_init__(self):

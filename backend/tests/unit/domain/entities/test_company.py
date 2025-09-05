@@ -105,10 +105,10 @@ class TestBusinessAddress:
         """Test creating valid business address"""
         address = BusinessAddress(
             line1="123 Test Street",
-            line2="Suite 100",
             city="London",
-            county="Greater London",
-            postcode="SW1A 1AA"
+            postcode="SW1A 1AA",
+            line2="Suite 100",
+            county="Greater London"
         )
         
         assert address.line1 == "123 Test Street"
@@ -161,10 +161,10 @@ class TestBusinessAddress:
         """Test formatted address output"""
         address = BusinessAddress(
             line1="123 Test Street",
-            line2="Suite 100",
             city="London",
-            county="Greater London",
-            postcode="SW1A 1AA"
+            postcode="SW1A 1AA",
+            line2="Suite 100",
+            county="Greater London"
         )
         
         formatted = address.formatted_address()
