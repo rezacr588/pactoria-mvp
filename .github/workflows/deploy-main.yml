@@ -25,7 +25,7 @@ env:
   REGISTRY_NAME: 'pactoriaacr'
   CONTAINER_APP_NAME: 'pactoria-backend'
   STATIC_WEB_APP_NAME: 'pactoria-frontend'
-  RESOURCE_GROUP_NAME: 'pactoria-rg'
+  RESOURCE_GROUP_NAME: 'pactoria-mvp-rg'
   AZURE_LOCATION: 'eastus'
   NODE_VERSION: '18.x'
 

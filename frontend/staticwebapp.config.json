@@ -98,12 +98,5 @@
     "apiRuntime": "node:18"
   },
   
-  "trailingSlash": "never",
-  
-  "forwardingGateway": {
-    "allowedForwardedHosts": [
-      "*.azurestaticapps.net",
-      "*.azure.com"
-    ]
-  }
+  "trailingSlash": "never"
 }
