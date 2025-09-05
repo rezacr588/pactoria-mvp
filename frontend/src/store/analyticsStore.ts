@@ -1,9 +1,6 @@
 import { create } from 'zustand';
 import { 
   BusinessMetrics,
-  UserMetrics,
-  ContractTypeMetrics,
-  ComplianceMetrics,
   TimeSeriesData,
   DashboardResponse
 } from '../types';

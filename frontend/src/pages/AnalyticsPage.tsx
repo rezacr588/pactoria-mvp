@@ -75,9 +75,6 @@ export default function AnalyticsPage() {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
-  const clearError = useCallback(() => {
-    setError(null);
-  }, []);
 
   const handleExportReport = useCallback(async () => {
     if (!dashboardData) return;
@@ -168,7 +165,6 @@ export default function AnalyticsPage() {
   const businessMetrics = dashboardData.business_metrics || {};
   const complianceMetrics = dashboardData.compliance_metrics || {};
   const contractTypes = dashboardData.contract_types || [];
-  const summary = dashboardData.summary || {};
   const contractValueTrend = dashboardData.contract_value_trend || {};
   const recentContractsTrend = dashboardData.recent_contracts_trend || {};
 
@@ -329,7 +325,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {contractsByType.map((type) => (
+              {contractsByType.map((type: any) => (
                 <div key={type.type} className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className={classNames('w-3 h-3 rounded-full', type.color)} />
@@ -434,7 +430,7 @@ export default function AnalyticsPage() {
                 <span>Contracts Created</span>
                 <span>Avg. Compliance</span>
               </div>
-              {monthlyActivity.map((month) => (
+              {monthlyActivity.map((month: any) => (
                 <div key={month.month} className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 flex-1">
                     <span className="text-sm font-medium text-gray-900 w-8">{month.month}</span>

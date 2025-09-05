@@ -6,25 +6,9 @@ import uuid
 import enum
 
 from app.core.database import Base
-
-
-class ContractStatus(str, enum.Enum):
-    DRAFT = "draft"
-    ACTIVE = "active"
-    COMPLETED = "completed"
-    EXPIRED = "expired"
-    TERMINATED = "terminated"
-
-
-class ContractType(str, enum.Enum):
-    SERVICE_AGREEMENT = "service_agreement"
-    EMPLOYMENT_CONTRACT = "employment_contract"
-    SUPPLIER_AGREEMENT = "supplier_agreement"
-    NDA = "nda"
-    TERMS_CONDITIONS = "terms_conditions"
-    CONSULTANCY = "consultancy"
-    PARTNERSHIP = "partnership"
-    LEASE = "lease"
+# Import domain enums as the single source of truth
+from app.domain.value_objects import ContractStatus, ContractType
+from app.domain.entities.company import CompanySize, CompanyType, CompanyStatus, IndustryType
 
 
 class SubscriptionTier(str, enum.Enum):
@@ -162,22 +146,60 @@ class Company(Base):
     __tablename__ = "companies"
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = Column(String, nullable=False)
-    registration_number = Column(String, nullable=True)
-    address = Column(Text, nullable=True)
+    name = Column(String, nullable=False, index=True)
     
+    # UK-specific business registration
+    company_type = Column(Enum(CompanyType), nullable=False)
+    company_number = Column(String, nullable=True, unique=True, index=True)  # Companies House number
+    vat_number = Column(String, nullable=True, unique=True, index=True)
+    
+    # Business details
+    industry = Column(Enum(IndustryType), nullable=False, index=True)
+    company_size = Column(Enum(CompanySize), default=CompanySize.SMALL, index=True)
+    status = Column(Enum(CompanyStatus), default=CompanyStatus.ACTIVE, index=True)
+    
+    # Contact information
+    primary_contact_email = Column(String, nullable=False)
+    phone_number = Column(String, nullable=True)
+    website = Column(String, nullable=True)
+    
+    # UK Business Address (stored as JSON for structure)
+    address_line1 = Column(String, nullable=False)
+    address_line2 = Column(String, nullable=True)
+    city = Column(String, nullable=False)
+    county = Column(String, nullable=True)
+    postcode = Column(String, nullable=False, index=True)
+    country = Column(String, default="United Kingdom")
+    
+    # Subscription and limits
     subscription_tier = Column(Enum(SubscriptionTier), default=SubscriptionTier.STARTER)
     max_users = Column(Integer, default=5)
+    max_contracts_per_month = Column(Integer, default=50)
+    monthly_contract_count = Column(Integer, default=0)
     
-    settings = Column(JSON, default={})
+    # Verification and compliance
+    is_verified = Column(Boolean, default=False)
+    verified_at = Column(DateTime(timezone=True), nullable=True)
+    verification_data = Column(JSON, nullable=True)
+    is_vat_registered = Column(Boolean, default=False)
+    compliance_requirements = Column(JSON, default=list)
     
+    # Tracking
+    created_by_user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    last_activity_at = Column(DateTime(timezone=True), nullable=True)
+    features_enabled = Column(JSON, default=lambda: ["contract_generation", "team_management"])
+    
+    # Standard fields
+    version = Column(Integer, default=1)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
+    # Relationships
     users = relationship("User", back_populates="company")
     contracts = relationship("Contract", back_populates="company")
     integration_connections = relationship("IntegrationConnection", back_populates="company")
     team_invitations = relationship("TeamInvitation", back_populates="company")
+    created_by_user = relationship("User", foreign_keys=[created_by_user_id])
 
 
 class Template(Base):

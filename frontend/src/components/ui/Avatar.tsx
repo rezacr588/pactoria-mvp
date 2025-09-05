@@ -1,3 +1,4 @@
+import React from 'react';
 import { classNames } from '../../utils/classNames';
 
 interface AvatarProps {
@@ -42,7 +43,7 @@ function generateAvatarUrl(name: string, size: string) {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=${pixelSize}&background=0ea5e9&color=fff&bold=true`;
 }
 
-export default function Avatar({
+const Avatar = React.memo(function Avatar({
   src,
   alt = '',
   name = 'User',
@@ -79,4 +80,6 @@ export default function Avatar({
       )}
     </div>
   );
-}
+});
+
+export default Avatar;

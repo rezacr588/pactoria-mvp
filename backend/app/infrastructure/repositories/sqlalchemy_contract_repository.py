@@ -18,13 +18,15 @@ from app.domain.value_objects import (
 )
 from app.domain.exceptions import ContractNotFoundError, ConcurrencyError
 from app.infrastructure.database.models import Contract as ContractModel
+from app.domain.event_publishing.domain_event_publisher import DomainEventPublisher
 
 
 class SQLAlchemyContractRepository(ContractRepository):
     """SQLAlchemy implementation of Contract Repository"""
     
-    def __init__(self, db_session: Session):
+    def __init__(self, db_session: Session, event_publisher: DomainEventPublisher = None):
         self._db = db_session
+        self._event_publisher = event_publisher
     
     async def save(self, contract: Contract) -> Contract:
         """Save contract to database"""
@@ -52,6 +54,10 @@ class SQLAlchemyContractRepository(ContractRepository):
         
         self._db.commit()
         self._db.refresh(model)
+        
+        # Publish domain events after successful save
+        if self._event_publisher and contract.has_domain_events():
+            await self._publish_domain_events(contract)
         
         return contract
     
@@ -330,3 +336,10 @@ class SQLAlchemyContractRepository(ContractRepository):
             terminated_by_user_id=getattr(model, 'terminated_by_user_id', None),
             termination_reason=getattr(model, 'termination_reason', None)
         )
+    
+    async def _publish_domain_events(self, contract: Contract) -> None:
+        """Publish domain events from the contract"""
+        if self._event_publisher and contract.has_domain_events():
+            for event in contract.get_domain_events():
+                await self._event_publisher.publish(event)
+            contract.clear_domain_events()

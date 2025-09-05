@@ -117,6 +117,30 @@ export interface Contract {
   ai_generation_id?: string;
   created_at: string;
   updated_at?: string;
+  // Additional properties used in UI components
+  name?: string; // Display name, can be computed from title
+  type?: string; // Alias for contract_type for UI consistency
+  riskAssessment?: RiskAssessment;
+  complianceScore?: number | {
+    overall?: number;
+    gdprCompliance?: number;
+    employmentLaw?: number;
+    commercialTerms?: number;
+    consumerRights?: number;
+    issues?: Array<{ id: string; severity: string; description: string; recommendation: string; }>;
+  };
+  parties?: Array<{ 
+    id?: string;
+    name: string; 
+    role: string; 
+    email?: string; 
+    signatureStatus?: string; 
+    signedAt?: string; 
+  }>;
+  deadlines?: Array<{ name: string; date: string; status: string; }>;
+  tags?: string[];
+  createdAt?: string; // Alias for created_at for UI consistency
+  updatedAt?: string; // Alias for updated_at for UI consistency
 }
 
 export interface ContractListResponse {
@@ -615,6 +639,8 @@ export interface AuditEntry {
   risk_level: 'low' | 'medium' | 'high';
   compliance_flag: boolean;
   metadata?: Record<string, any>;
+  // Alias for UI consistency
+  riskLevel?: 'low' | 'medium' | 'high';
 }
 
 export interface AuditEntryFilter {
@@ -729,13 +755,13 @@ export interface TeamMemberNew {
   id: string;
   full_name: string;
   email: string;
-  role: 'admin' | 'editor' | 'viewer';
+  role: string; // Changed from union to string to accept any role from API
   department?: string;
   is_active: boolean;
   joined_at: string;
   last_active: string;
   avatar_url?: string;
-  invitation_status?: 'pending' | 'accepted' | 'expired';
+  invitation_status?: string; // Changed to string to accept any status from API
   invited_by?: string;
   invited_at?: string;
 }
@@ -784,6 +810,8 @@ export interface Integration {
   last_sync?: string;
   sync_status?: 'success' | 'warning' | 'error';
   connections_count: number;
+  // Alias for UI consistency
+  lastSync?: string;
   rating: number;
   price_tier: 'free' | 'premium' | 'enterprise';
   documentation_url?: string;

@@ -30,11 +30,6 @@ function getComplianceColor(score: number) {
   return textColors.danger;
 }
 
-function getRiskLevel(score: number) {
-  if (score <= 30) return { level: 'Low', color: textColors.success };
-  if (score <= 60) return { level: 'Medium', color: textColors.warning };
-  return { level: 'High', color: textColors.danger };
-}
 
 export default function DashboardPage() {
   const { showToast } = useToast();

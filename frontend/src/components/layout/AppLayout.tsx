@@ -22,7 +22,7 @@ export default function AppLayout() {
     };
 
     initializeApp();
-  }, [fetchContracts, fetchContractTypes, fetchTemplates, fetchTeamMembers]);
+  }, [fetchContracts, fetchTemplates]);
 
   return (
     <div className="h-screen flex bg-neutral-50 dark:bg-secondary-950">

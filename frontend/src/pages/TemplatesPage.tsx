@@ -8,8 +8,6 @@ import {
   PencilIcon,
   DocumentDuplicateIcon,
   HeartIcon,
-  ShieldCheckIcon,
-  ClockIcon,
   TagIcon,
   ExclamationTriangleIcon,
   ArrowPathIcon,
@@ -17,7 +15,6 @@ import {
 } from '@heroicons/react/24/outline';
 import {
   HeartIcon as HeartSolidIcon,
-  StarIcon as StarSolidIcon,
 } from '@heroicons/react/24/solid';
 import { Card, Button, Input, Select, Badge } from '../components/ui';
 import { classNames } from '../utils/classNames';
@@ -48,13 +45,6 @@ interface Template {
 
 
 
-const sortOptions = [
-  { value: 'popular', label: 'Most Popular' },
-  { value: 'recent', label: 'Recently Updated' },
-  { value: 'name', label: 'Name A-Z' },
-  { value: 'compliance', label: 'Compliance Score' },
-  { value: 'usage', label: 'Usage Count' },
-];
 
 function getCategoryColor(category: string) {
   const lowerCategory = category.toLowerCase();
@@ -429,7 +419,7 @@ export default function TemplatesPage() {
                         <Badge className={classNames('text-xs', getCategoryColor(template.category))}>
                           {template.category.charAt(0).toUpperCase() + template.category.slice(1)}
                         </Badge>
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="default" className="text-xs">
                           v{template.version}
                         </Badge>
                       </div>

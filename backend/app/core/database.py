@@ -8,6 +8,8 @@ from sqlalchemy.pool import StaticPool
 import logging
 
 from app.core.config import settings
+from app.domain.event_publishing.event_publishing_factory import create_default_event_publisher
+from app.domain.event_publishing.domain_event_publisher import DomainEventPublisher
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +40,9 @@ convention = {
 # Create declarative base for models with naming convention
 Base = declarative_base(metadata=MetaData(naming_convention=convention))
 
+# Global event publisher instance
+_event_publisher: DomainEventPublisher = None
+
 
 async def create_tables():
     """Create all database tables"""
@@ -64,6 +69,15 @@ def get_db():
             db.close()
         except Exception as e:
             logger.error(f"Error closing database session: {e}")
+
+
+def get_event_publisher():
+    """Dependency to get domain event publisher"""
+    global _event_publisher
+    if _event_publisher is None:
+        _event_publisher = create_default_event_publisher()
+        logger.info("Initialized domain event publisher")
+    return _event_publisher
 
 
 async def check_database_health():

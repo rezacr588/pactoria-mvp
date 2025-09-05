@@ -104,7 +104,7 @@ function getStatusColor(status: Integration['status']) {
   }
 }
 
-function getSyncStatusColor(status: Integration['syncStatus']) {
+function getSyncStatusColor(status: 'success' | 'warning' | 'error' | undefined) {
   switch (status) {
     case 'success':
       return 'text-green-600';
@@ -117,7 +117,7 @@ function getSyncStatusColor(status: Integration['syncStatus']) {
   }
 }
 
-function getPriceLabel(price: Integration['price']) {
+function getPriceLabel(price: 'free' | 'premium' | 'enterprise') {
   switch (price) {
     case 'free':
       return 'Free';
@@ -222,7 +222,7 @@ export default function IntegrationsPage() {
         integration.id === id ? { ...integration, status: 'pending' } : integration
       ));
 
-      const response = await IntegrationsService.connectIntegration(id, {});
+      await IntegrationsService.connectIntegration(id, {});
       
       // Update with actual response
       setIntegrations(prev => prev.map(integration =>
@@ -477,7 +477,7 @@ export default function IntegrationsPage() {
 
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-500">Price</span>
-                    <span className="font-medium">{getPriceLabel(integration.price_tier)}</span>
+                    <span className="font-medium">{getPriceLabel(integration.price_tier as 'free' | 'premium' | 'enterprise')}</span>
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
@@ -495,14 +495,14 @@ export default function IntegrationsPage() {
                       <div className="flex items-center space-x-1">
                         <div className={classNames(
                           'w-2 h-2 rounded-full',
-                          integration.syncStatus === 'success' ? 'bg-green-500' :
-                          integration.syncStatus === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
+                          integration.sync_status === 'success' ? 'bg-green-500' :
+                          integration.sync_status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
                         )} />
                         <span className={classNames(
                           'font-medium text-xs',
-                          getSyncStatusColor(integration.syncStatus)
+                          getSyncStatusColor(integration.sync_status as 'success' | 'warning' | 'error' | undefined)
                         )}>
-                          {formatLastSync(integration.lastSync)}
+                          {formatLastSync(integration.last_sync)}
                         </span>
                       </div>
                     </div>

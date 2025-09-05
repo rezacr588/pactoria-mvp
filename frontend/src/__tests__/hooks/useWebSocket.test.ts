@@ -26,7 +26,7 @@ class MockWebSocket {
     }, 100);
   }
 
-  send(data: string) {
+  send(_data: string) {
     // Mock send implementation
   }
 
@@ -54,14 +54,7 @@ vi.mock('../../services/api', () => ({
   }))
 }));
 
-// Mock localStorage
-const mockLocalStorage = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-};
-global.localStorage = mockLocalStorage as any;
+// Mock localStorage - already mocked in setup.ts
 
 // Mock Notification API
 global.Notification = {
@@ -107,7 +100,7 @@ describe('useWebSocket', () => {
   });
 
   it('should handle auto-connect when enabled', () => {
-    const { result } = renderHook(() => useWebSocket({ autoConnect: true }));
+    renderHook(() => useWebSocket({ autoConnect: true }));
 
     // Should attempt to get token from localStorage and connect
     expect(mockLocalStorage.getItem).toHaveBeenCalledWith('auth-storage');
@@ -220,7 +213,10 @@ describe('useNotifications', () => {
   it('should show browser notifications when permitted', () => {
     const mockNotification = vi.fn();
     global.Notification = mockNotification as any;
-    global.Notification.permission = 'granted';
+    Object.defineProperty(global.Notification, 'permission', {
+      value: 'granted',
+      writable: true
+    });
 
     const onNotification = vi.fn();
     renderHook(() => useNotifications(onNotification));
@@ -230,7 +226,10 @@ describe('useNotifications', () => {
   });
 
   it('should not show browser notifications when not permitted', () => {
-    global.Notification.permission = 'denied';
+    Object.defineProperty(global.Notification, 'permission', {
+      value: 'denied',
+      writable: true
+    });
 
     const onNotification = vi.fn();
     renderHook(() => useNotifications(onNotification));

@@ -3,8 +3,6 @@ import {
   Contract, 
   ContractType, 
   ContractTemplate, 
-  TeamMember,
-  ContractListResponse,
   AIGenerationResponse,
   ComplianceScoreResponse
 } from '../types';

@@ -136,7 +136,7 @@ function getActionColor(action: AuditEntry['action']) {
   }
 }
 
-function getRiskLevelColor(riskLevel: AuditEntry['riskLevel']) {
+function getRiskLevelColor(riskLevel: 'low' | 'medium' | 'high') {
   switch (riskLevel) {
     case 'low':
       return 'text-success-600 dark:text-success-400 bg-success-50 dark:bg-success-900/20 border-success-200 dark:border-success-700';
@@ -484,7 +484,7 @@ export default function AuditTrailPage() {
                           </Badge>
                           <span className={classNames(
                             'text-xs px-2 py-1 rounded border font-medium',
-                            getRiskLevelColor(entry.risk_level)
+                            getRiskLevelColor(entry.risk_level as 'low' | 'medium' | 'high')
                           )}>
                             {entry.risk_level.charAt(0).toUpperCase() + entry.risk_level.slice(1)} Risk
                           </span>

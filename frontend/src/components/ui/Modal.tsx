@@ -67,6 +67,10 @@ export default function Modal({
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/70"
       onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={title ? 'modal-title' : undefined}
+      aria-describedby={description ? 'modal-description' : undefined}
     >
       <div 
         ref={modalRef}
@@ -82,12 +86,12 @@ export default function Modal({
           <div className="flex items-center justify-between p-6 border-b border-neutral-200 dark:border-secondary-700">
             <div className="flex-1 min-w-0">
               {title && (
-                <h2 className={`text-lg font-semibold ${textColors.primary} truncate`}>
+                <h2 id="modal-title" className={`text-lg font-semibold ${textColors.primary} truncate`}>
                   {title}
                 </h2>
               )}
               {description && (
-                <p className={`mt-1 ${textStyles.formHelpText}`}>
+                <p id="modal-description" className={`mt-1 ${textStyles.formHelpText}`}>
                   {description}
                 </p>
               )}
@@ -99,6 +103,7 @@ export default function Modal({
                 onClick={onClose}
                 className={`ml-3 ${textColors.subtle} hover:${textColors.muted.split(' ')[0]}`}
                 icon={<XMarkIcon className="h-5 w-5" />}
+                aria-label="Close modal"
               />
             )}
           </div>

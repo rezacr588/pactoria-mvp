@@ -27,7 +27,10 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  const { errors, validateField, clearErrors } = useFormValidation();
+  const { errors, validateField, clearErrors } = useFormValidation(
+    { searchQuery: '' },
+    { searchQuery: { required: false } }
+  );
 
   // Get search suggestions
   const fetchSuggestions = useCallback(async (query: string) => {
@@ -63,7 +66,8 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
   // Perform search
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim() && Object.keys(filters).length === 0) {
-      validateField('searchQuery', 'Please enter a search query or apply filters');
+      // Show error for empty search
+      onError?.('Please enter a search query or apply filters');
       return;
     }
 
@@ -127,7 +131,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
   }, [handleSearch]);
 
   return (
-    <div className="advanced-search">
+    <div className="advanced-search bg-white rounded-xl shadow-lg p-6 mb-6">
       <div className="search-header">
         <h2>Advanced Search</h2>
         <p>Search contracts with advanced filtering and sorting options</p>
@@ -397,245 +401,6 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
         )}
       </div>
 
-      <style jsx>{`
-        .advanced-search {
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          padding: 24px;
-          margin-bottom: 24px;
-        }
-
-        .search-header h2 {
-          margin: 0 0 8px 0;
-          color: #1f2937;
-          font-size: 1.5rem;
-          font-weight: 600;
-        }
-
-        .search-header p {
-          margin: 0 0 24px 0;
-          color: #6b7280;
-          font-size: 0.875rem;
-        }
-
-        .search-input-section {
-          margin-bottom: 32px;
-        }
-
-        .search-input-group {
-          display: flex;
-          gap: 12px;
-          align-items: flex-start;
-        }
-
-        .search-input-group .relative {
-          flex: 1;
-          position: relative;
-        }
-
-        .search-input {
-          width: 100%;
-          padding: 12px 16px;
-          border: 2px solid #e5e7eb;
-          border-radius: 8px;
-          font-size: 1rem;
-          transition: border-color 0.2s;
-        }
-
-        .search-input:focus {
-          outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .search-input.error {
-          border-color: #ef4444;
-        }
-
-        .suggestions-dropdown {
-          position: absolute;
-          top: 100%;
-          left: 0;
-          right: 0;
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-          z-index: 10;
-          margin-top: 4px;
-        }
-
-        .suggestion-item {
-          width: 100%;
-          padding: 12px 16px;
-          text-align: left;
-          background: none;
-          border: none;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-
-        .suggestion-item:hover {
-          background-color: #f3f4f6;
-        }
-
-        .operator-select {
-          padding: 12px;
-          border: 2px solid #e5e7eb;
-          border-radius: 8px;
-          background: white;
-          font-size: 1rem;
-        }
-
-        .search-button {
-          padding: 12px 24px;
-          background: #3b82f6;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 1rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-
-        .search-button:hover:not(:disabled) {
-          background: #2563eb;
-        }
-
-        .search-button:disabled {
-          background: #9ca3af;
-          cursor: not-allowed;
-        }
-
-        .error-message {
-          color: #ef4444;
-          font-size: 0.875rem;
-          margin-top: 8px;
-        }
-
-        .filters-section, .sorting-section {
-          border-top: 1px solid #e5e7eb;
-          padding-top: 24px;
-          margin-top: 24px;
-        }
-
-        .filters-section h3, .sorting-section h3 {
-          margin: 0 0 16px 0;
-          color: #374151;
-          font-size: 1.125rem;
-          font-weight: 600;
-        }
-
-        .filters-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 16px;
-          margin-bottom: 16px;
-        }
-
-        .filter-group label {
-          display: block;
-          margin-bottom: 8px;
-          color: #374151;
-          font-size: 0.875rem;
-          font-weight: 500;
-        }
-
-        .filter-select, .filter-input {
-          width: 100%;
-          padding: 8px 12px;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-          font-size: 0.875rem;
-        }
-
-        .filter-select[multiple] {
-          height: 80px;
-        }
-
-        .range-inputs, .date-inputs {
-          display: flex;
-          gap: 8px;
-        }
-
-        .range-inputs input, .date-inputs input {
-          flex: 1;
-        }
-
-        .filter-actions {
-          text-align: right;
-        }
-
-        .button.secondary {
-          padding: 8px 16px;
-          background: #f3f4f6;
-          color: #374151;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 0.875rem;
-        }
-
-        .button.secondary:hover {
-          background: #e5e7eb;
-        }
-
-        .sort-controls {
-          margin-bottom: 16px;
-        }
-
-        .sort-select {
-          padding: 8px 12px;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-          background: white;
-        }
-
-        .active-sorts {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-
-        .sort-item {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 6px 12px;
-          background: #f3f4f6;
-          border-radius: 6px;
-          font-size: 0.875rem;
-        }
-
-        .sort-direction-toggle, .remove-sort {
-          background: none;
-          border: none;
-          cursor: pointer;
-          padding: 2px 6px;
-          border-radius: 4px;
-        }
-
-        .sort-direction-toggle:hover {
-          background: #e5e7eb;
-        }
-
-        .remove-sort:hover {
-          background: #fecaca;
-          color: #dc2626;
-        }
-
-        @media (max-width: 768px) {
-          .search-input-group {
-            flex-direction: column;
-          }
-          
-          .filters-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
     </div>
   );
 };

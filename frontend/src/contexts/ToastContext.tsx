@@ -24,6 +24,10 @@ interface ToastContextType {
   error: (message: string, options?: Partial<Toast>) => string;
   warning: (message: string, options?: Partial<Toast>) => string;
   info: (message: string, options?: Partial<Toast>) => string;
+  showToast: (
+    messageOrToast: string | Omit<Toast, 'id' | 'createdAt'>, 
+    type?: 'success' | 'error' | 'warning' | 'info'
+  ) => string;
 }
 
 const ToastContext = createContext<ToastContextType | null>(null);
@@ -112,6 +116,23 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   }, [addToast]);
 
+  // Unified showToast method to handle both usage patterns
+  const showToast = useCallback((
+    messageOrToast: string | Omit<Toast, 'id' | 'createdAt'>, 
+    type: 'success' | 'error' | 'warning' | 'info' = 'info'
+  ) => {
+    if (typeof messageOrToast === 'string') {
+      // Handle showToast(message, type) pattern
+      return addToast({
+        message: messageOrToast,
+        type,
+      });
+    } else {
+      // Handle showToast({ message, type, ...options }) pattern
+      return addToast(messageOrToast);
+    }
+  }, [addToast]);
+
   const value: ToastContextType = {
     toasts,
     addToast,
@@ -121,6 +142,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     error,
     warning,
     info,
+    showToast,
   };
 
   return <ToastContext.Provider value={value}>{children}</ToastContext.Provider>;

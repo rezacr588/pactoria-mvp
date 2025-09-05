@@ -109,6 +109,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             disabled={disabled || loading}
+            aria-describedby={classNames(
+              error && `${inputId}-error`,
+              helpText && `${inputId}-help`
+            )}
+            aria-invalid={error ? 'true' : 'false'}
             className={classNames(
               baseStyles,
               iconPositioning[size].input,
@@ -147,7 +152,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <p className={`${textStyles.formError} flex items-center mt-2`}>
+          <p id={`${inputId}-error`} className={`${textStyles.formError} flex items-center mt-2`}>
             <svg className="h-4 w-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -163,7 +168,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </p>
         )}
         {helpText && !error && !success && (
-          <p className={`${textStyles.formHelpText} mt-1`}>{helpText}</p>
+          <p id={`${inputId}-help`} className={`${textStyles.formHelpText} mt-1`}>{helpText}</p>
         )}
       </div>
     );

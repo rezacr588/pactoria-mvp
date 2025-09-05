@@ -88,9 +88,9 @@ export default function ContractViewPage() {
     );
   }
 
-  const statusInfo = statusConfig[contract.status];
+  const statusInfo = statusConfig[contract.status as keyof typeof statusConfig] || statusConfig.draft;
   const StatusIcon = statusInfo.icon;
-  const riskLevel = getRiskLevel(contract.riskAssessment.overall);
+  const riskLevel = contract.riskAssessment ? getRiskLevel(contract.riskAssessment.overall || 0) : 'Low';
 
   const tabs = [
     { id: 'overview', name: 'Overview' },
@@ -127,11 +127,11 @@ export default function ContractViewPage() {
               </span>
             </div>
             <div className="mt-2 flex items-center text-sm text-gray-500 space-x-4">
-              <span>{contract.type.name}</span>
+              <span>{(contract.type as any)?.name || contract.type || 'Unknown'}</span>
               <span>•</span>
               <span>Version {contract.version}</span>
               <span>•</span>
-              <span>Updated {new Date(contract.updatedAt).toLocaleDateString()}</span>
+              <span>Updated {contract.updatedAt ? new Date(contract.updatedAt).toLocaleDateString() : 'Unknown'}</span>
             </div>
           </div>
           
@@ -223,7 +223,7 @@ export default function ContractViewPage() {
             </div>
             <div className="ml-4">
               <div className="text-sm font-medium text-gray-500">Compliance Score</div>
-              <div className="text-2xl font-bold text-gray-900">{contract.complianceScore.overall}%</div>
+              <div className="text-2xl font-bold text-gray-900">{(contract.complianceScore as any)?.overall ?? contract.complianceScore ?? 0}%</div>
             </div>
           </div>
         </div>
@@ -247,7 +247,7 @@ export default function ContractViewPage() {
             </div>
             <div className="ml-4">
               <div className="text-sm font-medium text-gray-500">Parties</div>
-              <div className="text-2xl font-bold text-gray-900">{contract.parties.length}</div>
+              <div className="text-2xl font-bold text-gray-900">{contract.parties?.length || 0}</div>
             </div>
           </div>
         </div>
@@ -259,7 +259,7 @@ export default function ContractViewPage() {
             </div>
             <div className="ml-4">
               <div className="text-sm font-medium text-gray-500">Deadlines</div>
-              <div className="text-2xl font-bold text-gray-900">{contract.deadlines.length}</div>
+              <div className="text-2xl font-bold text-gray-900">{contract.deadlines?.length || 0}</div>
             </div>
           </div>
         </div>
@@ -296,23 +296,23 @@ export default function ContractViewPage() {
                 <dl className="space-y-4">
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Type</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{contract.type.name}</dd>
+                    <dd className="mt-1 text-sm text-gray-900">{(contract.type as any)?.name || contract.type || 'Unknown'}</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Created</dt>
                     <dd className="mt-1 text-sm text-gray-900">
-                      {new Date(contract.createdAt).toLocaleDateString('en-GB', {
+                      {contract.createdAt ? new Date(contract.createdAt).toLocaleDateString('en-GB', {
                         day: 'numeric',
                         month: 'long',
                         year: 'numeric'
-                      })}
+                      }) : 'Unknown'}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Tags</dt>
                     <dd className="mt-1">
                       <div className="flex flex-wrap gap-2">
-                        {contract.tags.map((tag) => (
+                        {contract.tags?.map((tag) => (
                           <span
                             key={tag}
                             className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
@@ -330,7 +330,7 @@ export default function ContractViewPage() {
               <div className="card">
                 <h3 className="text-lg font-medium text-gray-900 mb-6">Contract Parties</h3>
                 <div className="space-y-4">
-                  {contract.parties.map((party) => (
+                  {contract.parties?.map((party) => (
                     <div key={party.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{party.name}</div>
@@ -362,8 +362,8 @@ export default function ContractViewPage() {
             <div className="card">
               <h3 className="text-lg font-medium text-gray-900 mb-6">Upcoming Deadlines</h3>
               <div className="space-y-4">
-                {contract.deadlines.map((deadline) => (
-                  <div key={deadline.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                {contract.deadlines?.map((deadline, index) => (
+                  <div key={(deadline as any).id || index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <div className={classNames(
                         deadline.status === 'due' ? 'bg-red-100' : 'bg-blue-100',
@@ -375,8 +375,8 @@ export default function ContractViewPage() {
                         )} />
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{deadline.title}</div>
-                        <div className="text-sm text-gray-500 capitalize">{deadline.type}</div>
+                        <div className="text-sm font-medium text-gray-900">{(deadline as any).title || deadline.name}</div>
+                        <div className="text-sm text-gray-500 capitalize">{(deadline as any).type || 'deadline'}</div>
                       </div>
                     </div>
                     <div className="text-right">
@@ -404,38 +404,38 @@ export default function ContractViewPage() {
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-medium text-gray-900">UK Legal Compliance Analysis</h3>
                 <span className={classNames(
-                  getComplianceColor(contract.complianceScore.overall),
+                  getComplianceColor((contract.complianceScore as any)?.overall ?? contract.complianceScore ?? 0),
                   'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium'
                 )}>
-                  {contract.complianceScore.overall}% Compliant
+                  {(contract.complianceScore as any)?.overall ?? contract.complianceScore ?? 0}% Compliant
                 </span>
               </div>
 
               <div className="space-y-6">
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{contract.complianceScore.gdprCompliance}%</div>
+                    <div className="text-2xl font-bold text-green-600">{(contract.complianceScore as any)?.gdprCompliance ?? 0}%</div>
                     <div className="text-sm text-gray-500">GDPR Compliance</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{contract.complianceScore.employmentLaw}%</div>
+                    <div className="text-2xl font-bold text-green-600">{(contract.complianceScore as any)?.employmentLaw ?? 0}%</div>
                     <div className="text-sm text-gray-500">Employment Law</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{contract.complianceScore.commercialTerms}%</div>
+                    <div className="text-2xl font-bold text-green-600">{(contract.complianceScore as any)?.commercialTerms ?? 0}%</div>
                     <div className="text-sm text-gray-500">Commercial Terms</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{contract.complianceScore.consumerRights}%</div>
+                    <div className="text-2xl font-bold text-green-600">{(contract.complianceScore as any)?.consumerRights ?? 0}%</div>
                     <div className="text-sm text-gray-500">Consumer Rights</div>
                   </div>
                 </div>
 
-                {contract.complianceScore.issues.length > 0 && (
+                {(contract.complianceScore as any)?.issues && (contract.complianceScore as any).issues.length > 0 && (
                   <div className="border-t border-gray-200 pt-6">
                     <h4 className="text-base font-medium text-gray-900 mb-4">Compliance Issues</h4>
                     <div className="space-y-3">
-                      {contract.complianceScore.issues.map((issue) => (
+                      {(contract.complianceScore as any)?.issues?.map((issue: any) => (
                         <div key={issue.id} className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                           <div className="flex">
                             <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 mt-0.5" />
@@ -448,7 +448,7 @@ export default function ContractViewPage() {
                             </div>
                           </div>
                         </div>
-                      ))}
+                      )) || null}
                     </div>
                   </div>
                 )}
@@ -466,10 +466,10 @@ export default function ContractViewPage() {
                 <div className="flex items-center space-x-3">
                   <span className="text-sm text-gray-500">Overall Risk:</span>
                   <span className={classNames(
-                    getRiskColor(contract.riskAssessment.overall),
+                    getRiskColor(contract.riskAssessment?.overall || 0),
                     'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border'
                   )}>
-                    {riskLevel} ({contract.riskAssessment.overall}%)
+                    {riskLevel} ({contract.riskAssessment?.overall || 0}%)
                   </span>
                 </div>
               </div>
@@ -477,7 +477,7 @@ export default function ContractViewPage() {
               {/* Risk Factors */}
               <div className="space-y-4">
                 <h4 className="text-base font-medium text-gray-900">Risk Factors</h4>
-                {contract.riskAssessment.factors.map((factor, index) => (
+                {contract.riskAssessment?.factors?.map((factor, index) => (
                   <div key={index} className="bg-gray-50 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <h5 className="text-sm font-medium text-gray-900">{factor.name}</h5>
@@ -512,7 +512,7 @@ export default function ContractViewPage() {
               <div className="border-t border-gray-200 pt-6">
                 <h4 className="text-base font-medium text-gray-900 mb-4">AI Recommendations</h4>
                 <div className="space-y-3">
-                  {contract.riskAssessment.recommendations.map((recommendation, index) => (
+                  {contract.riskAssessment?.recommendations?.map((recommendation, index) => (
                     <div key={index} className="flex items-start space-x-3">
                       <CheckCircleIcon className="h-5 w-5 text-blue-600 mt-0.5" />
                       <p className="text-sm text-gray-700">{recommendation}</p>
@@ -534,7 +534,7 @@ export default function ContractViewPage() {
                   <div className="flex items-center justify-between">
                     <div className="text-sm font-medium text-gray-900">Current Version (v{contract.version})</div>
                     <div className="text-sm text-gray-500">
-                      {new Date(contract.updatedAt).toLocaleDateString()}
+                      {contract.updatedAt ? new Date(contract.updatedAt).toLocaleDateString() : 'Unknown'}
                     </div>
                   </div>
                   <div className="text-sm text-gray-600 mt-1">Contract updated and compliance re-checked</div>
@@ -547,7 +547,7 @@ export default function ContractViewPage() {
                   <div className="flex items-center justify-between">
                     <div className="text-sm font-medium text-gray-900">Initial Creation (v1)</div>
                     <div className="text-sm text-gray-500">
-                      {new Date(contract.createdAt).toLocaleDateString()}
+                      {contract.createdAt ? new Date(contract.createdAt).toLocaleDateString() : 'Unknown'}
                     </div>
                   </div>
                   <div className="text-sm text-gray-600 mt-1">Contract created from template</div>

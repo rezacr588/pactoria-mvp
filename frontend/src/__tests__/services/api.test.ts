@@ -10,14 +10,7 @@ import {
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-// Mock localStorage
-const mockLocalStorage = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-};
-global.localStorage = mockLocalStorage as any;
+// Mock localStorage - already mocked in setup.ts
 
 describe('API Services', () => {
   beforeEach(() => {
@@ -327,13 +320,18 @@ describe('API Services', () => {
       wsService = new WebSocketService();
       
       // Mock WebSocket
-      global.WebSocket = vi.fn().mockImplementation(() => ({
+      const MockWebSocket: any = vi.fn().mockImplementation(() => ({
         close: vi.fn(),
         send: vi.fn(),
         addEventListener: vi.fn(),
         removeEventListener: vi.fn(),
-        readyState: WebSocket.OPEN
+        readyState: 1 // WebSocket.OPEN
       }));
+      MockWebSocket.CONNECTING = 0;
+      MockWebSocket.OPEN = 1;
+      MockWebSocket.CLOSING = 2;
+      MockWebSocket.CLOSED = 3;
+      global.WebSocket = MockWebSocket;
     });
 
     it('should initialize WebSocket service', () => {

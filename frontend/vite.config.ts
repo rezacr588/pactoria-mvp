@@ -2,7 +2,7 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory
   const env = loadEnv(mode, process.cwd(), '')
 
@@ -84,6 +84,24 @@ export default defineConfig(({ command, mode }) => {
     css: {
       modules: {
         localsConvention: 'camelCase'
+      }
+    },
+
+    // Test configuration
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: ['./src/__tests__/setup.ts'],
+      css: true,
+      // Include only unit and integration tests from src directory
+      include: ['src/**/*.{test,spec}.{js,ts,tsx}'],
+      exclude: ['e2e/**', 'node_modules/**'],
+      // Mock browser APIs that jsdom doesn't provide
+      pool: 'threads',
+      poolOptions: {
+        threads: {
+          singleThread: true
+        }
       }
     }
   }

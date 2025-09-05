@@ -1,11 +1,14 @@
 // API Service Layer
 // Centralized API configuration and error handling
 
+import type { 
+  Notification,
+  PaginatedNotificationResponse 
+} from '../types';
+
 // Configuration from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 const DEBUG_API_CALLS = import.meta.env.VITE_DEBUG_API_CALLS === 'true';
-const ERROR_RETRY_ATTEMPTS = parseInt(import.meta.env.VITE_ERROR_RETRY_ATTEMPTS || '3');
-const ERROR_RETRY_DELAY = parseInt(import.meta.env.VITE_ERROR_RETRY_DELAY || '1000');
 
 // API Response type
 interface ApiResponse<T> {
@@ -16,7 +19,7 @@ interface ApiResponse<T> {
 
 // Request configuration
 interface RequestConfig extends RequestInit {
-  params?: Record<string, string>;
+  params?: Record<string, any>;
 }
 
 class ApiError extends Error {
@@ -26,11 +29,23 @@ class ApiError extends Error {
   }
 }
 
+// Helper function to convert parameters to strings
+function stringifyParams(params: Record<string, any>): Record<string, string> {
+  const stringParams: Record<string, string> = {};
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      stringParams[key] = String(value);
+    }
+  });
+  return stringParams;
+}
+
 // Helper function to build URL with query params
-function buildUrl(endpoint: string, params?: Record<string, string>): string {
+function buildUrl(endpoint: string, params?: Record<string, any>): string {
   const url = new URL(`${API_BASE_URL}${endpoint}`);
   if (params) {
-    Object.entries(params).forEach(([key, value]) => {
+    const stringParams = stringifyParams(params);
+    Object.entries(stringParams).forEach(([key, value]) => {
       url.searchParams.append(key, value);
     });
   }
@@ -113,7 +128,7 @@ async function apiRequest<T>(
 // API methods
 export const api = {
   // GET request
-  get: <T>(endpoint: string, params?: Record<string, string>) =>
+  get: <T>(endpoint: string, params?: Record<string, any>) =>
     apiRequest<T>(endpoint, { method: 'GET', params }),
 
   // POST request
@@ -1224,48 +1239,11 @@ export class NotificationsService {
     action_required?: boolean;
     search?: string;
   }) {
-    return api.get<{
-      notifications: Array<{
-        id: string;
-        type: string;
-        title: string;
-        message: string;
-        priority: string;
-        action_required: boolean;
-        read: boolean;
-        timestamp: string;
-        user_id: string;
-        related_contract?: {
-          id: string;
-          name: string;
-        };
-        metadata?: Record<string, any>;
-      }>;
-      total: number;
-      unread_count: number;
-      page: number;
-      size: number;
-      pages: number;
-    }>('/notifications', params);
+    return api.get<PaginatedNotificationResponse>('/notifications', params);
   }
 
   static async getNotification(notificationId: string) {
-    return api.get<{
-      id: string;
-      type: string;
-      title: string;
-      message: string;
-      priority: string;
-      action_required: boolean;
-      read: boolean;
-      timestamp: string;
-      user_id: string;
-      related_contract?: {
-        id: string;
-        name: string;
-      };
-      metadata?: Record<string, any>;
-    }>(`/notifications/${notificationId}`);
+    return api.get<Notification>(`/notifications/${notificationId}`);
   }
 
   static async markAsRead(notificationId: string) {

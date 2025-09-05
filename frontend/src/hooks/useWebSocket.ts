@@ -2,7 +2,6 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { WebSocketService } from '../services/api';
 import { 
   WebSocketMessage,
-  ConnectionMessage,
   ContractUpdateMessage,
   NotificationMessage,
   SystemMessage,
@@ -265,8 +264,10 @@ export const useSystemMessages = (onMessage?: (message: SystemMessage | AlertMes
 
     const ws = wsServiceRef.current;
     
-    ws.onMessage('system', onMessage);
-    ws.onMessage('alert', onMessage);
+    if (onMessage) {
+      ws.onMessage('system', onMessage);
+      ws.onMessage('alert', onMessage);
+    }
 
     return () => {
       if (ws) {
@@ -294,7 +295,9 @@ export const useBulkOperationUpdates = (onUpdate?: (message: BulkOperationMessag
     }
 
     const ws = wsServiceRef.current;
-    ws.onMessage('bulk_operation', onUpdate);
+    if (onUpdate) {
+      ws.onMessage('bulk_operation', onUpdate);
+    }
 
     return () => {
       if (ws) {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useContractStore } from '../store/contractStore';
+import { ContractType } from '../types';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -18,6 +19,7 @@ const UK_CONTRACT_TEMPLATES = [
     name: 'Professional Services Agreement',
     description: 'For consultancy, marketing, and professional services',
     category: 'service-agreement',
+    contract_type: 'service_agreement' as ContractType,
     estimatedTime: '15 minutes',
     complexity: 'Standard',
     icon: DocumentTextIcon,
@@ -28,6 +30,7 @@ const UK_CONTRACT_TEMPLATES = [
     name: 'Employment Contract - Full Time',
     description: 'UK employment law compliant full-time contracts',
     category: 'employment',
+    contract_type: 'employment_contract' as ContractType,
     estimatedTime: '20 minutes',
     complexity: 'Standard',
     icon: UsersIcon,
@@ -38,6 +41,7 @@ const UK_CONTRACT_TEMPLATES = [
     name: 'Supplier/Vendor Agreement',
     description: 'Contracts with suppliers and service providers',
     category: 'supplier',
+    contract_type: 'supplier_agreement' as ContractType,
     estimatedTime: '18 minutes',
     complexity: 'Standard',
     icon: DocumentTextIcon,
@@ -48,6 +52,7 @@ const UK_CONTRACT_TEMPLATES = [
     name: 'Non-Disclosure Agreement (NDA)',
     description: 'Protect confidential information and trade secrets',
     category: 'nda',
+    contract_type: 'nda' as ContractType,
     estimatedTime: '10 minutes',
     complexity: 'Simple',
     icon: DocumentTextIcon,
@@ -58,6 +63,7 @@ const UK_CONTRACT_TEMPLATES = [
     name: 'Partnership Agreement',
     description: 'Business partnerships and joint ventures',
     category: 'partnership',
+    contract_type: 'partnership' as ContractType,
     estimatedTime: '25 minutes',
     complexity: 'Complex',
     icon: UsersIcon,
@@ -83,6 +89,9 @@ interface ContractFormData {
   endDate: string;
   paymentTerms: string;
   specialTerms: string;
+  plainEnglishInput: string;
+  supplierName: string;
+  currency: string;
 }
 
 export default function ContractCreatePage() {
@@ -99,6 +108,9 @@ export default function ContractCreatePage() {
     endDate: '',
     paymentTerms: '30',
     specialTerms: '',
+    plainEnglishInput: '',
+    supplierName: '',
+    currency: 'GBP',
   });
   const [isGenerating, setIsGenerating] = useState(false);
   
@@ -137,61 +149,17 @@ export default function ContractCreatePage() {
     
     try {
       const newContract = await createContract({
-        name: formData.name || `${selectedTemplate?.name} - ${formData.clientName}`,
-        type: {
-          id: formData.templateId,
-          name: selectedTemplate?.name || 'Unknown',
-          category: (selectedTemplate?.category as string) || 'other',
-          description: selectedTemplate?.description || '',
-          template: formData.templateId
-        },
-        status: 'draft',
-        parties: [
-          {
-            id: '1',
-            name: formData.clientName,
-            email: formData.clientEmail,
-            role: 'client',
-            signatureStatus: 'pending'
-          }
-        ],
-        createdBy: '1',
-        content: `# ${formData.name}\n\n## Contract Details\n${formData.description}\n\n## Services\n${formData.serviceDescription}\n\n## Terms\n- Value: £${formData.contractValue}\n- Start Date: ${formData.startDate}\n- End Date: ${formData.endDate}\n- Payment Terms: ${formData.paymentTerms} days\n\n${formData.specialTerms}`,
-        complianceScore: {
-          overall: Math.floor(Math.random() * 20) + 80, // 80-100
-          gdprCompliance: Math.floor(Math.random() * 10) + 90,
-          employmentLaw: Math.floor(Math.random() * 15) + 85,
-          commercialTerms: Math.floor(Math.random() * 10) + 90,
-          consumerRights: Math.floor(Math.random() * 15) + 85,
-          issues: []
-        },
-        riskAssessment: {
-          overall: Math.floor(Math.random() * 40) + 10, // 10-50
-          factors: [
-            {
-              name: 'Payment Risk',
-              score: Math.floor(Math.random() * 30) + 10,
-              impact: 'medium',
-              likelihood: 'low',
-              description: 'Standard payment terms with established processes'
-            }
-          ],
-          recommendations: [
-            'Consider milestone-based payments for larger projects',
-            'Include clear scope definition to prevent disputes'
-          ],
-          lastUpdated: new Date()
-        },
-        deadlines: [
-          {
-            id: '1',
-            title: 'Contract Start',
-            date: new Date(formData.startDate),
-            type: 'review',
-            status: 'upcoming'
-          }
-        ],
-        tags: [selectedTemplate?.category || 'general']
+        title: formData.name || `${selectedTemplate?.name} - ${formData.clientName}`,
+        contract_type: (selectedTemplate?.contract_type || 'service_agreement') as ContractType,
+        plain_english_input: formData.plainEnglishInput,
+        client_name: formData.clientName,
+        client_email: formData.clientEmail,
+        supplier_name: formData.supplierName,
+        contract_value: formData.contractValue ? parseFloat(formData.contractValue) : undefined,
+        currency: formData.currency || 'GBP',
+        start_date: formData.startDate,
+        end_date: formData.endDate,
+        template_id: formData.templateId,
       });
 
       navigate(`/contracts/${newContract.id}`);

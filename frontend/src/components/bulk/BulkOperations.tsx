@@ -1,8 +1,7 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { BulkService } from '../../services/api';
 import { 
-  BulkOperationResponse, 
-  BulkOperationError,
+  BulkOperationResponse,
   ContractBulkUpdateFields,
   BulkExportResponse,
   UserInvitation 
@@ -26,7 +25,6 @@ export const BulkOperations: React.FC<BulkOperationsProps> = ({
 }) => {
   const [activeOperation, setActiveOperation] = useState<BulkOperation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
 
   // Form states
   const [updateFields, setUpdateFields] = useState<ContractBulkUpdateFields>({});
@@ -36,7 +34,18 @@ export const BulkOperations: React.FC<BulkOperationsProps> = ({
   const [invitations, setInvitations] = useState<UserInvitation[]>([{ email: '', full_name: '', role: 'VIEWER' }]);
   const [newRole, setNewRole] = useState<string>('VIEWER');
 
-  const { errors, validateField, clearErrors } = useFormValidation();
+  const { errors, validateField, clearErrors } = useFormValidation(
+    {
+      updateFields: {},
+      deletionReason: '',
+      invitations: []
+    },
+    {
+      updateFields: { required: false },
+      deletionReason: { required: false },
+      invitations: { required: false }
+    }
+  );
 
   // Bulk update contracts
   const handleBulkUpdate = useCallback(async () => {
@@ -52,7 +61,6 @@ export const BulkOperations: React.FC<BulkOperationsProps> = ({
 
     clearErrors();
     setIsLoading(true);
-    setProgress(0);
 
     try {
       const result = await BulkService.bulkUpdateContracts({
@@ -60,7 +68,6 @@ export const BulkOperations: React.FC<BulkOperationsProps> = ({
         updates: updateFields
       });
 
-      setProgress(100);
       onSuccess?.(result);
 
       if (result.failed_count > 0) {

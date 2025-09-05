@@ -31,13 +31,13 @@ interface OnboardingChecklistProps {
 }
 
 export default function OnboardingChecklist({ onDismiss, showDismiss = true }: OnboardingChecklistProps) {
-  const { contracts, teamMembers, fetchContracts, fetchTeamMembers } = useContractStore();
+  const { contracts, fetchContracts } = useContractStore();
   const { user } = useAuthStore();
   const [steps, setSteps] = useState<OnboardingStep[]>([]);
 
   useEffect(() => {
     const initializeSteps = async () => {
-      await Promise.all([fetchContracts(), fetchTeamMembers()]);
+      await fetchContracts();
       
       const onboardingSteps: OnboardingStep[] = [
         {
@@ -55,7 +55,7 @@ export default function OnboardingChecklist({ onDismiss, showDismiss = true }: O
           id: 'invite-team',
           title: 'Invite your team',
           description: 'Collaborate with up to 5 team members on your Professional plan',
-          completed: teamMembers.length > 1,
+          completed: false, // Team functionality not available yet
           action: {
             text: 'Manage Team',
             link: '/team'
@@ -77,7 +77,7 @@ export default function OnboardingChecklist({ onDismiss, showDismiss = true }: O
           id: 'review-compliance',
           title: 'Understand compliance scoring',
           description: 'Learn how our AI evaluates UK legal compliance for your contracts',
-          completed: contracts.some(contract => contract.complianceScore.overall >= 90),
+          completed: contracts.some(contract => contract.status === 'active'), // Simplified compliance check
           action: {
             text: contracts.length > 0 ? 'View Contract' : 'Create Contract',
             link: contracts.length > 0 ? `/contracts/${contracts[0].id}` : '/contracts/new'
@@ -92,7 +92,7 @@ export default function OnboardingChecklist({ onDismiss, showDismiss = true }: O
     if (user) {
       initializeSteps();
     }
-  }, [contracts, teamMembers, user, fetchContracts, fetchTeamMembers]);
+  }, [contracts, user, fetchContracts]);
 
   const completedSteps = steps.filter(step => step.completed).length;
   const totalSteps = steps.length;

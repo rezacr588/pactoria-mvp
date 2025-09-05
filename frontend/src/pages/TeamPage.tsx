@@ -225,17 +225,14 @@ export default function TeamPage() {
     return (
       <div className="px-4 sm:px-6 lg:px-8">
         <EmptyState
-          icon={<ExclamationTriangleIcon className="h-12 w-12" />}
+          icon={ExclamationTriangleIcon}
           title="Error Loading Team"
           description={error}
-          action={
-            <Button
-              onClick={fetchTeamMembers}
-              icon={<ArrowPathIcon className="h-4 w-4" />}
-            >
-              Retry
-            </Button>
-          }
+          action={{
+            label: "Retry",
+            onClick: fetchTeamMembers,
+            icon: ArrowPathIcon
+          }}
         />
       </div>
     );
@@ -284,24 +281,20 @@ export default function TeamPage() {
       {/* Team Members List */}
       {teamMembers.length === 0 ? (
         <EmptyState
-          icon={<UserPlusIcon className="h-12 w-12" />}
+          icon={UserPlusIcon}
           title="No team members yet"
           description="Invite your first team member to start collaborating"
-          action={
-            <Button
-              onClick={() => setShowInviteModal(true)}
-              icon={<UserPlusIcon className="h-4 w-4" />}
-              variant="primary"
-            >
-              Invite Team Member
-            </Button>
-          }
+          action={{
+            label: "Invite Team Member",
+            onClick: () => setShowInviteModal(true),
+            icon: UserPlusIcon
+          }}
         />
       ) : (
         <Card variant="elevated" padding="lg">
           <div className="grid grid-cols-1 gap-6">
             {teamMembers.map((member) => {
-              const roleInfo = roleConfig[member.role] || roleConfig.viewer;
+              const roleInfo = roleConfig[member.role as keyof typeof roleConfig] || roleConfig.viewer;
               const activityStatus = getActivityStatus(member.last_active);
               const isCurrentUser = member.id === user?.id;
               const isPending = member.invitation_status === 'pending';

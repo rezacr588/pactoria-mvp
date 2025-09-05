@@ -5,28 +5,13 @@ Pydantic models for contract requests and responses
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from enum import Enum
 
+# Import domain enums as the single source of truth
+from app.domain.value_objects import ContractType, ContractStatus
 
-class ContractTypeEnum(str, Enum):
-    """Contract type enumeration"""
-    SERVICE_AGREEMENT = "service_agreement"
-    EMPLOYMENT_CONTRACT = "employment_contract"
-    SUPPLIER_AGREEMENT = "supplier_agreement"
-    NDA = "nda"
-    TERMS_CONDITIONS = "terms_conditions"
-    CONSULTANCY = "consultancy"
-    PARTNERSHIP = "partnership"
-    LEASE = "lease"
-
-
-class ContractStatusEnum(str, Enum):
-    """Contract status enumeration"""
-    DRAFT = "draft"
-    ACTIVE = "active"
-    COMPLETED = "completed"
-    EXPIRED = "expired"
-    TERMINATED = "terminated"
+# Create aliases for backwards compatibility with API contracts
+ContractTypeEnum = ContractType
+ContractStatusEnum = ContractStatus
 
 
 class ContractCreate(BaseModel):

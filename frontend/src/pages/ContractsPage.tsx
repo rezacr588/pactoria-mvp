@@ -10,7 +10,6 @@ import { ContractService } from '../services/api';
 import { getErrorMessage } from '../utils/errorHandling';
 import { debounce } from '../utils/loadingStates';
 import { Button, Card, Badge, Input, Select, EmptyState } from '../components/ui';
-import { classNames } from '../utils/classNames';
 import { textStyles, textColors } from '../utils/typography';
 import { useToast } from '../contexts/ToastContext';
 
