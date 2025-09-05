@@ -5,7 +5,7 @@ import Header from './Header';
 import { useContractStore } from '../../store/contractStore';
 
 export default function AppLayout() {
-  const { fetchContracts, fetchContractTypes, fetchTemplates, fetchTeamMembers } = useContractStore();
+  const { fetchContracts, fetchTemplates } = useContractStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Initialize data when layout mounts
@@ -14,9 +14,7 @@ export default function AppLayout() {
       try {
         await Promise.all([
           fetchContracts(),
-          fetchContractTypes(),
-          fetchTemplates(),
-          fetchTeamMembers()
+          fetchTemplates()
         ]);
       } catch (error) {
         console.error('Failed to initialize app data:', error);

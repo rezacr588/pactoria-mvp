@@ -7,6 +7,10 @@ export interface User {
   company_id: string | null;
   created_at: string;
   last_login_at: string | null;
+  // Additional properties for UI consistency
+  avatar?: string;
+  name?: string; // Computed from full_name or display name
+  company?: string; // Company name for display
 }
 
 export interface Company {
@@ -94,7 +98,7 @@ export interface Contract {
   id: string;
   title: string;
   contract_type: string;
-  status: 'draft' | 'active' | 'completed' | 'expired' | 'terminated';
+  status: string; // Changed to string to match API response - backend returns various status values
   plain_english_input?: string;
   generated_content?: string;
   final_content?: string;

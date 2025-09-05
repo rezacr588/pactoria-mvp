@@ -272,7 +272,7 @@ class SQLAlchemyContractRepository(ContractRepository):
         model.updated_at = contract.updated_at
     
     def _to_domain(self, model: ContractModel) -> Contract:
-        """Convert database model to domain entity"""
+        """Convert database model to domain entity using proper factory method"""
         # Create contract ID
         contract_id = ContractId(model.id)
         
@@ -290,38 +290,43 @@ class SQLAlchemyContractRepository(ContractRepository):
                 email=Email(model.supplier_email) if model.supplier_email else None
             )
         
-        # Create contract instance (using internal constructor to bypass factory method)
-        contract = Contract.__new__(Contract)
-        Contract.__init__(
-            contract,
+        # Create contract value if available
+        contract_value = None
+        if model.contract_value and model.currency:
+            contract_value = Money(model.contract_value, model.currency)
+        
+        # Create date range if available
+        date_range = None
+        if model.start_date and model.end_date:
+            date_range = DateRange(model.start_date, model.end_date)
+        
+        # Use the proper factory method for reconstruction
+        return Contract.from_persistence(
             contract_id=contract_id,
             title=model.title,
             contract_type=ContractType(model.contract_type),
+            status=ContractStatus(model.status),
             plain_english_input=model.plain_english_input,
             client=client,
             supplier=supplier,
             created_by_user_id=model.created_by,
-            company_id=model.company_id
+            company_id=model.company_id,
+            version=model.version,
+            created_at=model.created_at,
+            updated_at=model.updated_at,
+            contract_value=contract_value,
+            date_range=date_range,
+            generated_content=model.generated_content,
+            final_content=model.final_content,
+            # Additional fields can be added as the model evolves
+            ai_metadata=getattr(model, 'ai_metadata', None),
+            compliance_score=None,  # Would need to be loaded from related table/json field
+            risk_assessment=None,   # Would need to be loaded from related table/json field
+            activated_at=getattr(model, 'activated_at', None),
+            activated_by_user_id=getattr(model, 'activated_by_user_id', None),
+            completed_at=getattr(model, 'completed_at', None),
+            completed_by_user_id=getattr(model, 'completed_by_user_id', None),
+            terminated_at=getattr(model, 'terminated_at', None),
+            terminated_by_user_id=getattr(model, 'terminated_by_user_id', None),
+            termination_reason=getattr(model, 'termination_reason', None)
         )
-        
-        # Set additional properties directly (private attributes)
-        contract._status = ContractStatus(model.status)
-        
-        if model.contract_value and model.currency:
-            contract._contract_value = Money(model.contract_value, model.currency)
-        
-        if model.start_date and model.end_date:
-            contract._date_range = DateRange(model.start_date, model.end_date)
-        
-        contract._generated_content = model.generated_content
-        contract._final_content = model.final_content
-        
-        # Set base entity properties
-        contract._version = model.version
-        contract._created_at = model.created_at
-        contract._updated_at = model.updated_at
-        
-        # Clear domain events (they shouldn't be replayed from persistence)
-        contract._domain_events = []
-        
-        return contract

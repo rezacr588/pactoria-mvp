@@ -170,7 +170,7 @@ export async function withRetry<T>(
       lastError = error;
       
       // Don't retry for client errors (4xx), only server errors (5xx) or network errors
-      if (!isNetworkError(error) && error?.status && error.status < 500) {
+      if (!isNetworkError(error) && (error as any)?.status && (error as any).status < 500) {
         throw error;
       }
       

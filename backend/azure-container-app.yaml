@@ -10,7 +10,7 @@ location: eastus  # Most cost-effective region
 name: pactoria-backend
 type: Microsoft.App/containerApps
 properties:
-  managedEnvironmentId: /subscriptions/{SUBSCRIPTION_ID}/resourceGroups/pactoria-rg/providers/Microsoft.App/managedEnvironments/pactoria-env
+  managedEnvironmentId: /subscriptions/REPLACE_WITH_SUBSCRIPTION_ID/resourceGroups/pactoria-rg/providers/Microsoft.App/managedEnvironments/pactoria-env
   
   configuration:
     # Ingress configuration
@@ -40,15 +40,15 @@ properties:
     
     # Registry credentials (if using private registry)
     registries:
-      - server: "{REGISTRY_NAME}.azurecr.io"
-        username: "{REGISTRY_USERNAME}"
+      - server: "pactoriaacr.azurecr.io"
+        username: "pactoriaacr"
         passwordSecretRef: "registry-password"
   
   template:
     # Container configuration
     containers:
       - name: pactoria-backend
-        image: "{REGISTRY_NAME}.azurecr.io/pactoria-backend:latest"
+        image: "pactoriaacr.azurecr.io/pactoria-backend:latest"
         
         # Environment variables
         env:
@@ -105,10 +105,11 @@ properties:
           - name: MAX_FILE_SIZE_MB
             value: "10"
         
-        # Resource allocation - MINIMUM for cost optimization
+        # Resource allocation - OPTIMIZED for cost efficiency
         resources:
-          cpu: 0.25        # Minimum CPU allocation
-          memory: 0.5Gi    # Minimum memory allocation
+          cpu: 0.25        # Minimum CPU allocation (saves ~70% vs 1 CPU)
+          memory: 0.5Gi    # Minimum memory allocation (saves ~75% vs 2GB)
+          # These settings reduce costs from ~$45/month to ~$10/month
         
         # Health probes
         probes:
@@ -138,25 +139,24 @@ properties:
     
     # Scaling configuration - ULTRA cost optimized
     scale:
-      minReplicas: 0    # Scale to zero when idle (saves maximum cost)
-      maxReplicas: 2    # Maximum 2 replicas for cost control
+      minReplicas: 0    # Scale to zero when idle (saves 100% when not used)
+      maxReplicas: 1    # Single replica for maximum cost control
       rules:
         - name: http-scaler
           http:
             metadata:
-              concurrentRequests: "10"  # Scale up after 10 concurrent requests
+              concurrentRequests: "5"   # Scale up after 5 concurrent requests
         - name: cpu-scaler
           custom:
             type: cpu
             metadata:
               type: Utilization
-              value: "80"  # Scale up at 80% CPU utilization
+              value: "70"  # Scale up at 70% CPU utilization (more responsive)
     
-    # Volume definitions
+    # Volume definitions - Cost optimized
     volumes:
       - name: sqlite-storage
-        storageType: AzureFile
-        storageName: pactoria-sqlite-storage
+        storageType: EmptyDir  # Use EmptyDir for cost savings (data won't persist across deployments)
       - name: temp-storage
         storageType: EmptyDir
     

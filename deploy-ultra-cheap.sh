@@ -15,6 +15,25 @@ ENVIRONMENT_NAME="pactoria-env"
 STORAGE_ACCOUNT="pactoriastore"
 FILE_SHARE_NAME="sqlite-data"
 
+# Validate required environment variables
+if [ -z "$GROQ_API_KEY" ]; then
+    echo "❌ Error: GROQ_API_KEY environment variable is required"
+    echo "Get your API key from: https://console.groq.com/keys"
+    exit 1
+fi
+
+if [ -z "$JWT_SECRET_KEY" ]; then
+    echo "⚠️  Warning: JWT_SECRET_KEY not set. Generating random key..."
+    export JWT_SECRET_KEY=$(openssl rand -base64 32)
+    echo "Generated JWT_SECRET_KEY: $JWT_SECRET_KEY"
+fi
+
+if [ -z "$SECRET_KEY" ]; then
+    echo "⚠️  Warning: SECRET_KEY not set. Generating random key..."
+    export SECRET_KEY=$(openssl rand -base64 32)
+    echo "Generated SECRET_KEY: $SECRET_KEY"
+fi
+
 echo "🚀 Starting Ultra-Low-Cost Azure Deployment..."
 
 # Step 1: Create Resource Group
@@ -88,8 +107,8 @@ az containerapp create \
   --image $ACR_NAME.azurecr.io/pactoria-backend:latest \
   --target-port 8000 \
   --ingress external \
-  --secrets groq-api-key="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" \
-  --env-vars GROQ_API_KEY=secretref:groq-api-key DATABASE_URL="sqlite:///./data/pactoria_mvp.db" ENVIRONMENT="production" DEBUG="false" \
+  --secrets groq-api-key="$GROQ_API_KEY" jwt-secret-key="$JWT_SECRET_KEY" secret-key="$SECRET_KEY" \
+  --env-vars GROQ_API_KEY=secretref:groq-api-key JWT_SECRET_KEY=secretref:jwt-secret-key SECRET_KEY=secretref:secret-key DATABASE_URL="sqlite:///./data/pactoria_mvp.db" ENVIRONMENT="production" DEBUG="false" \
   --cpu 0.25 \
   --memory 0.5Gi \
   --min-replicas 0 \

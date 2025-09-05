@@ -52,8 +52,16 @@ export const useAuthStore = create<AuthState>()(
           // Store token separately for security
           storeToken(response.token.access_token);
           
+          // Enhance user object with computed properties for UI consistency
+          const enhancedUser = {
+            ...response.user,
+            name: response.user.full_name, // Use full_name as display name
+            avatar: undefined, // Backend doesn't provide avatar yet, using default
+            company: response.company?.name || undefined // Company name for display
+          };
+          
           set({ 
-            user: response.user,
+            user: enhancedUser,
             company: response.company,
             token: response.token.access_token,
             isLoading: false,
@@ -88,8 +96,16 @@ export const useAuthStore = create<AuthState>()(
           // Store token separately for security
           storeToken(response.token.access_token);
           
+          // Enhance user object with computed properties for UI consistency
+          const enhancedUser = {
+            ...response.user,
+            name: response.user.full_name, // Use full_name as display name
+            avatar: undefined, // Backend doesn't provide avatar yet, using default
+            company: response.company?.name || undefined // Company name for display
+          };
+          
           set({ 
-            user: response.user,
+            user: enhancedUser,
             company: response.company,
             token: response.token.access_token,
             isLoading: false,
@@ -114,8 +130,15 @@ export const useAuthStore = create<AuthState>()(
         if (!token) return;
         
         try {
-          const user = await AuthService.getCurrentUser();
-          set({ user, error: null });
+          const userResponse = await AuthService.getCurrentUser();
+          // Enhance user object with computed properties for UI consistency
+          const enhancedUser = {
+            ...userResponse,
+            name: userResponse.full_name,
+            avatar: undefined,
+            company: get().company?.name || undefined
+          };
+          set({ user: enhancedUser, error: null });
         } catch (error: any) {
           // Token might be expired, clear auth state
           set({ user: null, company: null, token: null, error: 'Session expired' });

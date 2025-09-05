@@ -24,12 +24,18 @@ groq==0.11.0
 # Removed langchain packages to reduce memory footprint
 # Will use Groq SDK directly
 
+# Email validation (required for user registration)
+email-validator==2.1.1
+
 # File handling - minimal set
 python-docx==1.1.2
 jinja2==3.1.4
 
 # HTTP client - async for efficiency
 httpx==0.28.0
+
+# File handling - PDF support
+pypdf2==3.0.1
 
 # Removed Redis for F1 tier - using in-memory caching instead
 # Removed testing dependencies for production
@@ -42,8 +48,12 @@ azure-identity==1.15.0
 structlog==23.2.0
 
 # Security enhancements
-cryptography==41.0.8
+cryptography>=42.0.0,<46.0.0
 bcrypt==4.1.2
 
 # Performance optimization
 orjson==3.9.10  # Faster JSON serialization
+
+# Testing dependencies for CI/CD
+pytest==8.3.4
+pytest-asyncio==0.25.0

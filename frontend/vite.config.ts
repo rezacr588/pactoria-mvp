@@ -9,20 +9,30 @@ export default defineConfig(({ command, mode }) => {
   return {
     plugins: [react()],
     
-    // Build configuration optimized for Azure Static Web Apps
+    // Build configuration optimized for Azure Static Web Apps and cost efficiency
     build: {
       outDir: 'dist',
       assetsDir: 'assets',
-      sourcemap: false,
-      minify: 'esbuild',
+      sourcemap: false, // Disabled for production to reduce bundle size
+      minify: 'esbuild', // Fastest minifier
+      target: 'esnext', // Smaller bundles for modern browsers
+      cssCodeSplit: true, // Split CSS for better caching
       rollupOptions: {
         output: {
           manualChunks: {
-            vendor: ['react', 'react-dom', 'react-router-dom'],
-            ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
-          }
+            vendor: ['react', 'react-dom'],
+            router: ['react-router-dom'],
+            ui: ['@headlessui/react', '@heroicons/react'],
+            utils: ['@tanstack/react-query', 'zustand']
+          },
+          // Optimize chunk file names for better caching
+          entryFileNames: 'assets/[name]-[hash].js',
+          chunkFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash].[ext]'
         }
-      }
+      },
+      // Increase chunk size warning limit
+      chunkSizeWarningLimit: 1000
     },
 
     // Development server configuration
@@ -58,9 +68,15 @@ export default defineConfig(({ command, mode }) => {
     // Base URL for assets (Azure Static Web Apps)
     base: mode === 'production' ? '/' : '/',
 
-    // Optimize dependencies
+    // Optimize dependencies for faster dev startup and smaller production bundles
     optimizeDeps: {
-      include: ['react', 'react-dom', 'react-router-dom'],
+      include: [
+        'react', 
+        'react-dom', 
+        'react-router-dom',
+        '@tanstack/react-query',
+        'zustand'
+      ],
       exclude: []
     },
 

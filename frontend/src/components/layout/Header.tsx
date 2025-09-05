@@ -79,9 +79,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
   // WebSocket notifications
   useNotifications((message: NotificationMessage) => {
     // Convert WebSocket notification to local notification format
+    const validNotificationTypes = ['deadline', 'compliance', 'team', 'system', 'contract'];
+    const notificationType = validNotificationTypes.includes(message.notification_type) 
+      ? message.notification_type as 'deadline' | 'compliance' | 'team' | 'system' | 'contract'
+      : 'system';
+      
     const newNotification: Notification = {
       id: message.message_id || `ws-${Date.now()}`,
-      type: message.notification_type as any,
+      type: notificationType,
       title: message.title,
       message: message.message,
       priority: message.priority.toLowerCase() as 'low' | 'medium' | 'high',

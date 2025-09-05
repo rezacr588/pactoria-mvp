@@ -46,7 +46,7 @@ export const BulkOperations: React.FC<BulkOperationsProps> = ({
     }
 
     if (Object.keys(updateFields).length === 0) {
-      validateField('updateFields', 'Please specify at least one field to update');
+      onError?.('Please specify at least one field to update');
       return;
     }
 
@@ -83,7 +83,7 @@ export const BulkOperations: React.FC<BulkOperationsProps> = ({
     }
 
     if (!deletionReason.trim()) {
-      validateField('deletionReason', 'Please provide a reason for deletion');
+      onError?.('Please provide a reason for deletion');
       return;
     }
 
@@ -154,7 +154,7 @@ export const BulkOperations: React.FC<BulkOperationsProps> = ({
     const validInvitations = invitations.filter(inv => inv.email && inv.full_name);
     
     if (validInvitations.length === 0) {
-      validateField('invitations', 'Please add at least one valid invitation');
+      onError?.('Please add at least one valid invitation');
       return;
     }
 
@@ -590,7 +590,7 @@ export const BulkOperations: React.FC<BulkOperationsProps> = ({
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .bulk-operations {
           background: white;
           border-radius: 12px;

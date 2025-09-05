@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     # CORS - Dynamic for Azure Static Web Apps
     CORS_ORIGINS: List[str] = []
     
+    # Production connection safety flag
+    PRODUCTION_CONNECTION_WARNING: bool = False
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._setup_cors_origins()

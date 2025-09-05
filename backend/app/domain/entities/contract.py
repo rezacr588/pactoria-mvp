@@ -161,6 +161,79 @@ class Contract(AggregateRoot[ContractId]):
         
         return contract
     
+    @classmethod
+    def from_persistence(cls,
+                        contract_id: ContractId,
+                        title: str,
+                        contract_type: ContractType,
+                        status: ContractStatus,
+                        plain_english_input: str,
+                        client: ContractParty,
+                        supplier: Optional[ContractParty],
+                        created_by_user_id: str,
+                        company_id: str,
+                        version: int,
+                        created_at: datetime,
+                        updated_at: Optional[datetime] = None,
+                        contract_value: Optional[Money] = None,
+                        date_range: Optional[DateRange] = None,
+                        generated_content: Optional[str] = None,
+                        final_content: Optional[str] = None,
+                        ai_metadata: Optional[Dict[str, Any]] = None,
+                        compliance_score: Optional[ComplianceScore] = None,
+                        risk_assessment: Optional[RiskAssessment] = None,
+                        activated_at: Optional[datetime] = None,
+                        activated_by_user_id: Optional[str] = None,
+                        completed_at: Optional[datetime] = None,
+                        completed_by_user_id: Optional[str] = None,
+                        terminated_at: Optional[datetime] = None,
+                        terminated_by_user_id: Optional[str] = None,
+                        termination_reason: Optional[str] = None) -> 'Contract':
+        """
+        Factory method to reconstruct a contract from persistence data
+        This method bypasses normal domain rules to allow reconstruction
+        """
+        # Create contract using regular constructor for basic validation
+        contract = cls(
+            contract_id=contract_id,
+            title=title,
+            contract_type=contract_type,
+            plain_english_input=plain_english_input,
+            client=client,
+            supplier=supplier,
+            created_by_user_id=created_by_user_id,
+            company_id=company_id
+        )
+        
+        # Override state from persistence (this is acceptable for reconstruction)
+        contract._status = status
+        contract._version = version
+        contract._created_at = created_at
+        contract._updated_at = updated_at
+        
+        # Set optional fields
+        contract._contract_value = contract_value
+        contract._date_range = date_range
+        contract._generated_content = generated_content
+        contract._final_content = final_content
+        contract._ai_metadata = ai_metadata
+        contract._compliance_score = compliance_score
+        contract._risk_assessment = risk_assessment
+        
+        # Set lifecycle tracking
+        contract._activated_at = activated_at
+        contract._activated_by_user_id = activated_by_user_id
+        contract._completed_at = completed_at
+        contract._completed_by_user_id = completed_by_user_id
+        contract._terminated_at = terminated_at
+        contract._terminated_by_user_id = terminated_by_user_id
+        contract._termination_reason = termination_reason
+        
+        # Clear domain events (they shouldn't be replayed from persistence)
+        contract.clear_domain_events()
+        
+        return contract
+    
     # Properties
     @property
     def title(self) -> str:
