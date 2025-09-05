@@ -189,7 +189,6 @@ jobs:
     name: Frontend Deployment
     environment:
       name: production-frontend
-      url: ${{ secrets.STATIC_WEB_APP_URL }}
     
     steps:
     - name: Checkout
