@@ -90,7 +90,7 @@ jobs:
         action: 'upload'
         app_location: 'frontend'
         output_location: 'dist'
-        app_build_command: 'VITE_API_URL=https://${{ env.CONTAINER_APP }}.${{ env.LOCATION }}.azurecontainerapps.io/api npm run build'
+        app_build_command: 'VITE_API_URL=https://pactoria-backend.ashyforest-7d7631da.eastus.azurecontainerapps.io/api/v1 npm run build'
         
     # Cleanup old images to save costs
     - name: Cleanup & Summary
