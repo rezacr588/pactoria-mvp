@@ -10,7 +10,7 @@ location: eastus  # Most cost-effective region
 name: pactoria-backend
 type: Microsoft.App/containerApps
 properties:
-  managedEnvironmentId: /subscriptions/REPLACE_WITH_SUBSCRIPTION_ID/resourceGroups/pactoria-rg/providers/Microsoft.App/managedEnvironments/pactoria-env
+  managedEnvironmentId: /subscriptions/174a4de6-fef9-443b-bd04-ef37bb09f20a/resourceGroups/pactoria-mvp-rg/providers/Microsoft.App/managedEnvironments/pactoria-env
   
   configuration:
     # Ingress configuration
@@ -42,7 +42,7 @@ properties:
     registries:
       - server: "pactoriaacr.azurecr.io"
         username: "pactoriaacr"
-        passwordSecretRef: "registry-password"
+        passwordSecretRef: "pactoriaacrazurecrio-pactoriaacr"
   
   template:
     # Container configuration

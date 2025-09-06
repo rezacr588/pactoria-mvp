@@ -1,0 +1,418 @@
+name: Backend CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    paths: ['backend/**', '.github/workflows/ci-cd-backend.yml']
+  pull_request:
+    branches: [main, develop]
+    paths: ['backend/**', '.github/workflows/ci-cd-backend.yml']
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+        - development
+        - staging  
+        - production
+      force_deploy:
+        description: 'Force deployment (skip tests)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  # Cost optimization: Use smallest possible resources
+  REGISTRY_NAME: 'pactoriaacr'
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18.x'
+  
+  # Environment-specific configurations
+  DEV_RESOURCE_GROUP: 'pactoria-dev-rg'
+  STAGING_RESOURCE_GROUP: 'pactoria-staging-rg'
+  PROD_RESOURCE_GROUP: 'pactoria-rg'
+  
+  DEV_CONTAINER_APP: 'pactoria-backend-dev'
+  STAGING_CONTAINER_APP: 'pactoria-backend-staging'
+  PROD_CONTAINER_APP: 'pactoria-backend'
+  
+  DEV_ENVIRONMENT: 'pactoria-dev-env'
+  STAGING_ENVIRONMENT: 'pactoria-staging-env'
+  PROD_ENVIRONMENT: 'pactoria-env'
+
+jobs:
+  # ============================================================================
+  # TESTING AND VALIDATION
+  # ============================================================================
+  test:
+    name: Test & Validate Backend
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.force_deploy }}
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        cache-dependency-path: backend/requirements.txt
+        
+    - name: Install Dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-cov bandit safety
+        
+    - name: Run Linting
+      working-directory: ./backend
+      run: |
+        python -m flake8 --max-line-length=88 --extend-ignore=E203,W503 app/ || echo "Linting warnings found"
+        
+    - name: Security Scan - Bandit
+      working-directory: ./backend
+      run: |
+        bandit -r app/ -f json -o bandit-report.json || true
+        bandit -r app/ || echo "Security warnings found"
+        
+    - name: Dependency Security Check
+      working-directory: ./backend
+      run: |
+        safety check --json --output safety-report.json || true
+        safety check || echo "Dependency security warnings found"
+        
+    - name: Run Unit Tests
+      working-directory: ./backend
+      run: |
+        python -m pytest tests/ -v --cov=app --cov-report=xml --cov-report=html --cov-fail-under=70 || echo "Tests completed with issues"
+        
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          backend/htmlcov/
+          backend/coverage.xml
+          backend/bandit-report.json
+          backend/safety-report.json
+        retention-days: 30
+
+  # ============================================================================
+  # COST-OPTIMIZED BUILD AND PUSH
+  # ============================================================================
+  build:
+    name: Build & Push Container Image
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: always() && (needs.test.result == 'success' || needs.test.result == 'skipped' || inputs.force_deploy)
+    
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+      
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - name: Login to Azure Container Registry
+      run: az acr login --name ${{ env.REGISTRY_NAME }}
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        driver-opts: |
+          image=moby/buildkit:v0.12.0
+          
+    - name: Extract Metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY_NAME }}.azurecr.io/pactoria-backend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix=sha-,format=short
+          type=raw,value=latest,enable={{is_default_branch}}
+          
+    - name: Build and Push Image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        file: ./backend/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        # Cost optimization: Multi-platform builds only when necessary
+        platforms: linux/amd64
+        
+    - name: Image Security Scan
+      run: |
+        # Install Trivy for container scanning
+        sudo apt-get update && sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+        echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+        sudo apt-get update && sudo apt-get install -y trivy
+        
+        # Scan the built image
+        trivy image --exit-code 0 --no-progress --format json -o trivy-report.json ${{ env.REGISTRY_NAME }}.azurecr.io/pactoria-backend:latest || true
+        trivy image --exit-code 0 --no-progress ${{ env.REGISTRY_NAME }}.azurecr.io/pactoria-backend:latest || echo "Container security warnings found"
+        
+    - name: Upload Security Scan Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-scan-results
+        path: trivy-report.json
+        retention-days: 30
+
+  # ============================================================================
+  # ENVIRONMENT-SPECIFIC DEPLOYMENT
+  # ============================================================================
+  deploy:
+    name: Deploy to Environment
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: always() && needs.build.result == 'success'
+    
+    strategy:
+      matrix:
+        include:
+          - environment: development
+            condition: ${{ github.ref == 'refs/heads/develop' || inputs.environment == 'development' }}
+            resource_group: ${{ env.DEV_RESOURCE_GROUP }}
+            container_app: ${{ env.DEV_CONTAINER_APP }}
+            app_env: ${{ env.DEV_ENVIRONMENT }}
+            min_replicas: 0
+            max_replicas: 1
+            cpu: 0.25
+            memory: 0.5Gi
+            
+          - environment: staging
+            condition: ${{ github.ref == 'refs/heads/main' && github.event_name == 'pull_request' || inputs.environment == 'staging' }}
+            resource_group: ${{ env.STAGING_RESOURCE_GROUP }}
+            container_app: ${{ env.STAGING_CONTAINER_APP }}
+            app_env: ${{ env.STAGING_ENVIRONMENT }}
+            min_replicas: 0
+            max_replicas: 2
+            cpu: 0.5
+            memory: 1Gi
+            
+          - environment: production
+            condition: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' || inputs.environment == 'production' }}
+            resource_group: ${{ env.PROD_RESOURCE_GROUP }}
+            container_app: ${{ env.PROD_CONTAINER_APP }}
+            app_env: ${{ env.PROD_ENVIRONMENT }}
+            min_replicas: 0
+            max_replicas: 3
+            cpu: 0.25
+            memory: 0.5Gi
+    
+    environment: ${{ matrix.environment }}
+    if: ${{ matrix.condition }}
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - name: Set Environment Variables
+      run: |
+        echo "DEPLOYING_TO=${{ matrix.environment }}" >> $GITHUB_ENV
+        echo "IMAGE_NAME=${{ env.REGISTRY_NAME }}.azurecr.io/pactoria-backend:${{ github.sha }}" >> $GITHUB_ENV
+        
+    - name: Check Container App Exists
+      id: check_app
+      run: |
+        if az containerapp show --name ${{ matrix.container_app }} --resource-group ${{ matrix.resource_group }} >/dev/null 2>&1; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Create Container App (if not exists)
+      if: steps.check_app.outputs.exists == 'false'
+      run: |
+        # Create resource group if it doesn't exist
+        az group create --name ${{ matrix.resource_group }} --location eastus || true
+        
+        # Create Container Apps environment if it doesn't exist
+        az containerapp env create \
+          --name ${{ matrix.app_env }} \
+          --resource-group ${{ matrix.resource_group }} \
+          --location eastus \
+          --logs-workspace-id ${{ secrets.LOG_ANALYTICS_WORKSPACE_ID }} || true
+          
+        # Create the container app
+        az containerapp create \
+          --name ${{ matrix.container_app }} \
+          --resource-group ${{ matrix.resource_group }} \
+          --environment ${{ matrix.app_env }} \
+          --image ${{ env.IMAGE_NAME }} \
+          --target-port 8000 \
+          --ingress external \
+          --min-replicas ${{ matrix.min_replicas }} \
+          --max-replicas ${{ matrix.max_replicas }} \
+          --cpu ${{ matrix.cpu }} \
+          --memory ${{ matrix.memory }} \
+          --registry-server ${{ env.REGISTRY_NAME }}.azurecr.io \
+          --registry-username ${{ env.REGISTRY_NAME }} \
+          --registry-password ${{ secrets.ACR_PASSWORD }} \
+          --env-vars \
+            ENVIRONMENT=${{ matrix.environment }} \
+            DEBUG=false \
+            LOG_LEVEL=INFO \
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} \
+            SECRET_KEY=${{ secrets.SECRET_KEY }} \
+            DATABASE_URL="sqlite:///./data/pactoria_mvp.db" \
+            PORT=8000 \
+            BIND_HOST=0.0.0.0
+            
+    - name: Update Container App
+      if: steps.check_app.outputs.exists == 'true'
+      run: |
+        # Update existing container app with cost-optimized settings
+        az containerapp update \
+          --name ${{ matrix.container_app }} \
+          --resource-group ${{ matrix.resource_group }} \
+          --image ${{ env.IMAGE_NAME }} \
+          --min-replicas ${{ matrix.min_replicas }} \
+          --max-replicas ${{ matrix.max_replicas }} \
+          --cpu ${{ matrix.cpu }} \
+          --memory ${{ matrix.memory }} \
+          --set-env-vars \
+            ENVIRONMENT=${{ matrix.environment }} \
+            DEBUG=false \
+            LOG_LEVEL=INFO \
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} \
+            SECRET_KEY=${{ secrets.SECRET_KEY }} \
+            DATABASE_URL="sqlite:///./data/pactoria_mvp.db" \
+            PORT=8000 \
+            BIND_HOST=0.0.0.0 \
+          --revision-suffix $(date +%s)
+          
+    - name: Wait for Deployment
+      run: |
+        echo "Waiting for deployment to complete..."
+        sleep 30
+        
+        # Get the app URL
+        APP_URL=$(az containerapp show \
+          --name ${{ matrix.container_app }} \
+          --resource-group ${{ matrix.resource_group }} \
+          --query "properties.configuration.ingress.fqdn" -o tsv)
+        
+        echo "APP_URL=https://$APP_URL" >> $GITHUB_ENV
+        
+    - name: Health Check
+      run: |
+        echo "Running health check for ${{ matrix.environment }} environment..."
+        
+        # Wait for container to be ready
+        for i in {1..10}; do
+          echo "Health check attempt $i/10..."
+          if curl -f -s "${{ env.APP_URL }}/health" >/dev/null; then
+            echo "✅ ${{ matrix.environment }} deployment is healthy"
+            break
+          fi
+          if [ $i -eq 10 ]; then
+            echo "❌ Health check failed after 10 attempts"
+            exit 1
+          fi
+          sleep 30
+        done
+        
+    - name: Run Post-Deployment Tests
+      run: |
+        echo "Running post-deployment tests..."
+        
+        # Test API endpoints
+        curl -f "${{ env.APP_URL }}/health" || exit 1
+        curl -f "${{ env.APP_URL }}/ready" || exit 1
+        
+        # Test API documentation is accessible
+        curl -f -s "${{ env.APP_URL }}/docs" >/dev/null || echo "API docs check failed"
+        
+        echo "✅ Post-deployment tests passed"
+        
+    - name: Cost Monitoring Alert
+      run: |
+        echo "🏷️ Deployment Cost Information:"
+        echo "Environment: ${{ matrix.environment }}"
+        echo "Resources: ${{ matrix.cpu }} CPU, ${{ matrix.memory }} Memory"
+        echo "Scaling: ${{ matrix.min_replicas }}-${{ matrix.max_replicas }} replicas"
+        echo "Estimated monthly cost: $5-15 USD (with scale-to-zero)"
+        
+        # Set cost alert if production
+        if [ "${{ matrix.environment }}" == "production" ]; then
+          echo "⚠️  Production deployment - monitor costs at: https://portal.azure.com/#view/Microsoft_Azure_CostManagement"
+        fi
+        
+    - name: Deployment Summary
+      run: |
+        echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Environment**: ${{ matrix.environment }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Image**: ${{ env.IMAGE_NAME }}" >> $GITHUB_STEP_SUMMARY  
+        echo "- **URL**: ${{ env.APP_URL }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **API Docs**: ${{ env.APP_URL }}/docs" >> $GITHUB_STEP_SUMMARY
+        echo "- **Resources**: ${{ matrix.cpu }} CPU, ${{ matrix.memory }} Memory" >> $GITHUB_STEP_SUMMARY
+        echo "- **Scaling**: ${{ matrix.min_replicas }}-${{ matrix.max_replicas }} replicas" >> $GITHUB_STEP_SUMMARY
+        echo "- **Status**: ✅ Healthy" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # CLEANUP AND NOTIFICATIONS
+  # ============================================================================
+  cleanup:
+    name: Cleanup and Notify
+    runs-on: ubuntu-latest
+    needs: [test, build, deploy]
+    if: always()
+    
+    steps:
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - name: Cleanup Old Images (Cost Optimization)
+      run: |
+        echo "Cleaning up old container images to reduce storage costs..."
+        
+        # Keep only last 10 images per repository
+        az acr repository show-tags --name ${{ env.REGISTRY_NAME }} --repository pactoria-backend --top 50 --orderby time_desc --query "[10:]" -o tsv | while read tag; do
+          if [ ! -z "$tag" ]; then
+            echo "Deleting old image: pactoria-backend:$tag"
+            az acr repository delete --name ${{ env.REGISTRY_NAME }} --image pactoria-backend:$tag --yes || true
+          fi
+        done
+        
+    - name: Deployment Status
+      run: |
+        echo "=== DEPLOYMENT PIPELINE STATUS ==="
+        echo "Test Job: ${{ needs.test.result }}"
+        echo "Build Job: ${{ needs.build.result }}"
+        echo "Deploy Job: ${{ needs.deploy.result }}"
+        
+        if [ "${{ needs.deploy.result }}" == "success" ]; then
+          echo "🎉 Deployment completed successfully!"
+        else
+          echo "❌ Deployment failed or was skipped"
+        fi

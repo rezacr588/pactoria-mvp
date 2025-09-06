@@ -1,4 +1,4 @@
-name: Simplified Pactoria Deployment
+name: Simplified Pactoria Deployment (DEPRECATED - Use ci-cd-*.yml workflows)
 
 on:
   push:
