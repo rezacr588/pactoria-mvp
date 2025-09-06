@@ -193,37 +193,33 @@ jobs:
       matrix:
         include:
           - environment: development
-            condition: ${{ github.ref == 'refs/heads/develop' || inputs.environment == 'development' }}
-            resource_group: ${{ env.DEV_RESOURCE_GROUP }}
-            container_app: ${{ env.DEV_CONTAINER_APP }}
-            app_env: ${{ env.DEV_ENVIRONMENT }}
+            resource_group: 'pactoria-dev-rg'
+            container_app: 'pactoria-backend-dev'
+            app_env: 'pactoria-dev-env'
             min_replicas: 0
             max_replicas: 1
             cpu: 0.25
             memory: 0.5Gi
             
           - environment: staging
-            condition: ${{ github.ref == 'refs/heads/main' && github.event_name == 'pull_request' || inputs.environment == 'staging' }}
-            resource_group: ${{ env.STAGING_RESOURCE_GROUP }}
-            container_app: ${{ env.STAGING_CONTAINER_APP }}
-            app_env: ${{ env.STAGING_ENVIRONMENT }}
+            resource_group: 'pactoria-staging-rg'
+            container_app: 'pactoria-backend-staging'
+            app_env: 'pactoria-staging-env'
             min_replicas: 0
             max_replicas: 2
             cpu: 0.5
             memory: 1Gi
             
           - environment: production
-            condition: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' || inputs.environment == 'production' }}
-            resource_group: ${{ env.PROD_RESOURCE_GROUP }}
-            container_app: ${{ env.PROD_CONTAINER_APP }}
-            app_env: ${{ env.PROD_ENVIRONMENT }}
+            resource_group: 'pactoria-rg'
+            container_app: 'pactoria-backend'
+            app_env: 'pactoria-env'
             min_replicas: 0
             max_replicas: 3
             cpu: 0.25
             memory: 0.5Gi
     
     environment: ${{ matrix.environment }}
-    if: ${{ matrix.condition }}
     
     steps:
     - name: Checkout Code

@@ -136,25 +136,21 @@ jobs:
       matrix:
         include:
           - environment: development
-            condition: ${{ github.ref == 'refs/heads/develop' || inputs.environment == 'development' }}
-            static_app_name: ${{ env.DEV_STATIC_APP_NAME }}
-            backend_url: ${{ env.DEV_BACKEND_URL }}
+            static_app_name: 'pactoria-frontend-dev'
+            backend_url: 'https://pactoria-backend-dev.azurecontainerapps.io'
             api_token_secret: AZURE_STATIC_WEB_APPS_API_TOKEN_DEV
             
           - environment: staging
-            condition: ${{ github.ref == 'refs/heads/main' && github.event_name == 'pull_request' || inputs.environment == 'staging' }}
-            static_app_name: ${{ env.STAGING_STATIC_APP_NAME }}
-            backend_url: ${{ env.STAGING_BACKEND_URL }}
+            static_app_name: 'pactoria-frontend-staging'
+            backend_url: 'https://pactoria-backend-staging.azurecontainerapps.io'
             api_token_secret: AZURE_STATIC_WEB_APPS_API_TOKEN_STAGING
             
           - environment: production
-            condition: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' || inputs.environment == 'production' }}
-            static_app_name: ${{ env.PROD_STATIC_APP_NAME }}
-            backend_url: ${{ env.PROD_BACKEND_URL }}
+            static_app_name: 'pactoria-frontend'
+            backend_url: 'https://pactoria-backend.azurecontainerapps.io'
             api_token_secret: AZURE_STATIC_WEB_APPS_API_TOKEN
     
     environment: ${{ matrix.environment }}
-    if: ${{ matrix.condition }}
     
     steps:
     - name: Checkout Code
