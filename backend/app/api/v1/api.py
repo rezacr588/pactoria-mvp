@@ -2,6 +2,7 @@
 Main API router for Pactoria MVP v1
 Combines all endpoint routers
 """
+
 from fastapi import APIRouter
 
 from app.api.v1.auth import router as auth_router

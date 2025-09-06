@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  ArrowDownTrayIcon,
   ClockIcon,
   DocumentTextIcon,
   ShieldCheckIcon,
@@ -8,20 +7,12 @@ import {
   CheckCircleIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
-  EyeIcon,
 } from '@heroicons/react/24/outline';
-import { Card, CardHeader, CardTitle, CardContent, Button, Select } from '../components/ui';
+import { Card, CardHeader, CardTitle, CardContent, Button } from '../components/ui';
 import { classNames } from '../utils/classNames';
 import { AnalyticsService } from '../services/api';
 import { getErrorMessage } from '../utils/errorHandling';
 import { useToast } from '../contexts/ToastContext';
-
-const timeRangeOptions = [
-  { value: '7d', label: 'Last 7 days' },
-  { value: '30d', label: 'Last 30 days' },
-  { value: '90d', label: 'Last 3 months' },
-  { value: '1y', label: 'Last year' },
-];
 
 
 
@@ -53,7 +44,6 @@ export default function AnalyticsPage() {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [timeRange, setTimeRange] = useState('30d');
 
   // Fetch dashboard analytics
   const fetchDashboardData = useCallback(async () => {
@@ -74,35 +64,6 @@ export default function AnalyticsPage() {
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
-
-
-  const handleExportReport = useCallback(async () => {
-    if (!dashboardData) return;
-    
-    try {
-      const reportData = {
-        business_metrics: dashboardData.business_metrics,
-        user_metrics: dashboardData.user_metrics,
-        contract_types: dashboardData.contract_types,
-        compliance_metrics: dashboardData.compliance_metrics,
-        summary: dashboardData.summary,
-        generated_at: new Date().toISOString()
-      };
-      
-      const jsonData = JSON.stringify(reportData, null, 2);
-      const blob = new Blob([jsonData], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `pactoria-analytics-${new Date().toISOString().split('T')[0]}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-      
-      showToast('Analytics report exported successfully', 'success');
-    } catch (err) {
-      showToast('Failed to export analytics report', 'error');
-    }
-  }, [dashboardData, showToast]);
 
   if (isLoading) {
     return (
@@ -267,25 +228,10 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Analytics & Reports</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Contract Overview</h1>
           <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">
-            Track contract performance, compliance metrics, and business insights
+            Monitor your UK contracts and compliance status
           </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            options={timeRangeOptions}
-          />
-          <Button
-            variant="secondary"
-            icon={<ArrowDownTrayIcon className="h-4 w-4" />}
-            onClick={handleExportReport}
-            disabled={!dashboardData}
-          >
-            Export Report
-          </Button>
         </div>
       </div>
 
@@ -317,11 +263,11 @@ export default function AnalyticsPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Contract Types Distribution */}
-        <Card variant="bordered" className="lg:col-span-2">
+        <Card variant="bordered">
           <CardHeader>
-            <CardTitle>Contracts by Type</CardTitle>
+            <CardTitle>UK Contract Types</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -344,7 +290,7 @@ export default function AnalyticsPage() {
         {/* Risk Analysis */}
         <Card variant="bordered">
           <CardHeader>
-            <CardTitle>Risk Analysis</CardTitle>
+            <CardTitle>Risk Assessment (1-10 Scale)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -353,19 +299,19 @@ export default function AnalyticsPage() {
                   <span className={classNames('text-sm font-medium', risk.color)}>{risk.level}</span>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-900">{risk.count}</span>
-                    <span className="text-xs text-gray-500">({risk.percentage}%)</span>
+                    <span className="text-xs text-gray-500">({risk.percentage.toFixed(0)}%)</span>
                   </div>
                 </div>
               ))}
             </div>
             {riskAnalysis.find(r => r.level === 'High Risk')?.count > 0 && (
-              <div className="mt-6 p-3 bg-blue-50 rounded-lg">
+              <div className="mt-6 p-3 bg-amber-50 rounded-lg border border-amber-200">
                 <div className="flex items-start space-x-2">
-                  <ExclamationTriangleIcon className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <ExclamationTriangleIcon className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-xs font-medium text-blue-800">Risk Insight</p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      {riskAnalysis.find(r => r.level === 'High Risk')?.count} high-risk contracts need attention. Review recommendations in the compliance section.
+                    <p className="text-xs font-medium text-amber-800">UK Compliance Alert</p>
+                    <p className="text-xs text-amber-700 mt-1">
+                      {riskAnalysis.find(r => r.level === 'High Risk')?.count} contracts require review for UK legal compliance.
                     </p>
                   </div>
                 </div>
@@ -418,81 +364,43 @@ export default function AnalyticsPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Monthly Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+        {/* UK Compliance Quick Actions */}
         <Card variant="bordered">
           <CardHeader>
-            <CardTitle>Monthly Activity Trend</CardTitle>
+            <CardTitle>Quick Actions for UK SMEs</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between text-sm text-gray-500 mb-4">
-                <span>Contracts Created</span>
-                <span>Avg. Compliance</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center space-x-3">
+                  <DocumentTextIcon className="h-8 w-8 text-blue-600" />
+                  <div>
+                    <h4 className="font-medium text-blue-900">Create Contract</h4>
+                    <p className="text-sm text-blue-700">Generate UK-compliant contracts</p>
+                  </div>
+                </div>
               </div>
-              {monthlyActivity.map((month: any) => (
-                <div key={month.month} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 flex-1">
-                    <span className="text-sm font-medium text-gray-900 w-8">{month.month}</span>
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-primary-600 h-2 rounded-full"
-                        style={{ width: `${(month.contracts / 35) * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-sm text-gray-900 w-8">{month.contracts}</span>
-                  </div>
-                  <div className="ml-6">
-                    <span className={classNames(
-                      'text-sm font-medium',
-                      getStatusColor(getComplianceStatus(month.compliance))
-                    )}>
-                      {month.compliance}%
-                    </span>
+              
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-center space-x-3">
+                  <ShieldCheckIcon className="h-8 w-8 text-green-600" />
+                  <div>
+                    <h4 className="font-medium text-green-900">Check Compliance</h4>
+                    <p className="text-sm text-green-700">Review UK legal requirements</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Upcoming Deadlines */}
-        <Card variant="bordered">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Upcoming Deadlines</CardTitle>
-              <Button variant="ghost" size="sm" icon={<EyeIcon className="h-4 w-4" />}>
-                View All
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {upcomingDeadlines.map((deadline, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className={classNames(
-                      'w-2 h-2 rounded-full',
-                      deadline.daysLeft <= 7 ? 'bg-red-500' : deadline.daysLeft <= 15 ? 'bg-yellow-500' : 'bg-green-500'
-                    )} />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 truncate max-w-40">
-                        {deadline.contract}
-                      </p>
-                      <p className="text-xs text-gray-500">{deadline.type}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className={classNames(
-                      'text-xs font-medium',
-                      deadline.daysLeft <= 7 ? 'text-red-600' : deadline.daysLeft <= 15 ? 'text-yellow-600' : 'text-green-600'
-                    )}>
-                      {deadline.daysLeft} days
-                    </p>
-                    <p className="text-xs text-gray-500">{new Date(deadline.date).toLocaleDateString()}</p>
+              </div>
+              
+              <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                <div className="flex items-center space-x-3">
+                  <ClockIcon className="h-8 w-8 text-amber-600" />
+                  <div>
+                    <h4 className="font-medium text-amber-900">Review Deadlines</h4>
+                    <p className="text-sm text-amber-700">Track important dates</p>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
           </CardContent>
         </Card>

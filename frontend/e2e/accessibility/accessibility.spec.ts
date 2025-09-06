@@ -40,7 +40,7 @@ test.describe('Accessibility Tests', () => {
       
       // Tab through interactive elements
       await page.keyboard.press('Tab');
-      let focusedElement = await page.locator(':focus').getAttribute('role');
+      const focusedElement = await page.locator(':focus').getAttribute('role');
       expect(focusedElement || 'link').toBeTruthy();
       
       // Skip links should be first

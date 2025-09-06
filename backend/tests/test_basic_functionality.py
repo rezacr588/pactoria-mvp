@@ -2,6 +2,7 @@
 Basic Functionality Tests for Pactoria MVP Backend
 Tests the core API endpoints to ensure they work correctly
 """
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -30,19 +31,19 @@ class TestBasicEndpoints:
         response = client.get("/api/v1/status/")
         assert response.status_code == 200
         data = response.json()
-        
+
         assert data["status"] == "operational"
         assert "features" in data
         assert "core_capabilities" in data
-        
+
         # Check required features exist
         required_features = [
             "contract_generation",
-            "uk_legal_compliance", 
+            "uk_legal_compliance",
             "document_management",
-            "user_authentication"
+            "user_authentication",
         ]
-        
+
         for feature in required_features:
             assert feature in data["features"]
             assert data["features"][feature] is True
@@ -52,7 +53,7 @@ class TestBasicEndpoints:
         response = client.get("/api/v1/status/features")
         assert response.status_code == 200
         data = response.json()
-        
+
         # Check main feature categories exist
         assert "authentication" in data
         assert "contracts" in data
@@ -66,17 +67,18 @@ class TestAuthentication:
     def test_user_registration(self, client, test_database):
         """Test user can register successfully"""
         import uuid
+
         unique_email = f"testuser-{uuid.uuid4().hex[:8]}@example.com"
         user_data = {
             "email": unique_email,
             "password": "TestPassword123!",
             "full_name": "Test User",
-            "company_name": "Test Company"
+            "company_name": "Test Company",
         }
-        
+
         response = client.post("/api/v1/auth/register", json=user_data)
         assert response.status_code == 201
-        
+
         data = response.json()
         assert "token" in data
         assert "user" in data
@@ -86,35 +88,30 @@ class TestAuthentication:
         """Test user can login with valid credentials"""
         # First register a user
         import uuid
+
         unique_email = f"logintest-{uuid.uuid4().hex[:8]}@example.com"
         user_data = {
             "email": unique_email,
             "password": "TestPassword123!",
             "full_name": "Login Test User",
-            "company_name": "Login Test Company"
+            "company_name": "Login Test Company",
         }
         client.post("/api/v1/auth/register", json=user_data)
-        
+
         # Then try to login
-        login_data = {
-            "email": unique_email,
-            "password": "TestPassword123!"
-        }
-        
+        login_data = {"email": unique_email, "password": "TestPassword123!"}
+
         response = client.post("/api/v1/auth/login", json=login_data)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "token" in data
         assert "user" in data
 
     def test_user_login_with_invalid_credentials(self):
         """Test login fails with invalid credentials"""
-        login_data = {
-            "email": "nonexistent@example.com",
-            "password": "wrongpassword"
-        }
-        
+        login_data = {"email": "nonexistent@example.com", "password": "wrongpassword"}
+
         response = client.post("/api/v1/auth/login", json=login_data)
         assert response.status_code == 401
 
@@ -127,21 +124,22 @@ class TestAuthentication:
         """Test protected endpoints work with valid authentication"""
         # Register and get token
         import uuid
+
         unique_email = f"authtest-{uuid.uuid4().hex[:8]}@example.com"
         user_data = {
             "email": unique_email,
             "password": "TestPassword123!",
             "full_name": "Auth Test User",
-            "company_name": "Auth Test Company"
+            "company_name": "Auth Test Company",
         }
         response = client.post("/api/v1/auth/register", json=user_data)
         token = response.json()["token"]["access_token"]
-        
+
         # Use token to access protected endpoint
         headers = {"Authorization": f"Bearer {token}"}
         response = client.get("/api/v1/auth/me", headers=headers)
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["email"] == unique_email
 
@@ -153,13 +151,13 @@ class TestTemplates:
         """Test listing available templates"""
         response = client.get("/api/v1/contracts/templates/")
         assert response.status_code == 200
-        
+
         templates = response.json()
         assert isinstance(templates, list)
-        
+
         # Should have 20+ UK templates as per MVP requirements
         assert len(templates) >= 20
-        
+
         # Check template structure
         if templates:
             template = templates[0]
@@ -170,12 +168,14 @@ class TestTemplates:
 
     def test_filter_templates_by_type(self, client, test_database):
         """Test filtering templates by contract type"""
-        response = client.get("/api/v1/contracts/templates/?contract_type=service_agreement")
+        response = client.get(
+            "/api/v1/contracts/templates/?contract_type=service_agreement"
+        )
         assert response.status_code == 200
-        
+
         templates = response.json()
         assert isinstance(templates, list)
-        
+
         # All returned templates should be service agreements
         for template in templates:
             assert template["contract_type"] == "service_agreement"
@@ -188,12 +188,13 @@ class TestContracts:
     def authenticated_user(self, client, test_database):
         """Create an authenticated user for contract tests"""
         import uuid
+
         unique_email = f"contracttest-{uuid.uuid4().hex[:8]}@example.com"
         user_data = {
-            "email": unique_email, 
+            "email": unique_email,
             "password": "TestPassword123!",
             "full_name": "Contract Test User",
-            "company_name": "Test Company"
+            "company_name": "Test Company",
         }
         response = client.post("/api/v1/auth/register", json=user_data)
         token = response.json()["token"]["access_token"]
@@ -208,12 +209,16 @@ class TestContracts:
             "plain_english_input": "I need a contract for web design services",
             "client_name": "Test Client",
             "contract_value": 5000.0,
-            "currency": "GBP"
+            "currency": "GBP",
         }
-        
-        response = client.post("/api/v1/contracts/", json=contract_data, headers=authenticated_user["headers"])
+
+        response = client.post(
+            "/api/v1/contracts/",
+            json=contract_data,
+            headers=authenticated_user["headers"],
+        )
         assert response.status_code == 201
-        
+
         data = response.json()
         assert data["title"] == contract_data["title"]
         assert data["contract_type"] == contract_data["contract_type"]
@@ -224,15 +229,21 @@ class TestContracts:
         # First create a contract
         contract_data = {
             "title": "Test Contract for Listing",
-            "contract_type": "service_agreement", 
-            "plain_english_input": "Test contract for listing"
+            "contract_type": "service_agreement",
+            "plain_english_input": "Test contract for listing",
         }
-        client.post("/api/v1/contracts/", json=contract_data, headers=authenticated_user["headers"])
-        
+        client.post(
+            "/api/v1/contracts/",
+            json=contract_data,
+            headers=authenticated_user["headers"],
+        )
+
         # Then list contracts
-        response = client.get("/api/v1/contracts/", headers=authenticated_user["headers"])
+        response = client.get(
+            "/api/v1/contracts/", headers=authenticated_user["headers"]
+        )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "contracts" in data
         assert "total" in data
@@ -244,15 +255,21 @@ class TestContracts:
         contract_data = {
             "title": "Test Contract for Retrieval",
             "contract_type": "service_agreement",
-            "plain_english_input": "Test contract for retrieval"
+            "plain_english_input": "Test contract for retrieval",
         }
-        create_response = client.post("/api/v1/contracts/", json=contract_data, headers=authenticated_user["headers"])
+        create_response = client.post(
+            "/api/v1/contracts/",
+            json=contract_data,
+            headers=authenticated_user["headers"],
+        )
         contract_id = create_response.json()["id"]
-        
+
         # Retrieve the contract
-        response = client.get(f"/api/v1/contracts/{contract_id}", headers=authenticated_user["headers"])
+        response = client.get(
+            f"/api/v1/contracts/{contract_id}", headers=authenticated_user["headers"]
+        )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["id"] == contract_id
         assert data["title"] == contract_data["title"]
@@ -263,20 +280,25 @@ class TestContracts:
         contract_data = {
             "title": "Original Title",
             "contract_type": "service_agreement",
-            "plain_english_input": "Original description"
+            "plain_english_input": "Original description",
         }
-        create_response = client.post("/api/v1/contracts/", json=contract_data, headers=authenticated_user["headers"])
+        create_response = client.post(
+            "/api/v1/contracts/",
+            json=contract_data,
+            headers=authenticated_user["headers"],
+        )
         contract_id = create_response.json()["id"]
-        
+
         # Update the contract
-        update_data = {
-            "title": "Updated Title",
-            "status": "active"
-        }
-        
-        response = client.put(f"/api/v1/contracts/{contract_id}", json=update_data, headers=authenticated_user["headers"])
+        update_data = {"title": "Updated Title", "status": "active"}
+
+        response = client.put(
+            f"/api/v1/contracts/{contract_id}",
+            json=update_data,
+            headers=authenticated_user["headers"],
+        )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["title"] == "Updated Title"
         assert data["status"] == "active"
@@ -284,17 +306,18 @@ class TestContracts:
 
 class TestAnalytics:
     """Test analytics endpoints"""
-    
+
     @pytest.fixture
     def authenticated_analytics_user(self, client, test_database):
         """Setup authenticated user for analytics tests"""
         import uuid
+
         unique_email = f"analyticstest-{uuid.uuid4().hex[:8]}@example.com"
         user_data = {
             "email": unique_email,
-            "password": "TestPassword123!", 
+            "password": "TestPassword123!",
             "full_name": "Analytics Test User",
-            "company_name": "Analytics Test Company"
+            "company_name": "Analytics Test Company",
         }
         response = client.post("/api/v1/auth/register", json=user_data)
         token = response.json()["token"]["access_token"]
@@ -303,9 +326,12 @@ class TestAnalytics:
 
     def test_business_metrics(self, client, authenticated_analytics_user):
         """Test business metrics endpoint"""
-        response = client.get("/api/v1/analytics/business", headers=authenticated_analytics_user["headers"])
+        response = client.get(
+            "/api/v1/analytics/business",
+            headers=authenticated_analytics_user["headers"],
+        )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "total_contracts" in data
         assert "active_contracts" in data
@@ -314,9 +340,11 @@ class TestAnalytics:
 
     def test_user_metrics(self, client, authenticated_analytics_user):
         """Test user metrics endpoint"""
-        response = client.get("/api/v1/analytics/users", headers=authenticated_analytics_user["headers"])
+        response = client.get(
+            "/api/v1/analytics/users", headers=authenticated_analytics_user["headers"]
+        )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "total_users" in data
         assert "active_users_30d" in data
@@ -324,12 +352,15 @@ class TestAnalytics:
 
     def test_contract_type_metrics(self, client, authenticated_analytics_user):
         """Test contract type distribution metrics"""
-        response = client.get("/api/v1/analytics/contract-types", headers=authenticated_analytics_user["headers"])
+        response = client.get(
+            "/api/v1/analytics/contract-types",
+            headers=authenticated_analytics_user["headers"],
+        )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert isinstance(data, list)
-        
+
         # Check structure if data exists
         if data:
             metric = data[0]

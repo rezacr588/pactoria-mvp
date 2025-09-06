@@ -2,8 +2,9 @@
 Contract schemas for Pactoria MVP
 Pydantic models for contract requests and responses
 """
+
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict
 from datetime import datetime
 
 # Import domain enums as the single source of truth
@@ -16,66 +17,61 @@ ContractStatusEnum = ContractStatus
 
 class ContractCreate(BaseModel):
     """Contract creation request"""
+
     title: str = Field(
-        ..., 
-        min_length=1, 
+        ...,
+        min_length=1,
         max_length=200,
         description="Contract title or name",
-        example="Professional Software Development Services Agreement"
+        example="Professional Software Development Services Agreement",
     )
     contract_type: ContractTypeEnum = Field(
         ...,
         description="Type of contract being created",
-        example=ContractTypeEnum.SERVICE_AGREEMENT
+        example=ContractTypeEnum.SERVICE_AGREEMENT,
     )
     plain_english_input: str = Field(
-        ..., 
+        ...,
         min_length=10,
         description="Plain English description of the contract requirements",
-        example="I need a service agreement for software development services. The project involves building a web application with React and Node.js. Payment should be monthly, with 30-day payment terms. The contract should include IP ownership clauses and confidentiality agreements. Work will be performed remotely with regular progress meetings."
+        example="I need a service agreement for software development services. The project involves building a web application with React and Node.js. Payment should be monthly, with 30-day payment terms. The contract should include IP ownership clauses and confidentiality agreements. Work will be performed remotely with regular progress meetings.",
     )
     client_name: Optional[str] = Field(
-        None, 
+        None,
         max_length=100,
         description="Name of the client or customer",
-        example="TechStart Ltd"
+        example="TechStart Ltd",
     )
     client_email: Optional[str] = Field(
         None,
         description="Client's email address for communication",
-        example="legal@techstart.co.uk"
+        example="legal@techstart.co.uk",
     )
     supplier_name: Optional[str] = Field(
-        None, 
+        None,
         max_length=100,
         description="Name of the supplier or service provider",
-        example="DevCorp Solutions Ltd"
+        example="DevCorp Solutions Ltd",
     )
     contract_value: Optional[float] = Field(
-        None, 
+        None,
         gt=0,
         description="Total contract value in specified currency",
-        example=75000.00
+        example=75000.00,
     )
     currency: str = Field(
-        default="GBP",
-        description="Currency code for contract value",
-        example="GBP"
+        default="GBP", description="Currency code for contract value", example="GBP"
     )
     start_date: Optional[datetime] = Field(
-        None,
-        description="Contract start date",
-        example="2024-02-01T00:00:00Z"
+        None, description="Contract start date", example="2024-02-01T00:00:00Z"
     )
     end_date: Optional[datetime] = Field(
-        None,
-        description="Contract end date",
-        example="2024-12-31T23:59:59Z"
+        None, description="Contract end date", example="2024-12-31T23:59:59Z"
     )
     template_id: Optional[str] = Field(
         None,
         description="ID of the template to use as a base for this contract",
-        example="template-service-agreement-uk"
+        example="template-service-agreement-uk",
     )
 
     class Config:
@@ -86,18 +82,19 @@ class ContractCreate(BaseModel):
                 "plain_english_input": "I need a comprehensive service agreement for ongoing software development work. The engagement involves full-stack web development using modern technologies. Payment terms should be monthly with 30-day payment periods. Include intellectual property clauses, confidentiality terms, and project milestone definitions.",
                 "client_name": "Innovation Tech Ltd",
                 "client_email": "contracts@innovationtech.co.uk",
-                "supplier_name": "Elite Development Ltd", 
+                "supplier_name": "Elite Development Ltd",
                 "contract_value": 125000.00,
                 "currency": "GBP",
                 "start_date": "2024-03-01T00:00:00Z",
                 "end_date": "2024-08-31T23:59:59Z",
-                "template_id": "service-agreement-tech-v2"
+                "template_id": "service-agreement-tech-v2",
             }
         }
 
 
 class ContractUpdate(BaseModel):
     """Contract update request"""
+
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     status: Optional[ContractStatusEnum] = None
     client_name: Optional[str] = Field(None, max_length=100)
@@ -112,11 +109,13 @@ class ContractUpdate(BaseModel):
 
 class ContractGenerate(BaseModel):
     """Contract AI generation request"""
+
     regenerate: bool = False
 
 
 class ContractResponse(BaseModel):
     """Contract response model"""
+
     id: str
     title: str
     contract_type: str
@@ -146,6 +145,7 @@ class ContractResponse(BaseModel):
 
 class ContractListResponse(BaseModel):
     """Contract list response"""
+
     contracts: List[ContractResponse]
     total: int
     page: int
@@ -155,6 +155,7 @@ class ContractListResponse(BaseModel):
 
 class AIGenerationResponse(BaseModel):
     """AI generation response"""
+
     id: str
     model_name: str
     model_version: Optional[str]
@@ -171,6 +172,7 @@ class AIGenerationResponse(BaseModel):
 
 class ComplianceScoreResponse(BaseModel):
     """Compliance score response"""
+
     id: str
     contract_id: str
     overall_score: float
@@ -190,6 +192,7 @@ class ComplianceScoreResponse(BaseModel):
 
 class ContractVersionResponse(BaseModel):
     """Contract version response"""
+
     id: str
     contract_id: str
     version_number: int
@@ -204,12 +207,14 @@ class ContractVersionResponse(BaseModel):
 
 class ContractAnalysisRequest(BaseModel):
     """Contract compliance analysis request"""
+
     contract_id: str
     force_reanalysis: bool = False
 
 
 class TemplateResponse(BaseModel):
     """Template response"""
+
     id: str
     name: str
     category: str
@@ -230,6 +235,7 @@ class TemplateResponse(BaseModel):
 
 class TemplateCreate(BaseModel):
     """Template creation request"""
+
     name: str = Field(..., min_length=1, max_length=200)
     category: str = Field(..., min_length=1, max_length=100)
     contract_type: ContractTypeEnum
@@ -243,6 +249,7 @@ class TemplateCreate(BaseModel):
 
 class TemplateUpdate(BaseModel):
     """Template update request"""
+
     name: Optional[str] = Field(None, min_length=1, max_length=200)
     category: Optional[str] = Field(None, min_length=1, max_length=100)
     description: Optional[str] = Field(None, min_length=10)
@@ -256,6 +263,7 @@ class TemplateUpdate(BaseModel):
 
 class TemplateListResponse(BaseModel):
     """Template list response"""
+
     templates: List[TemplateResponse]
     total: int
     page: int
@@ -265,6 +273,7 @@ class TemplateListResponse(BaseModel):
 
 class ContractSearchParams(BaseModel):
     """Contract search parameters"""
+
     query: Optional[str] = None
     contract_type: Optional[ContractTypeEnum] = None
     status: Optional[ContractStatusEnum] = None

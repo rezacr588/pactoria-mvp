@@ -2,6 +2,7 @@
 Health check endpoint for Pactoria MVP
 Optimized for Azure Container Apps monitoring
 """
+
 from fastapi import APIRouter, status
 from datetime import datetime
 from typing import Dict, Any
@@ -23,7 +24,7 @@ async def health_check() -> Dict[str, Any]:
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
         "service": settings.APP_NAME,
-        "version": settings.APP_VERSION
+        "version": settings.APP_VERSION,
     }
 
 
@@ -38,9 +39,9 @@ async def readiness_check() -> Dict[str, Any]:
         "timestamp": datetime.utcnow().isoformat(),
         "service": settings.APP_NAME,
         "version": settings.APP_VERSION,
-        "database": False
+        "database": False,
     }
-    
+
     # Check database connectivity
     try:
         with engine.connect() as conn:
@@ -50,7 +51,7 @@ async def readiness_check() -> Dict[str, Any]:
     except Exception as e:
         checks["database_error"] = str(e)
         checks["status"] = "unhealthy"
-    
+
     return checks
 
 
@@ -58,26 +59,27 @@ async def readiness_check() -> Dict[str, Any]:
 async def detailed_health_check() -> Dict[str, Any]:
     """Detailed health check with system status"""
     database_healthy = False
-    
+
     # Check database
     try:
         with engine.connect() as conn:
             result = conn.execute(text("SELECT 1"))
             if result.scalar() == 1:
                 database_healthy = True
-    except:
-        pass
-    
+    except Exception as e:
+        logger.warning(f"Database health check failed: {e}")
+        database_healthy = False
+
     return {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
-        "service": settings.APP_NAME, 
+        "service": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "environment": settings.ENVIRONMENT,
         "components": {
             "database": "healthy" if database_healthy else "unhealthy",
             "ai_service": "healthy",  # Could add Groq API check here
-            "authentication": "healthy"
+            "authentication": "healthy",
         },
-        "uptime": "running"
+        "uptime": "running",
     }

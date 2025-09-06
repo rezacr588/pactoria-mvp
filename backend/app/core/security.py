@@ -2,11 +2,11 @@
 Security utilities for Pactoria MVP
 JWT token management and password hashing
 """
-from datetime import datetime, timedelta
+
+from datetime import timedelta
 from typing import Optional, Union
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from fastapi import HTTPException, status
 from pydantic import ValidationError
 
 from app.core.config import settings
@@ -20,13 +20,15 @@ ALGORITHM = settings.JWT_ALGORITHM
 SECRET_KEY = settings.SECRET_KEY
 
 
-def create_access_token(subject: Union[str, int], expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(
+    subject: Union[str, int], expires_delta: Optional[timedelta] = None
+) -> str:
     """Create JWT access token"""
     if expires_delta:
         expire = get_current_utc() + expires_delta
     else:
         expire = get_current_utc() + timedelta(hours=settings.JWT_EXPIRATION_HOURS)
-    
+
     to_encode = {"exp": expire.timestamp(), "sub": str(subject)}
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -66,9 +68,9 @@ def create_password_reset_token(email: str) -> str:
     expires = now + delta
     exp = expires.timestamp()
     encoded_jwt = jwt.encode(
-        {"exp": exp, "sub": email, "type": "password_reset"}, 
-        SECRET_KEY, 
-        algorithm=ALGORITHM
+        {"exp": exp, "sub": email, "type": "password_reset"},
+        SECRET_KEY,
+        algorithm=ALGORITHM,
     )
     return encoded_jwt
 
@@ -88,6 +90,6 @@ def generate_secure_token(length: int = 32) -> str:
     """Generate secure random token for API keys, etc."""
     import secrets
     import string
-    
+
     alphabet = string.ascii_letters + string.digits
-    return ''.join(secrets.choice(alphabet) for _ in range(length))
+    return "".join(secrets.choice(alphabet) for _ in range(length))

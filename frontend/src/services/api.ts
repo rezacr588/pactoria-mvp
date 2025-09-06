@@ -5,10 +5,16 @@ import type {
   Notification,
   PaginatedNotificationResponse 
 } from '../types';
+import { env } from '../config/env';
 
-// Configuration from environment variables
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
-const DEBUG_API_CALLS = import.meta.env.VITE_DEBUG_API_CALLS === 'true';
+// Use centralized environment configuration
+const API_BASE_URL = env.get('API_URL');
+const DEBUG_API_CALLS = env.get('DEBUG_API_CALLS');
+
+// Connection status tracking
+let connectionStatus: 'connected' | 'disconnected' | 'error' = 'disconnected';
+let lastHealthCheck = 0;
+const HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
 
 // API Response type
 interface ApiResponse<T> {
@@ -52,16 +58,71 @@ function buildUrl(endpoint: string, params?: Record<string, any>): string {
   return url.toString();
 }
 
-// Main API request function
+// Health check function
+async function checkApiHealth(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/health`, { 
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(5000) // 5 second timeout
+    });
+    
+    if (response.ok) {
+      connectionStatus = 'connected';
+      lastHealthCheck = Date.now();
+      return true;
+    } else {
+      connectionStatus = 'error';
+      return false;
+    }
+  } catch (error) {
+    connectionStatus = 'error';
+    return false;
+  }
+}
+
+// Get connection status
+export function getConnectionStatus(): typeof connectionStatus {
+  return connectionStatus;
+}
+
+// Force health check
+export async function forceHealthCheck(): Promise<boolean> {
+  return await checkApiHealth();
+}
+
+// Automatic health check if needed
+async function ensureConnection(): Promise<void> {
+  const now = Date.now();
+  if (now - lastHealthCheck > HEALTH_CHECK_INTERVAL) {
+    await checkApiHealth();
+  }
+}
+
+// Main API request function with retry logic
 async function apiRequest<T>(
   endpoint: string,
   config: RequestConfig = {}
 ): Promise<T> {
   const { params, ...fetchConfig } = config;
+  const maxRetries = env.get('ERROR_RETRY_ATTEMPTS');
+  const retryDelay = env.get('ERROR_RETRY_DELAY');
   
-  // Get auth token from localStorage
-  const authStorage = localStorage.getItem('auth-storage');
-  const token = authStorage ? JSON.parse(authStorage).state?.token : null;
+  // Ensure connection before making request
+  await ensureConnection();
+  
+  // Get auth token - check both new and old storage locations
+  let token: string | null = null;
+  const tokenKey = env.get('TOKEN_STORAGE_KEY');
+  
+  // Try new token storage first
+  token = localStorage.getItem(tokenKey);
+  
+  // Fallback to Zustand storage for backward compatibility
+  if (!token) {
+    const authStorage = localStorage.getItem('auth-storage');
+    token = authStorage ? JSON.parse(authStorage).state?.token : null;
+  }
 
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
@@ -76,53 +137,90 @@ async function apiRequest<T>(
     },
   };
 
-  try {
-    const url = buildUrl(endpoint, params);
-    
-    // Debug logging
-    if (DEBUG_API_CALLS) {
-      console.log(`🌐 API Request: ${finalConfig.method || 'GET'} ${url}`, {
-        headers: finalConfig.headers,
-        body: finalConfig.body
-      });
-    }
-    
-    const response = await fetch(url, finalConfig);
+  let lastError: Error | null = null;
 
-    // Handle non-2xx responses
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new ApiError(
-        response.status,
-        errorData?.message || `HTTP error! status: ${response.status}`,
-        errorData
-      );
-    }
+  // Retry logic
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const url = buildUrl(endpoint, params);
+      
+      // Debug logging
+      if (DEBUG_API_CALLS) {
+        console.log(`🌐 API Request (Attempt ${attempt + 1}/${maxRetries + 1}): ${finalConfig.method || 'GET'} ${url}`, {
+          headers: finalConfig.headers,
+          body: finalConfig.body
+        });
+      }
+      
+      const response = await fetch(url, finalConfig);
 
-    // Handle 204 No Content
-    if (response.status === 204) {
-      return {} as T;
-    }
+      // Handle non-2xx responses
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        const apiError = new ApiError(
+          response.status,
+          errorData?.detail || errorData?.message || `HTTP error! status: ${response.status}`,
+          errorData
+        );
+        
+        // Don't retry on authentication errors or client errors (4xx except 408, 429)
+        if (response.status === 401 || response.status === 403 || 
+           (response.status >= 400 && response.status < 500 && response.status !== 408 && response.status !== 429)) {
+          throw apiError;
+        }
+        
+        lastError = apiError;
+        
+        // If this is our last attempt, throw the error
+        if (attempt === maxRetries) {
+          throw apiError;
+        }
+        
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, attempt)));
+        continue;
+      }
 
-    const data = await response.json();
-    
-    // Debug logging
-    if (DEBUG_API_CALLS) {
-      console.log(`✅ API Response: ${finalConfig.method || 'GET'} ${url}`, data);
+      // Handle 204 No Content
+      if (response.status === 204) {
+        connectionStatus = 'connected';
+        return {} as T;
+      }
+
+      const data = await response.json();
+      
+      // Debug logging
+      if (DEBUG_API_CALLS) {
+        console.log(`✅ API Response: ${finalConfig.method || 'GET'} ${url}`, data);
+      }
+      
+      connectionStatus = 'connected';
+      return data as T;
+      
+    } catch (error) {
+      lastError = error as Error;
+      
+      if (error instanceof ApiError) {
+        // Don't retry ApiErrors (already handled above)
+        throw error;
+      }
+      
+      // Network or other errors - retry
+      if (attempt === maxRetries) {
+        connectionStatus = 'error';
+        throw new ApiError(
+          0,
+          error instanceof Error ? error.message : 'An unexpected error occurred'
+        );
+      }
+      
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, attempt)));
     }
-    
-    return data as T;
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    }
-    
-    // Network or other errors
-    throw new ApiError(
-      0,
-      error instanceof Error ? error.message : 'An unexpected error occurred'
-    );
   }
+  
+  // This should never be reached, but just in case
+  throw lastError || new ApiError(0, 'Request failed after all retries');
 }
 
 // API methods
@@ -1024,10 +1122,17 @@ export class WebSocketService {
   private reconnectDelay = 1000;
   private messageHandlers: Map<string, (message: any) => void> = new Map();
   private connectionHandlers: Array<(connected: boolean) => void> = [];
+  private connectionId: string | null = null;
+  private heartbeatInterval: NodeJS.Timeout | null = null;
 
   connect(token: string) {
     try {
-      const wsUrl = `${API_BASE_URL.replace('http', 'ws')}/ws/connect?token=${encodeURIComponent(token)}`;
+      const wsUrl = `${env.get('WS_URL')}/connect?token=${encodeURIComponent(token)}`;
+      
+      if (DEBUG_API_CALLS) {
+        console.log('🔌 Connecting to WebSocket:', wsUrl);
+      }
+      
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {

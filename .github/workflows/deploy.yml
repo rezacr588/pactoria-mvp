@@ -9,6 +9,7 @@ env:
   RESOURCE_GROUP: 'pactoria-mvp-rg'
   CONTAINER_APP: 'pactoria-backend'
   LOCATION: 'eastus'
+  ACR_NAME: 'pactoriaacr'
 
 jobs:
   # Test and Deploy in single job for simplicity
@@ -41,11 +42,11 @@ jobs:
     - name: Build & Push Backend
       run: |
         # Login to ACR
-        az acr login --name pactoriaacr
+        az acr login --name ${{ env.ACR_NAME }}
         
         # Build and push Docker image
-        docker build -t pactoriaacr.azurecr.io/pactoria-backend:${{ github.sha }} ./backend
-        docker push pactoriaacr.azurecr.io/pactoria-backend:${{ github.sha }}
+        docker build -t ${{ env.ACR_NAME }}.azurecr.io/pactoria-backend:${{ github.sha }} ./backend
+        docker push ${{ env.ACR_NAME }}.azurecr.io/pactoria-backend:${{ github.sha }}
         
     # Deploy backend
     - name: Deploy Backend
@@ -53,32 +54,38 @@ jobs:
         az containerapp update \
           --name ${{ env.CONTAINER_APP }} \
           --resource-group ${{ env.RESOURCE_GROUP }} \
-          --image pactoriaacr.azurecr.io/pactoria-backend:${{ github.sha }} \
+          --image ${{ env.ACR_NAME }}.azurecr.io/pactoria-backend:${{ github.sha }} \
           --set-env-vars \
             GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}" \
             SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
             DATABASE_URL="sqlite:///./data/pactoria_mvp.db" \
             ENVIRONMENT="production" \
+            DEBUG="false" \
+            BIND_HOST="0.0.0.0" \
             PORT="8000" 2>/dev/null || \
         az containerapp create \
           --name ${{ env.CONTAINER_APP }} \
           --resource-group ${{ env.RESOURCE_GROUP }} \
           --environment pactoria-env \
-          --image pactoriaacr.azurecr.io/pactoria-backend:${{ github.sha }} \
+          --image ${{ env.ACR_NAME }}.azurecr.io/pactoria-backend:${{ github.sha }} \
           --target-port 8000 \
           --ingress external \
           --min-replicas 0 \
-          --max-replicas 1 \
+          --max-replicas 2 \
           --cpu 0.25 \
           --memory 0.5Gi \
-          --registry-server pactoriaacr.azurecr.io \
-          --registry-username pactoriaacr \
+          --registry-server ${{ env.ACR_NAME }}.azurecr.io \
+          --registry-username ${{ env.ACR_NAME }} \
           --registry-password "${{ secrets.ACR_PASSWORD }}" \
           --env-vars \
             GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}" \
             SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
             DATABASE_URL="sqlite:///./data/pactoria_mvp.db" \
             ENVIRONMENT="production" \
+            DEBUG="false" \
+            BIND_HOST="0.0.0.0" \
             PORT="8000"
         
     # Build and deploy frontend
@@ -90,14 +97,14 @@ jobs:
         action: 'upload'
         app_location: 'frontend'
         output_location: 'dist'
-        app_build_command: 'VITE_API_URL=https://pactoria-backend.ashyforest-7d7631da.eastus.azurecontainerapps.io/api/v1 npm run build'
+        app_build_command: 'VITE_API_URL=https://pactoria-backend.ashyforest-7d7631da.eastus.azurecontainerapps.io/api/v1 VITE_NODE_ENV=production npm run build'
         
     # Cleanup old images to save costs
     - name: Cleanup & Summary
       run: |
         # Clean old images (keep last 3)
-        az acr repository show-tags --name pactoriaacr --repository pactoria-backend --top 10 --orderby time_desc --query "[3:]" -o tsv | head -5 | while read tag; do
-          [ ! -z "$tag" ] && az acr repository delete --name pactoriaacr --image pactoria-backend:$tag --yes 2>/dev/null || true
+        az acr repository show-tags --name ${{ env.ACR_NAME }} --repository pactoria-backend --top 10 --orderby time_desc --query "[3:]" -o tsv | head -5 | while read tag; do
+          [ ! -z "$tag" ] && az acr repository delete --name ${{ env.ACR_NAME }} --image pactoria-backend:$tag --yes 2>/dev/null || true
         done
         
         # Summary

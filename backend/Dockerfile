@@ -21,7 +21,11 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser && \
 USER appuser
 
 # Environment variables for Container Apps
-ENV PYTHONUNBUFFERED=1 ENVIRONMENT=production
+ENV PYTHONUNBUFFERED=1 \
+    ENVIRONMENT=production \
+    DEBUG=false \
+    BIND_HOST=0.0.0.0 \
+    PORT=8000
 
 # Expose port
 EXPOSE 8000

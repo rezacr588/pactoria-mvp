@@ -2,12 +2,10 @@
 Template seeder for Pactoria MVP
 Seeds common UK contract templates into the database
 """
+
 import asyncio
 import logging
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, text
-from app.core.config import settings
-from app.core.database import get_db
 from app.infrastructure.database.models import Template, ContractType
 
 logger = logging.getLogger(__name__)
@@ -66,10 +64,10 @@ Date: ___________              Date: ___________""",
             "Working Time Regulations 1998",
             "UK GDPR compliance",
             "Equality Act 2010",
-            "Health and Safety at Work Act 1974"
+            "Health and Safety at Work Act 1974",
         ],
         "legal_notes": "This template complies with UK employment law requirements. Ensure job description and company handbook are referenced appropriately.",
-        "suitable_for": ["SME", "Startup", "Traditional business"]
+        "suitable_for": ["SME", "Startup", "Traditional business"],
     },
     {
         "name": "Service Agreement - Professional Services",
@@ -120,10 +118,15 @@ Date: ___________           Date: ___________""",
             "UK contract law compliance",
             "UK GDPR data protection",
             "Consumer Rights Act 2015",
-            "Late Payment Legislation"
+            "Late Payment Legislation",
         ],
         "legal_notes": "Suitable for consulting, design, development, and other professional services. Adjust liability clauses based on service risk level.",
-        "suitable_for": ["Consultants", "Freelancers", "Professional services", "Creative agencies"]
+        "suitable_for": [
+            "Consultants",
+            "Freelancers",
+            "Professional services",
+            "Creative agencies",
+        ],
     },
     {
         "name": "Non-Disclosure Agreement (NDA) - Mutual",
@@ -175,10 +178,10 @@ Date: ___________            Date: ___________""",
             "Trade secrets protection",
             "UK contract law",
             "Equitable remedies",
-            "Commercial confidentiality"
+            "Commercial confidentiality",
         ],
         "legal_notes": "Suitable for business discussions, partnerships, and due diligence. Consider specific carve-outs for particular industries.",
-        "suitable_for": ["Startups", "M&A", "Joint ventures", "Business partnerships"]
+        "suitable_for": ["Startups", "M&A", "Joint ventures", "Business partnerships"],
     },
     {
         "name": "Supplier/Vendor Agreement",
@@ -232,10 +235,10 @@ Date: ___________          Date: ___________""",
             "Supply of Goods and Services Act 1982",
             "Consumer Rights Act 2015",
             "UK GDPR compliance",
-            "Health and Safety regulations"
+            "Health and Safety regulations",
         ],
         "legal_notes": "Suitable for ongoing supplier relationships. Adjust terms based on goods/services complexity and value.",
-        "suitable_for": ["Manufacturing", "Retail", "Service businesses", "E-commerce"]
+        "suitable_for": ["Manufacturing", "Retail", "Service businesses", "E-commerce"],
     },
     {
         "name": "Website Terms and Conditions",
@@ -290,10 +293,10 @@ Last updated: {{last_updated}}""",
             "Consumer Rights Act 2015",
             "UK GDPR compliance",
             "Cookie Regulations",
-            "Distance Selling Regulations"
+            "Distance Selling Regulations",
         ],
         "legal_notes": "Essential for any UK business website. Must be easily accessible and clearly presented to users.",
-        "suitable_for": ["E-commerce", "SaaS", "Digital services", "Online businesses"]
+        "suitable_for": ["E-commerce", "SaaS", "Digital services", "Online businesses"],
     },
     {
         "name": "Consultancy Agreement - Fixed Term",
@@ -351,11 +354,16 @@ Date: ___________           Date: ___________""",
             "IR35 compliance considerations",
             "Professional indemnity requirements",
             "UK contract law",
-            "Self-employment regulations"
+            "Self-employment regulations",
         ],
         "legal_notes": "Consider IR35 implications for tax status. Ensure clear independence indicators are included.",
-        "suitable_for": ["Management consultants", "Technical specialists", "Interim managers", "Project consultants"]
-    }
+        "suitable_for": [
+            "Management consultants",
+            "Technical specialists",
+            "Interim managers",
+            "Project consultants",
+        ],
+    },
 ]
 
 
@@ -363,22 +371,24 @@ def seed_templates(db: Session):
     """Seed template data into the database"""
     try:
         logger.info("Starting template seeding...")
-        
+
         # Check if templates already exist
         existing_count = db.query(Template).count()
         if existing_count > 0:
-            logger.info(f"Templates already exist ({existing_count}). Skipping seeding.")
+            logger.info(
+                f"Templates already exist ({existing_count}). Skipping seeding."
+            )
             return
-        
+
         # Create templates
         for template_data in TEMPLATE_DATA:
             template = Template(**template_data)
             db.add(template)
             logger.debug(f"Added template: {template.name}")
-        
+
         db.commit()
         logger.info(f"Successfully seeded {len(TEMPLATE_DATA)} templates!")
-        
+
     except Exception as e:
         logger.error(f"Error seeding templates: {e}")
         db.rollback()
@@ -390,10 +400,10 @@ async def async_seed_templates():
     try:
         # Use the same engine and session as the main app
         from app.core.database import SessionLocal
-        
+
         with SessionLocal() as db:
             seed_templates(db)
-            
+
     except Exception as e:
         logger.error(f"Failed to seed templates: {e}")
         raise

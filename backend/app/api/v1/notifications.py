@@ -2,6 +2,7 @@
 Notifications API endpoints
 Provides notification management and real-time updates
 """
+
 from datetime import datetime, timedelta
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -16,7 +17,10 @@ router = APIRouter(prefix="/notifications", tags=["Notifications"])
 # Request/Response Models
 class NotificationBase(BaseModel):
     """Base notification model"""
-    type: str = Field(description="Notification type: deadline, compliance, team, system, contract")
+
+    type: str = Field(
+        description="Notification type: deadline, compliance, team, system, contract"
+    )
     title: str
     message: str
     priority: str = Field(default="medium", description="Priority: low, medium, high")
@@ -25,6 +29,7 @@ class NotificationBase(BaseModel):
 
 class NotificationCreate(NotificationBase):
     """Notification creation model"""
+
     target_user_id: Optional[str] = None
     target_role: Optional[str] = None
     related_contract_id: Optional[str] = None
@@ -34,6 +39,7 @@ class NotificationCreate(NotificationBase):
 
 class Notification(NotificationBase):
     """Notification response model"""
+
     id: str
     read: bool = Field(default=False)
     timestamp: datetime
@@ -44,11 +50,13 @@ class Notification(NotificationBase):
 
 class NotificationUpdate(BaseModel):
     """Notification update model"""
+
     read: Optional[bool] = None
 
 
 class NotificationStats(BaseModel):
     """Notification statistics"""
+
     total_notifications: int
     unread_count: int
     high_priority_count: int
@@ -59,6 +67,7 @@ class NotificationStats(BaseModel):
 
 class PaginatedNotificationResponse(BaseModel):
     """Paginated notifications response"""
+
     notifications: List[Notification]
     total: int
     unread_count: int
@@ -81,7 +90,7 @@ def get_mock_notifications(user_id: str) -> List[Notification]:
             read=False,
             timestamp=datetime.now() - timedelta(hours=2),
             user_id=user_id,
-            related_contract={"id": "1", "name": "Marketing Consultant Agreement"}
+            related_contract={"id": "1", "name": "Marketing Consultant Agreement"},
         ),
         Notification(
             id="2",
@@ -93,7 +102,7 @@ def get_mock_notifications(user_id: str) -> List[Notification]:
             read=False,
             timestamp=datetime.now() - timedelta(hours=6),
             user_id=user_id,
-            related_contract={"id": "2", "name": "Data Processing Agreement"}
+            related_contract={"id": "2", "name": "Data Processing Agreement"},
         ),
         Notification(
             id="3",
@@ -105,7 +114,7 @@ def get_mock_notifications(user_id: str) -> List[Notification]:
             read=True,
             timestamp=datetime.now() - timedelta(days=1),
             user_id=user_id,
-            related_contract={"id": "3", "name": "TechCorp Website Development"}
+            related_contract={"id": "3", "name": "TechCorp Website Development"},
         ),
         Notification(
             id="4",
@@ -116,7 +125,7 @@ def get_mock_notifications(user_id: str) -> List[Notification]:
             action_required=False,
             read=True,
             timestamp=datetime.now() - timedelta(days=2),
-            user_id=user_id
+            user_id=user_id,
         ),
         Notification(
             id="5",
@@ -127,8 +136,8 @@ def get_mock_notifications(user_id: str) -> List[Notification]:
             action_required=False,
             read=False,
             timestamp=datetime.now() - timedelta(days=3),
-            user_id=user_id
-        )
+            user_id=user_id,
+        ),
     ]
 
 
@@ -136,16 +145,20 @@ def get_mock_notifications(user_id: str) -> List[Notification]:
 async def get_notifications(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(50, ge=1, le=100, description="Page size"),
-    type_filter: Optional[str] = Query(None, alias="type", description="Filter by type"),
+    type_filter: Optional[str] = Query(
+        None, alias="type", description="Filter by type"
+    ),
     priority: Optional[str] = Query(None, description="Filter by priority"),
     read: Optional[bool] = Query(None, description="Filter by read status"),
-    action_required: Optional[bool] = Query(None, description="Filter by action required"),
+    action_required: Optional[bool] = Query(
+        None, description="Filter by action required"
+    ),
     search: Optional[str] = Query(None, description="Search in title and message"),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """
     Get notifications for the current user with filtering and pagination
-    
+
     Returns paginated notifications with filtering options for type, priority,
     read status, and action required status.
     """
@@ -153,77 +166,91 @@ async def get_notifications(
         # TODO: Implement actual database query
         # For now, return mock data
         notifications = get_mock_notifications(current_user.id)
-        
+
         # Apply filters
         filtered_notifications = notifications
-        
+
         if type_filter:
-            filtered_notifications = [n for n in filtered_notifications if n.type == type_filter]
-        
+            filtered_notifications = [
+                n for n in filtered_notifications if n.type == type_filter
+            ]
+
         if priority:
-            filtered_notifications = [n for n in filtered_notifications if n.priority == priority]
-        
+            filtered_notifications = [
+                n for n in filtered_notifications if n.priority == priority
+            ]
+
         if read is not None:
-            filtered_notifications = [n for n in filtered_notifications if n.read == read]
-        
+            filtered_notifications = [
+                n for n in filtered_notifications if n.read == read
+            ]
+
         if action_required is not None:
-            filtered_notifications = [n for n in filtered_notifications if n.action_required == action_required]
-        
+            filtered_notifications = [
+                n
+                for n in filtered_notifications
+                if n.action_required == action_required
+            ]
+
         if search:
             filtered_notifications = [
-                n for n in filtered_notifications
-                if search.lower() in n.title.lower() or search.lower() in n.message.lower()
+                n
+                for n in filtered_notifications
+                if search.lower() in n.title.lower()
+                or search.lower() in n.message.lower()
             ]
-        
+
         # Sort by timestamp (newest first)
         filtered_notifications.sort(key=lambda x: x.timestamp, reverse=True)
-        
+
         # Pagination
         total = len(filtered_notifications)
         unread_count = sum(1 for n in notifications if not n.read)
         start = (page - 1) * size
         end = start + size
         paginated_notifications = filtered_notifications[start:end]
-        
+
         return PaginatedNotificationResponse(
             notifications=paginated_notifications,
             total=total,
             unread_count=unread_count,
             page=page,
             size=size,
-            pages=(total + size - 1) // size
+            pages=(total + size - 1) // size,
         )
-    
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve notifications: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to retrieve notifications: {str(e)}"
+        )
 
 
 @router.get("/{notification_id}", response_model=Notification)
 async def get_notification(
-    notification_id: str,
-    current_user: User = Depends(get_current_user)
+    notification_id: str, current_user: User = Depends(get_current_user)
 ):
     """Get a specific notification by ID"""
     try:
         # TODO: Implement actual database query
         notifications = get_mock_notifications(current_user.id)
-        
+
         for notification in notifications:
             if notification.id == notification_id:
                 return notification
-        
+
         raise HTTPException(status_code=404, detail="Notification not found")
-    
+
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve notification: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to retrieve notification: {str(e)}"
+        )
 
 
 @router.put("/{notification_id}/read")
 async def mark_notification_as_read(
-    notification_id: str,
-    current_user: User = Depends(get_current_user)
+    notification_id: str, current_user: User = Depends(get_current_user)
 ):
     """Mark a specific notification as read"""
     try:
@@ -235,17 +262,19 @@ async def mark_notification_as_read(
                 "message": "Notification marked as read",
                 "notification_id": notification_id,
                 "read": True,
-                "updated_at": datetime.now()
-            }
+                "updated_at": datetime.now(),
+            },
         }
-    
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to mark notification as read: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to mark notification as read: {str(e)}"
+        )
 
 
 @router.put("/read-all")
 async def mark_all_notifications_as_read(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """Mark all notifications as read for the current user"""
     try:
@@ -256,18 +285,20 @@ async def mark_all_notifications_as_read(
             "data": {
                 "message": "All notifications marked as read",
                 "updated_count": 5,
-                "updated_at": datetime.now()
-            }
+                "updated_at": datetime.now(),
+            },
         }
-    
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to mark all notifications as read: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to mark all notifications as read: {str(e)}",
+        )
 
 
 @router.delete("/{notification_id}")
 async def delete_notification(
-    notification_id: str,
-    current_user: User = Depends(get_current_user)
+    notification_id: str, current_user: User = Depends(get_current_user)
 ):
     """Delete a specific notification"""
     try:
@@ -278,33 +309,35 @@ async def delete_notification(
             "data": {
                 "message": "Notification deleted successfully",
                 "notification_id": notification_id,
-                "deleted_at": datetime.now()
-            }
+                "deleted_at": datetime.now(),
+            },
         }
-    
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete notification: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to delete notification: {str(e)}"
+        )
 
 
 @router.get("/stats/summary", response_model=NotificationStats)
-async def get_notification_stats(
-    current_user: User = Depends(get_current_user)
-):
+async def get_notification_stats(current_user: User = Depends(get_current_user)):
     """Get notification statistics for the current user"""
     try:
         # TODO: Implement actual database queries
         # Mock implementation
         notifications = get_mock_notifications(current_user.id)
-        
+
         unread_count = sum(1 for n in notifications if not n.read)
         high_priority_count = sum(1 for n in notifications if n.priority == "high")
         action_required_count = sum(1 for n in notifications if n.action_required)
-        
+
         # Group by type
         notifications_by_type = {}
         for notification in notifications:
-            notifications_by_type[notification.type] = notifications_by_type.get(notification.type, 0) + 1
-        
+            notifications_by_type[notification.type] = (
+                notifications_by_type.get(notification.type, 0) + 1
+            )
+
         return NotificationStats(
             total_notifications=len(notifications),
             unread_count=unread_count,
@@ -315,28 +348,31 @@ async def get_notification_stats(
                 {
                     "type": "deadline",
                     "count": 2,
-                    "last_occurred": datetime.now() - timedelta(hours=2)
+                    "last_occurred": datetime.now() - timedelta(hours=2),
                 },
                 {
                     "type": "compliance",
                     "count": 1,
-                    "last_occurred": datetime.now() - timedelta(hours=6)
-                }
-            ]
+                    "last_occurred": datetime.now() - timedelta(hours=6),
+                },
+            ],
         )
-    
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve notification statistics: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve notification statistics: {str(e)}",
+        )
 
 
 @router.post("/", response_model=Notification)
 async def create_notification(
     notification_data: NotificationCreate,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """
     Create a new notification
-    
+
     This endpoint is typically used by system processes or admin users
     to create notifications for users.
     """
@@ -348,10 +384,12 @@ async def create_notification(
             **notification_data.dict(),
             read=False,
             timestamp=datetime.now(),
-            user_id=notification_data.target_user_id or current_user.id
+            user_id=notification_data.target_user_id or current_user.id,
         )
-        
+
         return new_notification
-    
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create notification: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to create notification: {str(e)}"
+        )

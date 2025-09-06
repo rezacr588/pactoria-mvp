@@ -275,16 +275,10 @@ export default function TemplatesPage() {
         </div>
         <div className="flex items-center gap-3">
           <Button
-            variant="secondary"
+            variant="primary"
             icon={<DocumentTextIcon className="h-4 w-4" />}
           >
             Request Template
-          </Button>
-          <Button
-            variant="primary"
-            icon={<PlusIcon className="h-4 w-4" />}
-          >
-            Create Custom
           </Button>
         </div>
       </div>
@@ -526,7 +520,7 @@ export default function TemplatesPage() {
                       icon={<DocumentDuplicateIcon className="h-4 w-4" />}
                       onClick={() => {
                         // Navigate to contract creation with this template
-                        window.location.href = `/contracts/create?template=${template.id}`;
+                        window.location.href = `/contracts/new?template=${template.id}`;
                       }}
                     >
                       Use Template
@@ -541,17 +535,6 @@ export default function TemplatesPage() {
                       }}
                     >
                       Preview
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      icon={<PencilIcon className="h-4 w-4" />}
-                      onClick={() => {
-                        // Navigate to template editor (admin only)
-                        console.log('Edit template:', template.id);
-                      }}
-                    >
-                      Edit
                     </Button>
                   </div>
                 </div>

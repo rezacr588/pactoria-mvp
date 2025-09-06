@@ -2,6 +2,7 @@
 Security schemas for Pactoria MVP
 Pydantic models for security and compliance requests and responses
 """
+
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 from datetime import datetime
@@ -10,6 +11,7 @@ from enum import Enum
 
 class SecurityEventType(str, Enum):
     """Security event type enumeration"""
+
     SUSPICIOUS_REQUEST = "suspicious_request"
     RATE_LIMIT_EXCEEDED = "rate_limit_exceeded"
     POTENTIAL_BRUTE_FORCE = "potential_brute_force"
@@ -21,6 +23,7 @@ class SecurityEventType(str, Enum):
 
 class SecuritySeverity(str, Enum):
     """Security severity enumeration"""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -29,6 +32,7 @@ class SecuritySeverity(str, Enum):
 
 class SecurityEventResponse(BaseModel):
     """Security event response"""
+
     id: str
     event_type: str
     severity: str
@@ -38,6 +42,7 @@ class SecurityEventResponse(BaseModel):
 
 class SecuritySummaryResponse(BaseModel):
     """Security summary response"""
+
     total_events: int
     event_types: Dict[str, int]
     severity_counts: Dict[str, int]
@@ -47,6 +52,7 @@ class SecuritySummaryResponse(BaseModel):
 
 class ComplianceCheckRequest(BaseModel):
     """Compliance check request"""
+
     resource_type: str  # contract, user, company
     resource_id: str
     compliance_standards: Optional[List[str]] = ["GDPR", "UK_EMPLOYMENT_LAW"]
@@ -54,6 +60,7 @@ class ComplianceCheckRequest(BaseModel):
 
 class ComplianceIssue(BaseModel):
     """Compliance issue"""
+
     issue_type: str
     severity: str
     description: str
@@ -63,6 +70,7 @@ class ComplianceIssue(BaseModel):
 
 class ComplianceCheckResponse(BaseModel):
     """Compliance check response"""
+
     resource_id: str
     resource_type: str
     overall_compliance_score: float
@@ -74,6 +82,7 @@ class ComplianceCheckResponse(BaseModel):
 
 class GDPRDataRequest(BaseModel):
     """GDPR data request"""
+
     request_type: str  # "access", "portability", "erasure", "rectification"
     user_email: str
     reason: Optional[str] = None
@@ -81,6 +90,7 @@ class GDPRDataRequest(BaseModel):
 
 class GDPRDataResponse(BaseModel):
     """GDPR data response"""
+
     request_id: str
     request_type: str
     user_email: str
@@ -92,6 +102,7 @@ class GDPRDataResponse(BaseModel):
 
 class AuditLogEntry(BaseModel):
     """Audit log entry"""
+
     id: str
     event_type: str
     resource_type: str
@@ -103,13 +114,14 @@ class AuditLogEntry(BaseModel):
     new_values: Optional[Dict[str, Any]]
     additional_data: Optional[Dict[str, Any]]
     timestamp: datetime
-    
+
     class Config:
         from_attributes = True
 
 
 class AuditLogResponse(BaseModel):
     """Audit log response"""
+
     entries: List[AuditLogEntry]
     total: int
     page: int
@@ -119,6 +131,7 @@ class AuditLogResponse(BaseModel):
 
 class SecurityConfigResponse(BaseModel):
     """Security configuration response"""
+
     rate_limiting_enabled: bool
     max_requests_per_hour: int
     failed_login_lockout_threshold: int
@@ -131,6 +144,7 @@ class SecurityConfigResponse(BaseModel):
 
 class ThreatIntelligenceResponse(BaseModel):
     """Threat intelligence response"""
+
     known_threats: int
     blocked_ips_count: int
     suspicious_patterns_detected: int

@@ -1,6 +1,7 @@
 """
 Pytest configuration and shared fixtures for Pactoria MVP tests
 """
+
 import pytest
 import asyncio
 from fastapi.testclient import TestClient
@@ -11,6 +12,7 @@ import tempfile
 
 from app.main import app
 from app.services.ai_service import GroqAIService
+
 # Removed duplicate contract service import
 from app.core.config import settings
 from app.core.database import Base, create_tables
@@ -30,45 +32,61 @@ def event_loop():
 def test_database():
     """Set up isolated test database with all tables using in-memory SQLite"""
     # Create a test engine with in-memory database (unique per test)
-    test_engine = create_engine(f"sqlite:///:memory:", connect_args={"check_same_thread": False})
-    
+    test_engine = create_engine(
+        f"sqlite:///:memory:", connect_args={"check_same_thread": False}
+    )
+
     # Import all models to ensure they're registered with Base
     from app.infrastructure.database.models import (
-        User, Company, Contract, Template, AIGeneration, 
-        ComplianceScore, AuditLog, ContractVersion, SystemMetrics,
-        Notification, Integration, IntegrationConnection, TeamInvitation,
-        Base
+        User,
+        Company,
+        Contract,
+        Template,
+        AIGeneration,
+        ComplianceScore,
+        AuditLog,
+        ContractVersion,
+        SystemMetrics,
+        Notification,
+        Integration,
+        IntegrationConnection,
+        TeamInvitation,
+        Base,
     )
-    
+
     # Create all tables for testing
     Base.metadata.create_all(bind=test_engine)
-    
+
     # Verify tables were created (for debugging)
     from sqlalchemy import inspect
+
     inspector = inspect(test_engine)
     tables = inspector.get_table_names()
     print(f"Test database created with tables: {tables}")
-    
+
     # Override the database dependency for testing
     from app.core.database import get_db
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
-    
+
+    TestingSessionLocal = sessionmaker(
+        autocommit=False, autoflush=False, bind=test_engine
+    )
+
     def override_get_db():
         try:
             db = TestingSessionLocal()
             yield db
         finally:
             db.close()
-    
+
     # Clear existing overrides first
     app.dependency_overrides.clear()
     # Override dependency and patch direct SessionLocal usage
     app.dependency_overrides[get_db] = override_get_db
-    
+
     # Patch SessionLocal in database module to prevent direct access
-    with patch('app.core.database.SessionLocal', TestingSessionLocal):
+    with patch("app.core.database.SessionLocal", TestingSessionLocal):
         yield test_engine
-    
+
     # Cleanup
     app.dependency_overrides.clear()
 
@@ -91,35 +109,42 @@ def client(test_database):
 def mock_groq_service():
     """Mock Groq AI service for testing"""
     service = Mock(spec=GroqAIService)
-    
+
     # Mock contract generation
-    service.generate_contract = AsyncMock(return_value=(
-        "MOCK_CONTRACT_CONTENT",
-        {
-            "model_used": "llama3-70b-8192",
-            "processing_time_ms": 1500,
-            "prompt_tokens": 150,
-            "completion_tokens": 800,
-            "total_tokens": 950,
-            "confidence_score": 0.85,
-            "input_prompt": "Mock input prompt..."
-        }
-    ))
-    
+    service.generate_contract = AsyncMock(
+        return_value=(
+            "MOCK_CONTRACT_CONTENT",
+            {
+                "model_used": "llama3-70b-8192",
+                "processing_time_ms": 1500,
+                "prompt_tokens": 150,
+                "completion_tokens": 800,
+                "total_tokens": 950,
+                "confidence_score": 0.85,
+                "input_prompt": "Mock input prompt...",
+            },
+        )
+    )
+
     # Mock compliance validation
-    service.validate_contract_compliance = AsyncMock(return_value={
-        "overall_score": 0.92,
-        "gdpr_compliance": 0.95,
-        "employment_law_compliance": 0.90,
-        "consumer_rights_compliance": 0.88,
-        "commercial_terms_compliance": 0.94,
-        "risk_score": 3,
-        "risk_factors": ["Standard commercial terms", "Minor compliance gaps"],
-        "recommendations": ["Add specific GDPR clauses", "Clarify termination terms"],
-        "analysis_raw": "Mock compliance analysis...",
-        "validation_method": "ai"
-    })
-    
+    service.validate_contract_compliance = AsyncMock(
+        return_value={
+            "overall_score": 0.92,
+            "gdpr_compliance": 0.95,
+            "employment_law_compliance": 0.90,
+            "consumer_rights_compliance": 0.88,
+            "commercial_terms_compliance": 0.94,
+            "risk_score": 3,
+            "risk_factors": ["Standard commercial terms", "Minor compliance gaps"],
+            "recommendations": [
+                "Add specific GDPR clauses",
+                "Clarify termination terms",
+            ],
+            "analysis_raw": "Mock compliance analysis...",
+            "validation_method": "ai",
+        }
+    )
+
     return service
 
 
@@ -133,9 +158,9 @@ def sample_contract_data():
         "company_details": {
             "name": "Test Company Ltd",
             "registration_number": "12345678",
-            "address": "123 Test St, London, UK"
+            "address": "123 Test St, London, UK",
         },
-        "compliance_level": "standard"
+        "compliance_level": "standard",
     }
 
 
@@ -143,44 +168,49 @@ def sample_contract_data():
 def sample_user_data():
     """Sample user data for testing with unique email"""
     import uuid
+
     return {
         "email": f"test-{uuid.uuid4().hex[:8]}@example.com",
         "password": "TestPassword123!",
         "full_name": "Test User",
-        "company_name": "Test Company Ltd"
+        "company_name": "Test Company Ltd",
     }
 
 
 @pytest.fixture
 def mock_contract_service():
     """Mock contract application service for testing"""
-    from app.application.services.contract_application_service import ContractApplicationService
+    from app.application.services.contract_application_service import (
+        ContractApplicationService,
+    )
+
     service = Mock(spec=ContractApplicationService)
-    
+
     # Mock contract creation
     from app.domain.entities.contract import Contract, ContractId
     from app.domain.value_objects import ContractType, ContractStatus
-    
+
     mock_contract = Mock(spec=Contract)
     mock_contract.id = ContractId("test-contract-id")
     mock_contract.title = "Test Contract"
     mock_contract.contract_type = ContractType.SERVICE_AGREEMENT
     mock_contract.status = ContractStatus.DRAFT
     mock_contract.version = 1
-    
+
     service.create_contract = AsyncMock(return_value=mock_contract)
-    
+
     # Mock contract listing with PageResult
     from app.domain.repositories.contract_repository import PageResult
+
     mock_page_result = Mock(spec=PageResult)
     mock_page_result.items = []
     mock_page_result.total = 0
     mock_page_result.page = 1
     mock_page_result.size = 20
     mock_page_result.pages = 0
-    
+
     service.get_contracts_by_company = AsyncMock(return_value=mock_page_result)
-    
+
     return service
 
 
@@ -196,6 +226,7 @@ def auth_headers():
 def mock_settings():
     """Mock settings for testing"""
     from types import SimpleNamespace
+
     return SimpleNamespace(
         SECRET_KEY="test-secret-key",
         GROQ_API_KEY="test-groq-key",
@@ -204,7 +235,7 @@ def mock_settings():
         JWT_EXPIRATION_HOURS=24,
         MAX_USERS_PER_ACCOUNT=5,
         MIN_COMPLIANCE_SCORE=0.95,
-        APP_VERSION="1.0.0"
+        APP_VERSION="1.0.0",
     )
 
 
@@ -218,9 +249,9 @@ def valid_contract_request():
         "plain_english_input": "I need a contract for professional consulting services. The work involves business analysis and recommendations. Payment should be monthly within 30 days. The contract should include confidentiality clauses and IP ownership terms.",
         "company_details": {
             "name": "Example Consulting Ltd",
-            "registration_number": "12345678"
+            "registration_number": "12345678",
         },
-        "compliance_level": "standard"
+        "compliance_level": "standard",
     }
 
 
@@ -274,7 +305,7 @@ def create_test_company(db, **kwargs):
     """Create a test company with default values"""
     from app.infrastructure.database.models import Company, SubscriptionTier
     import uuid
-    
+
     defaults = {
         "id": str(uuid.uuid4()),
         "name": "Test Company Ltd",
@@ -282,17 +313,17 @@ def create_test_company(db, **kwargs):
         "address": "123 Test St, London, UK",
         "subscription_tier": SubscriptionTier.PROFESSIONAL,
         "max_users": 10,
-        "settings": {}
+        "settings": {},
     }
     defaults.update(kwargs)
-    
+
     company = Company(**defaults)
-    
+
     if db:
         db.add(company)
         db.commit()
         db.refresh(company)
-    
+
     return company
 
 
@@ -301,7 +332,7 @@ def create_test_user(db, company_id, role=None, **kwargs):
     from app.infrastructure.database.models import User, UserRole
     from app.core.security import get_password_hash
     import uuid
-    
+
     defaults = {
         "id": str(uuid.uuid4()),
         "email": f"test-{uuid.uuid4().hex[:8]}@example.com",
@@ -313,17 +344,17 @@ def create_test_user(db, company_id, role=None, **kwargs):
         "company_id": company_id,
         "department": "Test Department",
         "timezone": "Europe/London",
-        "notification_preferences": {}
+        "notification_preferences": {},
     }
     defaults.update(kwargs)
-    
+
     user = User(**defaults)
-    
+
     if db:
         db.add(user)
         db.commit()
         db.refresh(user)
-    
+
     return user
 
 
@@ -336,7 +367,10 @@ def override_get_db():
 def db_session(test_database):
     """Provide database session for tests"""
     from sqlalchemy.orm import sessionmaker
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_database)
+
+    TestingSessionLocal = sessionmaker(
+        autocommit=False, autoflush=False, bind=test_database
+    )
     db = TestingSessionLocal()
     try:
         yield db

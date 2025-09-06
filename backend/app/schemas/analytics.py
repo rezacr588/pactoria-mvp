@@ -2,6 +2,7 @@
 Analytics schemas for Pactoria MVP
 Pydantic models for analytics requests and responses
 """
+
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 from datetime import datetime, date
@@ -10,6 +11,7 @@ from enum import Enum
 
 class MetricPeriod(str, Enum):
     """Metric period enumeration"""
+
     DAILY = "daily"
     WEEKLY = "weekly"
     MONTHLY = "monthly"
@@ -19,6 +21,7 @@ class MetricPeriod(str, Enum):
 
 class BusinessMetricsResponse(BaseModel):
     """Business metrics response"""
+
     total_contracts: int
     active_contracts: int
     draft_contracts: int
@@ -35,6 +38,7 @@ class BusinessMetricsResponse(BaseModel):
 
 class UserMetricsResponse(BaseModel):
     """User activity metrics"""
+
     total_users: int
     active_users_30d: int
     new_users_this_month: int
@@ -45,6 +49,7 @@ class UserMetricsResponse(BaseModel):
 
 class ContractTypeMetrics(BaseModel):
     """Contract type distribution metrics"""
+
     contract_type: str
     count: int
     percentage: float
@@ -55,6 +60,7 @@ class ContractTypeMetrics(BaseModel):
 
 class TimeSeriesDataPoint(BaseModel):
     """Time series data point"""
+
     date: date
     value: float
     count: Optional[int] = None
@@ -62,6 +68,7 @@ class TimeSeriesDataPoint(BaseModel):
 
 class TimeSeriesResponse(BaseModel):
     """Time series metrics response"""
+
     metric_name: str
     period: str
     data_points: List[TimeSeriesDataPoint]
@@ -73,6 +80,7 @@ class TimeSeriesResponse(BaseModel):
 
 class ComplianceMetricsResponse(BaseModel):
     """Compliance metrics response"""
+
     overall_compliance_average: float
     gdpr_compliance_average: float
     employment_law_compliance_average: float
@@ -87,6 +95,7 @@ class ComplianceMetricsResponse(BaseModel):
 
 class SystemHealthResponse(BaseModel):
     """System health metrics"""
+
     uptime_percentage: float
     average_response_time_ms: float
     total_requests_24h: int
@@ -99,6 +108,7 @@ class SystemHealthResponse(BaseModel):
 
 class PerformanceMetricsResponse(BaseModel):
     """Performance metrics response"""
+
     ai_generation_average_time_ms: float
     compliance_analysis_average_time_ms: float
     api_response_times: Dict[str, float]
@@ -109,6 +119,7 @@ class PerformanceMetricsResponse(BaseModel):
 
 class AnalyticsFilter(BaseModel):
     """Analytics filter parameters"""
+
     date_from: Optional[datetime] = None
     date_to: Optional[datetime] = None
     contract_types: Optional[List[str]] = None
@@ -119,6 +130,7 @@ class AnalyticsFilter(BaseModel):
 
 class DashboardResponse(BaseModel):
     """Complete dashboard analytics response"""
+
     business_metrics: BusinessMetricsResponse
     user_metrics: UserMetricsResponse
     contract_types: List[ContractTypeMetrics]

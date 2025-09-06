@@ -2,8 +2,9 @@
 Advanced Search API Endpoints - Complex search operations
 Provides RESTful endpoints for advanced search with filters, sorting, and pagination
 """
-from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+
+from typing import Optional
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -11,12 +12,20 @@ from app.core.auth import get_current_user
 from app.core.exceptions import APIExceptionFactory
 from app.infrastructure.database.models import User
 from app.schemas.search import (
-    ContractSearchRequest, UserSearchRequest, TemplateSearchRequest,
-    ContractSearchResults, UserSearchResults, TemplateSearchResults,
-    SearchOperator, SortDirection
+    ContractSearchRequest,
+    UserSearchRequest,
+    TemplateSearchRequest,
+    ContractSearchResults,
+    UserSearchResults,
+    TemplateSearchResults,
 )
-from app.schemas.common import ErrorResponse, ValidationError, UnauthorizedError, ForbiddenError
-from app.services.search_service import AdvancedSearchService, get_search_service
+from app.schemas.common import (
+    ErrorResponse,
+    ValidationError,
+    UnauthorizedError,
+    ForbiddenError,
+)
+from app.services.search_service import get_search_service
 from fastapi.security import HTTPBearer
 
 # Security scheme for OpenAPI documentation
@@ -67,31 +76,19 @@ router = APIRouter(prefix="/search", tags=["Advanced Search"])
     responses={
         200: {
             "description": "Search completed successfully",
-            "model": ContractSearchResults
+            "model": ContractSearchResults,
         },
-        400: {
-            "description": "Invalid search parameters",
-            "model": ErrorResponse
-        },
-        401: {
-            "description": "Authentication required",
-            "model": UnauthorizedError
-        },
-        403: {
-            "description": "Insufficient permissions",
-            "model": ForbiddenError
-        },
-        422: {
-            "description": "Validation error",
-            "model": ValidationError
-        }
+        400: {"description": "Invalid search parameters", "model": ErrorResponse},
+        401: {"description": "Authentication required", "model": UnauthorizedError},
+        403: {"description": "Insufficient permissions", "model": ForbiddenError},
+        422: {"description": "Validation error", "model": ValidationError},
     },
-    dependencies=[Depends(security)]
+    dependencies=[Depends(security)],
 )
 async def search_contracts(
     request: ContractSearchRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Advanced contract search with filters and sorting"""
     try:
@@ -99,7 +96,9 @@ async def search_contracts(
         results = await search_service.search_contracts(request, current_user)
         return results
     except Exception as e:
-        raise APIExceptionFactory.internal_server_error(f"Contract search failed: {str(e)}")
+        raise APIExceptionFactory.internal_server_error(
+            f"Contract search failed: {str(e)}"
+        )
 
 
 @router.post(
@@ -145,31 +144,19 @@ async def search_contracts(
     responses={
         200: {
             "description": "User search completed successfully",
-            "model": UserSearchResults
+            "model": UserSearchResults,
         },
-        400: {
-            "description": "Invalid search parameters",
-            "model": ErrorResponse
-        },
-        401: {
-            "description": "Authentication required",
-            "model": UnauthorizedError
-        },
-        403: {
-            "description": "Insufficient permissions",
-            "model": ForbiddenError
-        },
-        422: {
-            "description": "Validation error",
-            "model": ValidationError
-        }
+        400: {"description": "Invalid search parameters", "model": ErrorResponse},
+        401: {"description": "Authentication required", "model": UnauthorizedError},
+        403: {"description": "Insufficient permissions", "model": ForbiddenError},
+        422: {"description": "Validation error", "model": ValidationError},
     },
-    dependencies=[Depends(security)]
+    dependencies=[Depends(security)],
 )
 async def search_users(
     request: UserSearchRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Advanced user search with filters and sorting"""
     try:
@@ -226,27 +213,18 @@ async def search_users(
     responses={
         200: {
             "description": "Template search completed successfully",
-            "model": TemplateSearchResults
+            "model": TemplateSearchResults,
         },
-        400: {
-            "description": "Invalid search parameters",
-            "model": ErrorResponse
-        },
-        401: {
-            "description": "Authentication required",
-            "model": UnauthorizedError
-        },
-        422: {
-            "description": "Validation error",
-            "model": ValidationError
-        }
+        400: {"description": "Invalid search parameters", "model": ErrorResponse},
+        401: {"description": "Authentication required", "model": UnauthorizedError},
+        422: {"description": "Validation error", "model": ValidationError},
     },
-    dependencies=[Depends(security)]
+    dependencies=[Depends(security)],
 )
 async def search_templates(
     request: TemplateSearchRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Advanced template search with filters and sorting"""
     try:
@@ -254,7 +232,9 @@ async def search_templates(
         results = await search_service.search_templates(request, current_user)
         return results
     except Exception as e:
-        raise APIExceptionFactory.internal_server_error(f"Template search failed: {str(e)}")
+        raise APIExceptionFactory.internal_server_error(
+            f"Template search failed: {str(e)}"
+        )
 
 
 @router.get(
@@ -285,54 +265,52 @@ async def search_templates(
     responses={
         200: {
             "description": "Quick search completed successfully",
-            "model": ContractSearchResults
+            "model": ContractSearchResults,
         },
-        401: {
-            "description": "Authentication required",
-            "model": UnauthorizedError
-        }
+        401: {"description": "Authentication required", "model": UnauthorizedError},
     },
-    dependencies=[Depends(security)]
+    dependencies=[Depends(security)],
 )
 async def quick_search_contracts(
     q: Optional[str] = Query(None, description="Search query"),
     status: Optional[str] = Query(None, description="Contract status"),
-    type: Optional[str] = Query(None, description="Contract type", alias="contract_type"),
+    type: Optional[str] = Query(
+        None, description="Contract type", alias="contract_type"
+    ),
     client: Optional[str] = Query(None, description="Client name"),
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(20, ge=1, le=100, description="Results per page"),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Quick contract search with simple parameters"""
     try:
         # Build search request from query parameters
         from app.schemas.search import ContractSearchRequest, ContractSearchFilters
-        
+
         filters = ContractSearchFilters()
-        
+
         if status:
             filters.status = [status.upper()]
-        
+
         if type:
             filters.contract_type = [type.upper()]
-        
+
         if client:
             filters.client_name = client
-        
+
         request = ContractSearchRequest(
-            query=q or "",
-            filters=filters,
-            page=page,
-            size=size
+            query=q or "", filters=filters, page=page, size=size
         )
-        
+
         search_service = get_search_service(db)
         results = await search_service.search_contracts(request, current_user)
         return results
-        
+
     except Exception as e:
-        raise APIExceptionFactory.internal_server_error(f"Quick search failed: {str(e)}")
+        raise APIExceptionFactory.internal_server_error(
+            f"Quick search failed: {str(e)}"
+        )
 
 
 @router.get(
@@ -360,45 +338,36 @@ async def quick_search_contracts(
     **Permissions:** Requires valid user authentication
     """,
     responses={
-        200: {
-            "description": "Suggestions retrieved successfully"
-        },
-        401: {
-            "description": "Authentication required",
-            "model": UnauthorizedError
-        }
+        200: {"description": "Suggestions retrieved successfully"},
+        401: {"description": "Authentication required", "model": UnauthorizedError},
     },
-    dependencies=[Depends(security)]
+    dependencies=[Depends(security)],
 )
 async def get_contract_search_suggestions(
     q: str = Query(..., description="Partial query for suggestions"),
     limit: int = Query(10, ge=1, le=50, description="Maximum suggestions"),
     type: Optional[str] = Query(None, description="Suggestion type"),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Get contract search suggestions"""
     try:
         # This would implement actual suggestion logic
         # For now, return a simple response
         suggestions = []
-        
+
         if len(q) >= 2:
             # Mock suggestions - would implement actual suggestion logic
             mock_suggestions = [
                 f"{q} agreement",
                 f"{q} contract",
                 f"{q} service",
-                f"{q} template"
+                f"{q} template",
             ]
             suggestions = mock_suggestions[:limit]
-        
-        return {
-            "suggestions": suggestions,
-            "query": q,
-            "total": len(suggestions)
-        }
-        
+
+        return {"suggestions": suggestions, "query": q, "total": len(suggestions)}
+
     except Exception as e:
         raise APIExceptionFactory.internal_server_error(f"Suggestions failed: {str(e)}")
 
@@ -424,50 +393,41 @@ async def get_contract_search_suggestions(
     **Permissions:** Requires valid user authentication
     """,
     responses={
-        200: {
-            "description": "Facets retrieved successfully"
-        },
-        401: {
-            "description": "Authentication required",
-            "model": UnauthorizedError
-        }
+        200: {"description": "Facets retrieved successfully"},
+        401: {"description": "Authentication required", "model": UnauthorizedError},
     },
-    dependencies=[Depends(security)]
+    dependencies=[Depends(security)],
 )
 async def get_contract_search_facets(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     """Get contract search facets for filtering"""
     try:
         # This would implement actual faceting logic
         # For now, return mock facet data
-        
+
         facets = {
             "status": [
                 {"value": "DRAFT", "count": 25},
                 {"value": "ACTIVE", "count": 150},
                 {"value": "COMPLETED", "count": 75},
-                {"value": "TERMINATED", "count": 10}
+                {"value": "TERMINATED", "count": 10},
             ],
             "contract_type": [
                 {"value": "SERVICE_AGREEMENT", "count": 100},
                 {"value": "NDA", "count": 80},
                 {"value": "EMPLOYMENT_CONTRACT", "count": 40},
-                {"value": "SUPPLIER_AGREEMENT", "count": 30}
+                {"value": "SUPPLIER_AGREEMENT", "count": 30},
             ],
             "value_ranges": [
                 {"min": 0, "max": 1000, "count": 50},
                 {"min": 1000, "max": 10000, "count": 120},
                 {"min": 10000, "max": 100000, "count": 80},
-                {"min": 100000, "max": None, "count": 10}
-            ]
+                {"min": 100000, "max": None, "count": 10},
+            ],
         }
-        
-        return {
-            "facets": facets,
-            "generated_at": "2024-01-01T00:00:00Z"
-        }
-        
+
+        return {"facets": facets, "generated_at": "2024-01-01T00:00:00Z"}
+
     except Exception as e:
         raise APIExceptionFactory.internal_server_error(f"Facets failed: {str(e)}")
