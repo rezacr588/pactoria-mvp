@@ -3,7 +3,7 @@ AI services endpoints for Pactoria MVP
 Groq-powered contract generation and analysis
 """
 from fastapi import APIRouter, HTTPException, Depends, status
-from typing import Dict, Any, List
+from typing import List
 import logging
 
 from app.services.ai_service import GroqAIService

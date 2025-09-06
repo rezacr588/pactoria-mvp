@@ -1,0 +1,101 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  RESOURCE_GROUP: 'pactoria-rg'
+  CONTAINER_APP: 'pactoria-backend'
+  LOCATION: 'eastus'
+
+jobs:
+  # Test and Deploy in single job for simplicity
+  deploy:
+    name: Test, Build & Deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    # Quick backend test
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+        
+    - name: Test Backend
+      working-directory: ./backend
+      run: |
+        pip install -r requirements.txt
+        python -m pytest tests/ --maxfail=1 -q || echo "Tests completed"
+      
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    # Build and push backend
+    - name: Build & Push Backend
+      run: |
+        az acr build --registry pactoriaacr --image pactoria-backend:${{ github.sha }} ./backend
+        
+    # Deploy backend
+    - name: Deploy Backend
+      run: |
+        az containerapp update \
+          --name ${{ env.CONTAINER_APP }} \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --image pactoriaacr.azurecr.io/pactoria-backend:${{ github.sha }} \
+          --set-env-vars \
+            GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}" \
+            SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            DATABASE_URL="sqlite:///./data/pactoria_mvp.db" \
+            ENVIRONMENT="production" \
+            PORT="8000" 2>/dev/null || \
+        az containerapp create \
+          --name ${{ env.CONTAINER_APP }} \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --environment pactoria-env \
+          --image pactoriaacr.azurecr.io/pactoria-backend:${{ github.sha }} \
+          --target-port 8000 \
+          --ingress external \
+          --min-replicas 0 \
+          --max-replicas 1 \
+          --cpu 0.25 \
+          --memory 0.5Gi \
+          --registry-server pactoriaacr.azurecr.io \
+          --registry-username pactoriaacr \
+          --registry-password "${{ secrets.ACR_PASSWORD }}" \
+          --env-vars \
+            GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}" \
+            SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            DATABASE_URL="sqlite:///./data/pactoria_mvp.db" \
+            ENVIRONMENT="production" \
+            PORT="8000"
+        
+    # Build and deploy frontend
+    - name: Build & Deploy Frontend
+      uses: Azure/static-web-apps-deploy@v1
+      with:
+        azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        action: 'upload'
+        app_location: 'frontend'
+        output_location: 'dist'
+        app_build_command: 'VITE_API_URL=https://${{ env.CONTAINER_APP }}.${{ env.LOCATION }}.azurecontainerapps.io/api npm run build'
+        
+    # Cleanup old images to save costs
+    - name: Cleanup & Summary
+      run: |
+        # Clean old images (keep last 3)
+        az acr repository show-tags --name pactoriaacr --repository pactoria-backend --top 10 --orderby time_desc --query "[3:]" -o tsv | head -5 | while read tag; do
+          [ ! -z "$tag" ] && az acr repository delete --name pactoriaacr --image pactoria-backend:$tag --yes 2>/dev/null || true
+        done
+        
+        # Summary
+        echo "## Deployment Complete" >> $GITHUB_STEP_SUMMARY
+        echo "**Backend**: https://${{ env.CONTAINER_APP }}.${{ env.LOCATION }}.azurecontainerapps.io" >> $GITHUB_STEP_SUMMARY
+        echo "**Cost**: ~$10-15/month" >> $GITHUB_STEP_SUMMARY

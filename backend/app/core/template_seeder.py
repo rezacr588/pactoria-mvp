@@ -3,11 +3,14 @@ Template seeder for Pactoria MVP
 Seeds common UK contract templates into the database
 """
 import asyncio
+import logging
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, text
 from app.core.config import settings
 from app.core.database import get_db
 from app.infrastructure.database.models import Template, ContractType
+
+logger = logging.getLogger(__name__)
 
 
 # UK SME contract templates
@@ -359,25 +362,25 @@ Date: ___________           Date: ___________""",
 def seed_templates(db: Session):
     """Seed template data into the database"""
     try:
-        print("Starting template seeding...")
+        logger.info("Starting template seeding...")
         
         # Check if templates already exist
         existing_count = db.query(Template).count()
         if existing_count > 0:
-            print(f"Templates already exist ({existing_count}). Skipping seeding.")
+            logger.info(f"Templates already exist ({existing_count}). Skipping seeding.")
             return
         
         # Create templates
         for template_data in TEMPLATE_DATA:
             template = Template(**template_data)
             db.add(template)
-            print(f"Added template: {template.name}")
+            logger.debug(f"Added template: {template.name}")
         
         db.commit()
-        print(f"Successfully seeded {len(TEMPLATE_DATA)} templates!")
+        logger.info(f"Successfully seeded {len(TEMPLATE_DATA)} templates!")
         
     except Exception as e:
-        print(f"Error seeding templates: {e}")
+        logger.error(f"Error seeding templates: {e}")
         db.rollback()
         raise
 
@@ -392,7 +395,7 @@ async def async_seed_templates():
             seed_templates(db)
             
     except Exception as e:
-        print(f"Failed to seed templates: {e}")
+        logger.error(f"Failed to seed templates: {e}")
         raise
 
 

@@ -2,15 +2,15 @@
 Analytics and monitoring endpoints for Pactoria MVP
 Business metrics, performance monitoring, and system health
 """
-from datetime import datetime, date, timedelta
+from datetime import timedelta
 from app.core.datetime_utils import get_current_utc
-from typing import List, Dict, Any, Optional
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, func, desc, text
+from sqlalchemy import func, desc, text
 
 from app.core.database import get_db
-from app.core.auth import get_current_user, get_admin_user, get_user_company
+from app.core.auth import get_admin_user, get_user_company
 from app.core.config import settings
 from app.infrastructure.database.models import (
     User, Company, Contract, AIGeneration, ComplianceScore, 
