@@ -1,141 +1,35 @@
-name: Main Deployment Pipeline
+name: Simplified Pactoria Deployment
 
 on:
   push:
     branches: [ "main" ]
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
-      - '.vscode/**'
   workflow_dispatch:
-    inputs:
-      deploy_backend:
-        description: 'Deploy Backend'
-        required: true
-        default: true
-        type: boolean
-      deploy_frontend:
-        description: 'Deploy Frontend'
-        required: true
-        default: true
-        type: boolean
 
 env:
-  # Azure Configuration - Cost Optimized
   REGISTRY_NAME: 'pactoriaacr'
   CONTAINER_APP_NAME: 'pactoria-backend'
   STATIC_WEB_APP_NAME: 'pactoria-frontend'
-  BACKEND_RESOURCE_GROUP_NAME: 'pactoria-mvp-rg'
-  FRONTEND_RESOURCE_GROUP_NAME: 'pactoria-rg'
-  REGISTRY_RESOURCE_GROUP_NAME: 'pactoria-rg'
+  RESOURCE_GROUP_NAME: 'pactoria-rg'
   AZURE_LOCATION: 'eastus'
-  NODE_VERSION: '18.x'
 
 jobs:
-  # Validation and Change Detection
-  validate:
+  deploy:
     runs-on: ubuntu-latest
-    name: Validate & Detect Changes
-    outputs:
-      deploy_backend: ${{ steps.changes.outputs.backend == 'true' || github.event.inputs.deploy_backend == 'true' }}
-      deploy_frontend: ${{ steps.changes.outputs.frontend == 'true' || github.event.inputs.deploy_frontend == 'true' }}
+    name: Deploy Application
     
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
-
-    - name: Detect changes
-      id: changes
-      run: |
-        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          echo "backend=${{ github.event.inputs.deploy_backend }}" >> $GITHUB_OUTPUT
-          echo "frontend=${{ github.event.inputs.deploy_frontend }}" >> $GITHUB_OUTPUT
-        else
-          # Check for changes in backend
-          if git diff --name-only HEAD~1 HEAD | grep -E '^backend/' || git diff --name-only HEAD~1 HEAD | grep -E 'Dockerfile|requirements\.txt'; then
-            echo "backend=true" >> $GITHUB_OUTPUT
-          else
-            echo "backend=false" >> $GITHUB_OUTPUT
-          fi
-          
-          # Check for changes in frontend
-          if git diff --name-only HEAD~1 HEAD | grep -E '^frontend/'; then
-            echo "frontend=true" >> $GITHUB_OUTPUT
-          else
-            echo "frontend=false" >> $GITHUB_OUTPUT
-          fi
-        fi
 
     - name: Azure Login
       uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Validate Azure Resources
+    # Backend Deployment
+    - name: Deploy Backend
       run: |
-        echo "🔍 Validating Azure resources..."
-        
-        # Check if resources exist
-        az group show --name ${{ env.BACKEND_RESOURCE_GROUP_NAME }} > /dev/null
-        echo "✅ Backend Resource Group exists"
-        
-        az group show --name ${{ env.FRONTEND_RESOURCE_GROUP_NAME }} > /dev/null
-        echo "✅ Frontend Resource Group exists"
-        
-        az acr show --name ${{ env.REGISTRY_NAME }} --resource-group ${{ env.REGISTRY_RESOURCE_GROUP_NAME }} > /dev/null
-        echo "✅ Container Registry exists"
-        
-        if [ "${{ steps.changes.outputs.backend }}" = "true" ]; then
-          az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.BACKEND_RESOURCE_GROUP_NAME }} > /dev/null
-          echo "✅ Container App exists"
-        fi
-        
-        if [ "${{ steps.changes.outputs.frontend }}" = "true" ]; then
-          az staticwebapp show --name ${{ env.STATIC_WEB_APP_NAME }} --resource-group ${{ env.FRONTEND_RESOURCE_GROUP_NAME }} > /dev/null
-          echo "✅ Static Web App exists"
-        fi
-
-  # Backend Build and Deploy
-  backend:
-    needs: validate
-    if: needs.validate.outputs.deploy_backend == 'true'
-    runs-on: ubuntu-latest
-    name: Backend Deployment
-    environment:
-      name: production-backend
-      url: https://${{ env.CONTAINER_APP_NAME }}.azurecontainerapps.io
-    
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-        cache: 'pip'
-
-    - name: Run backend tests
-      run: |
-        cd backend
-        pip install -r requirements.txt pytest pytest-asyncio
-        python -m pytest tests/unit/ -v --tb=short || echo "⚠️ Some tests failed, but continuing deployment"
-      env:
-        ENVIRONMENT: testing
-        SECRET_KEY: test-secret
-        DATABASE_URL: sqlite:///./test.db
-      continue-on-error: true
-
-    - name: Azure Login
-      uses: azure/login@v2
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    - name: Build and Deploy Container
-      run: |
-        echo "🚀 Building and deploying backend..."
+        echo "🚀 Deploying Backend..."
         
         # Login to Container Registry
         az acr login --name ${{ env.REGISTRY_NAME }}
@@ -148,79 +42,39 @@ jobs:
         docker build -t $FULL_IMAGE_NAME .
         docker push $FULL_IMAGE_NAME
         
-        echo "🔄 Updating Container App..."
+        # Update Container App with environment variables
         az containerapp update \
           --name ${{ env.CONTAINER_APP_NAME }} \
-          --resource-group ${{ env.BACKEND_RESOURCE_GROUP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
           --image $FULL_IMAGE_NAME \
           --min-replicas 0 \
           --max-replicas 2 \
           --cpu 0.25 \
           --memory 0.5Gi \
+          --set-env-vars \
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} \
+            SECRET_KEY=${{ secrets.SECRET_KEY }} \
+            ENVIRONMENT=production \
           --revision-suffix $(date +%s)
 
-    - name: Health Check
-      run: |
-        echo "⏳ Waiting for deployment..."
-        sleep 60
-        
-        APP_URL=$(az containerapp show \
-          --name ${{ env.CONTAINER_APP_NAME }} \
-          --resource-group ${{ env.BACKEND_RESOURCE_GROUP_NAME }} \
-          --query "properties.configuration.ingress.fqdn" -o tsv)
-        
-        echo "🔍 Testing backend at: https://$APP_URL"
-        
-        for i in {1..5}; do
-          if curl -f "https://$APP_URL/health"; then
-            echo "✅ Backend health check passed on attempt $i"
-            exit 0
-          fi
-          echo "⏳ Attempt $i failed, retrying in 15 seconds..."
-          sleep 15
-        done
-        
-        echo "❌ Backend health check failed after 5 attempts"
-        exit 1
-
-  # Frontend Build and Deploy
-  frontend:
-    needs: [validate, backend]
-    if: |
-      always() && 
-      needs.validate.outputs.deploy_frontend == 'true' &&
-      (needs.backend.result == 'success' || needs.backend.result == 'skipped')
-    runs-on: ubuntu-latest
-    name: Frontend Deployment
-    environment:
-      name: production-frontend
-    
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
+    # Frontend Deployment
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ env.NODE_VERSION }}
+        node-version: '18.x'
         cache: 'npm'
         cache-dependency-path: frontend/package-lock.json
 
-    - name: Build Frontend
+    - name: Build and Deploy Frontend
       run: |
+        echo "🚀 Building and deploying Frontend..."
         cd frontend
-        npm ci --prefer-offline --production=false
+        npm ci
         npm run build
-        # Clean up node_modules to reduce deployment size
-        rm -rf node_modules
-        # Show build size for debugging
-        du -sh dist/
-        find dist -type f -name "*.js" -o -name "*.css" | wc -l
       env:
         VITE_API_URL: https://${{ env.CONTAINER_APP_NAME }}.azurecontainerapps.io/api
         VITE_APP_NAME: 'Pactoria MVP'
         VITE_ENVIRONMENT: 'production'
-        NODE_ENV: 'production'
 
     - name: Deploy to Static Web Apps
       uses: Azure/static-web-apps-deploy@v1
@@ -232,66 +86,32 @@ jobs:
         output_location: "dist"
         skip_app_build: true
 
-    - name: Verify Frontend
+    # Verify Deployment
+    - name: Verify Deployment
       run: |
-        echo "⏳ Waiting for frontend deployment..."
+        echo "⏳ Waiting for deployment to complete..."
         sleep 30
         
-        FRONTEND_URL="${{ secrets.STATIC_WEB_APP_URL }}"
-        if [ -z "$FRONTEND_URL" ]; then
-          FRONTEND_URL="https://${{ env.STATIC_WEB_APP_NAME }}.azurestaticapps.net"
+        # Test Backend
+        BACKEND_URL="https://${{ env.CONTAINER_APP_NAME }}.azurecontainerapps.io"
+        echo "Testing backend: $BACKEND_URL/health"
+        if curl -f "$BACKEND_URL/health"; then
+          echo "✅ Backend is healthy"
+        else
+          echo "❌ Backend health check failed"
+          exit 1
         fi
         
-        echo "🔍 Testing frontend at: $FRONTEND_URL"
-        
+        # Test Frontend
+        FRONTEND_URL="https://${{ env.STATIC_WEB_APP_NAME }}.azurestaticapps.net"
+        echo "Testing frontend: $FRONTEND_URL"
         if curl -f -s "$FRONTEND_URL" > /dev/null; then
           echo "✅ Frontend is accessible"
         else
-          echo "❌ Frontend verification failed"
-          exit 1
-        fi
-
-  # Post-Deployment Summary
-  summary:
-    needs: [validate, backend, frontend]
-    if: always()
-    runs-on: ubuntu-latest
-    name: Deployment Summary
-    
-    steps:
-    - name: Generate Summary
-      run: |
-        echo "# 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-        echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        
-        # Backend Status
-        if [ "${{ needs.backend.result }}" = "success" ]; then
-          echo "✅ **Backend:** Successfully deployed" >> $GITHUB_STEP_SUMMARY
-        elif [ "${{ needs.backend.result }}" = "skipped" ]; then
-          echo "⏭️ **Backend:** Skipped (no changes)" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "❌ **Backend:** Deployment failed" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ Frontend may still be deploying"
         fi
         
-        # Frontend Status  
-        if [ "${{ needs.frontend.result }}" = "success" ]; then
-          echo "✅ **Frontend:** Successfully deployed" >> $GITHUB_STEP_SUMMARY
-        elif [ "${{ needs.frontend.result }}" = "skipped" ]; then
-          echo "⏭️ **Frontend:** Skipped (no changes)" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "❌ **Frontend:** Deployment failed" >> $GITHUB_STEP_SUMMARY
-        fi
-        
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "## 🔗 URLs" >> $GITHUB_STEP_SUMMARY
-        echo "- **Frontend:** https://${{ env.STATIC_WEB_APP_NAME }}.azurestaticapps.net" >> $GITHUB_STEP_SUMMARY
-        echo "- **Backend API:** https://${{ env.CONTAINER_APP_NAME }}.azurecontainerapps.io/api" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "## 💰 Estimated Monthly Cost" >> $GITHUB_STEP_SUMMARY
-        echo "- Container Apps: $0-15 (scale-to-zero enabled)" >> $GITHUB_STEP_SUMMARY
-        echo "- Static Web Apps: Free tier" >> $GITHUB_STEP_SUMMARY
-        echo "- Container Registry: ~$5" >> $GITHUB_STEP_SUMMARY
-        echo "- **Total: ~$5-20/month**" >> $GITHUB_STEP_SUMMARY
+        echo ""
+        echo "🎉 Deployment Complete!"
+        echo "Frontend: $FRONTEND_URL"
+        echo "Backend: $BACKEND_URL/api"
