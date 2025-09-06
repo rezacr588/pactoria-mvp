@@ -766,15 +766,15 @@ export default function LandingPage() {
         </div>
         
         <div className="mx-auto max-w-4xl text-center">
-          <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-100 bg-primary-800/40 mb-8 ring-1 ring-primary-600/30 backdrop-blur-sm">
-            <BoltIcon className="h-4 w-4 mr-2" />
-            Transform Your Business Today
+          <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium bg-primary-700/60 dark:bg-primary-800/40 mb-8 ring-1 ring-primary-600/50 dark:ring-primary-600/30 backdrop-blur-sm shadow-md">
+            <BoltIcon className="h-4 w-4 mr-2 text-white" />
+            <span className="text-white font-semibold">Transform Your Business Today</span>
           </div>
-          <h2 id="cta-heading" className={`${typography.display.medium} font-bold tracking-tight text-white mb-6`}>
+          <h2 id="cta-heading" className={`${typography.display.medium} font-bold tracking-tight text-white mb-6 drop-shadow-lg`}>
             Ready to transform your 
-            <span className="text-primary-100 font-extrabold">contract management?</span>
+            <span className="text-primary-200 dark:text-primary-100 font-extrabold">contract management?</span>
           </h2>
-          <p className={`mx-auto max-w-2xl ${typography.body.large} leading-8 text-primary-100 mb-10`}>
+          <p className={`mx-auto max-w-2xl ${typography.body.large} leading-8 text-white/90 dark:text-primary-100 mb-10 drop-shadow-md`}>
             Join hundreds of UK SMEs saving time and money with Pactoria. 
             Start your <span className="font-semibold text-white">free 14-day trial</span> today – no credit card required.
           </p>
@@ -808,20 +808,18 @@ export default function LandingPage() {
               { icon: ScaleIcon, title: 'GDPR Compliant' },
               { icon: ShieldCheckIcon, title: 'ISO 27001 Certified' }
             ].map((item, index) => (
-              <Card
+              <div
                 key={item.title}
-                variant="glass"
-                padding="md"
-                className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-300 motion-safe:animate-fade-in motion-reduce:hover:bg-white/10"
+                className="relative bg-primary-800/60 dark:bg-white/10 backdrop-blur-md border border-primary-700/50 dark:border-white/20 rounded-xl p-4 hover:bg-primary-800/70 dark:hover:bg-white/20 transition-all duration-300 motion-safe:animate-fade-in shadow-lg"
                 style={{ animationDelay: `${index * 150}ms` }}
               >
-                <CardContent className="flex flex-col items-center text-center">
-                  <div className="flex items-center justify-center w-12 h-12 bg-white/20 rounded-xl mb-3 hover:bg-white/30 transition-colors duration-300">
-                    <item.icon className="h-6 w-6 text-primary-200" />
+                <div className="flex flex-col items-center text-center">
+                  <div className="flex items-center justify-center w-12 h-12 bg-primary-700/50 dark:bg-white/20 rounded-xl mb-3 hover:bg-primary-700/60 dark:hover:bg-white/30 transition-colors duration-300">
+                    <item.icon className="h-6 w-6 text-white" aria-hidden="true" />
                   </div>
-                  <p className={`${typography.body.small} text-primary-100 font-medium`}>{item.title}</p>
-                </CardContent>
-              </Card>
+                  <p className="text-sm text-white font-medium">{item.title}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>

@@ -89,29 +89,66 @@ export default function DashboardPage() {
       .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
       .slice(0, 5);
 
-    // Mock upcoming deadlines (since the API doesn't provide this specific format)
-    const upcomingDeadlines = contracts
-      .filter(contract => contract.end_date)
-      .map(contract => ({
+  // Calculate upcoming deadlines from actual contracts
+  const upcomingDeadlines = contracts
+    .filter(contract => contract.end_date)
+    .map(contract => {
+      const daysUntil = Math.ceil((new Date(contract.end_date!).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      const urgency = daysUntil <= 7 ? 'critical' : daysUntil <= 30 ? 'warning' : 'normal';
+      return {
         id: `${contract.id}-deadline`,
-        title: 'Contract Expiration',
+        title: contract.end_date && new Date(contract.end_date) < new Date() ? 'Contract Expired' : 'Contract Expiration',
         contractName: contract.title,
         contractId: contract.id,
-        daysUntil: Math.ceil((new Date(contract.end_date!).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-      }))
-      .filter(deadline => deadline.daysUntil >= 0 && deadline.daysUntil <= 90)
-      .sort((a, b) => a.daysUntil - b.daysUntil)
-      .slice(0, 5);
+        contractType: contract.contract_type.replace('_', ' '),
+        value: contract.contract_value,
+        currency: contract.currency,
+        daysUntil,
+        urgency,
+        date: contract.end_date
+      };
+    })
+    .filter(deadline => deadline.daysUntil >= -7 && deadline.daysUntil <= 90) // Include recently expired
+    .sort((a, b) => a.daysUntil - b.daysUntil)
+    .slice(0, 5);
 
-    // Mock compliance issues based on compliance metrics
-    const complianceIssues = complianceMetrics?.high_risk_contracts_count > 0 ? [
-      {
-        contractId: 'mock-1',
-        contractName: 'High Risk Contract',
-        category: 'Risk Assessment',
-        description: `${complianceMetrics.high_risk_contracts_count} contracts flagged as high risk`
-      }
-    ] : [];
+  // Calculate real compliance issues from contracts and metrics
+  const complianceIssues = [];
+  
+  if (complianceMetrics?.high_risk_contracts_count > 0) {
+    complianceIssues.push({
+      contractId: 'risk-summary',
+      contractName: 'Multiple Contracts',
+      category: 'High Risk Alert',
+      severity: 'high',
+      description: `${complianceMetrics.high_risk_contracts_count} contracts require immediate attention`,
+      action: 'Review high-risk contracts'
+    });
+  }
+  
+  if (complianceMetrics?.gdpr_compliance < 80) {
+    complianceIssues.push({
+      contractId: 'gdpr-alert',
+      contractName: 'GDPR Compliance',
+      category: 'Data Protection',
+      severity: 'medium',
+      description: `GDPR compliance at ${Math.round(complianceMetrics.gdpr_compliance)}% - below recommended threshold`,
+      action: 'Update privacy clauses'
+    });
+  }
+  
+  // Add alerts for expiring contracts
+  const expiringCount = upcomingDeadlines.filter(d => d.daysUntil <= 30 && d.daysUntil > 0).length;
+  if (expiringCount > 0) {
+    complianceIssues.push({
+      contractId: 'expiring-contracts',
+      contractName: 'Contract Renewals',
+      category: 'Time Sensitive',
+      severity: 'medium',
+      description: `${expiringCount} contracts expiring within 30 days`,
+      action: 'Plan renewals'
+    });
+  }
 
     return {
       totalContracts: businessMetrics.total_contracts,
@@ -140,44 +177,63 @@ export default function DashboardPage() {
     );
   }
 
-  const quickStats = [
-    {
-      name: 'Total Contracts',
-      value: totalContracts.toString(),
-      change: '+3',
-      changeType: 'increase' as const,
-      icon: DocumentTextIcon,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-    },
-    {
-      name: 'Active Contracts',
-      value: activeContracts.toString(),
-      change: '+2',
-      changeType: 'increase' as const,
-      icon: CheckCircleIcon,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-    },
-    {
-      name: 'Pending Review',
-      value: pendingContracts.toString(),
-      change: '+1',
-      changeType: 'increase' as const,
-      icon: ClockIcon,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
-    },
-    {
-      name: 'Compliance Score',
-      value: `${averageCompliance}%`,
-      change: '+2%',
-      changeType: 'increase' as const,
-      icon: ShieldCheckIcon,
-      color: getComplianceColor(averageCompliance),
-      bgColor: averageCompliance >= 90 ? 'bg-green-50' : averageCompliance >= 80 ? 'bg-yellow-50' : 'bg-red-50',
-    },
-  ];
+  // Build quick stats from actual data - no hardcoded changes
+  const quickStats = useMemo(() => {
+    if (!dashboardData) return [];
+    
+    const businessMetrics = dashboardData.business_metrics;
+    const complianceMetrics = dashboardData.compliance_metrics;
+    const timeMetrics = dashboardData.time_metrics;
+    
+    // Calculate real period-over-period changes if available
+    const contractChange = businessMetrics?.contracts_created_this_month || 0;
+    const activeChange = businessMetrics?.contracts_activated_this_month || 0;
+    const pendingChange = businessMetrics?.contracts_pending_review || 0;
+    const complianceChange = complianceMetrics?.compliance_trend || 0;
+    
+    return [
+      {
+        name: 'Total Contracts',
+        value: totalContracts.toString(),
+        change: contractChange > 0 ? `+${contractChange}` : contractChange < 0 ? `${contractChange}` : '—',
+        changeType: contractChange > 0 ? 'increase' as const : contractChange < 0 ? 'decrease' as const : 'neutral' as const,
+        icon: DocumentTextIcon,
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-50',
+        subtitle: businessMetrics?.total_contracts > 0 ? 'All time' : 'Get started',
+      },
+      {
+        name: 'Active Contracts',
+        value: activeContracts.toString(),
+        change: activeChange > 0 ? `+${activeChange}` : activeChange < 0 ? `${activeChange}` : '—',
+        changeType: activeChange > 0 ? 'increase' as const : activeChange < 0 ? 'decrease' as const : 'neutral' as const,
+        icon: CheckCircleIcon,
+        color: 'text-green-600',
+        bgColor: 'bg-green-50',
+        subtitle: businessMetrics?.active_contracts > 0 ? 'Currently active' : 'No active contracts',
+      },
+      {
+        name: 'Pending Review',
+        value: pendingContracts.toString(),
+        change: pendingChange > 0 ? `${pendingChange} new` : '—',
+        changeType: pendingChange > 0 ? 'warning' as const : 'neutral' as const,
+        icon: ClockIcon,
+        color: pendingChange > 0 ? 'text-yellow-600' : 'text-gray-600',
+        bgColor: pendingChange > 0 ? 'bg-yellow-50' : 'bg-gray-50',
+        subtitle: pendingChange > 0 ? 'Needs attention' : 'All reviewed',
+      },
+      {
+        name: 'Compliance Score',
+        value: averageCompliance > 0 ? `${averageCompliance}%` : 'N/A',
+        change: complianceChange !== 0 ? `${complianceChange > 0 ? '+' : ''}${complianceChange}%` : '—',
+        changeType: complianceChange > 0 ? 'increase' as const : complianceChange < 0 ? 'decrease' as const : 'neutral' as const,
+        icon: ShieldCheckIcon,
+        color: getComplianceColor(averageCompliance),
+        bgColor: averageCompliance >= 90 ? 'bg-green-50' : averageCompliance >= 80 ? 'bg-yellow-50' : averageCompliance > 0 ? 'bg-red-50' : 'bg-gray-50',
+        subtitle: averageCompliance > 0 ? `${complianceMetrics?.compliant_contracts_count || 0} compliant` : 'No data yet',
+      },
+    ];
+  }, [dashboardData, totalContracts, activeContracts, pendingContracts, averageCompliance]);
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto">
@@ -244,17 +300,38 @@ export default function DashboardPage() {
                       <div className={`text-lg sm:text-2xl font-bold ${textColors.primary} tabular-nums`}>
                         {stat.value}
                       </div>
-                      <div className={classNames(
-                        stat.changeType === 'increase' ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400',
-                        'flex items-baseline text-xs sm:text-sm font-semibold'
-                      )}>
-                        <TrendingUpIcon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0 mr-0.5" aria-hidden="true" />
-                        <span className="sr-only">
-                          {stat.changeType === 'increase' ? 'Increased' : 'Decreased'} by {stat.change} from previous period
-                        </span>
-                        {stat.change}
-                      </div>
+                      {stat.change !== '—' && (
+                        <div className={classNames(
+                          stat.changeType === 'increase' ? 'text-success-600 dark:text-success-400' : 
+                          stat.changeType === 'decrease' ? 'text-danger-600 dark:text-danger-400' :
+                          stat.changeType === 'warning' ? 'text-warning-600 dark:text-warning-400' :
+                          'text-gray-400 dark:text-gray-500',
+                          'flex items-baseline text-xs sm:text-sm font-semibold'
+                        )}>
+                          {stat.changeType !== 'neutral' && stat.changeType !== 'warning' && (
+                            <TrendingUpIcon 
+                              className={classNames(
+                                'h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0 mr-0.5',
+                                stat.changeType === 'decrease' && 'rotate-180'
+                              )} 
+                              aria-hidden="true" 
+                            />
+                          )}
+                          <span className="sr-only">
+                            {stat.changeType === 'increase' ? 'Increased' : 
+                             stat.changeType === 'decrease' ? 'Decreased' : 
+                             stat.changeType === 'warning' ? 'Warning' : 'No change'} 
+                            {stat.change}
+                          </span>
+                          {stat.change}
+                        </div>
+                      )}
                     </div>
+                    {stat.subtitle && (
+                      <div className={`text-xs ${textColors.muted} mt-1`}>
+                        {stat.subtitle}
+                      </div>
+                    )}
                   </dd>
                 </dl>
               </div>
