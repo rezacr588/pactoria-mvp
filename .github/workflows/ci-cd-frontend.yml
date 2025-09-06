@@ -7,6 +7,18 @@ on:
   pull_request:
     branches: [main, develop]
     paths: ['frontend/**', '.github/workflows/ci-cd-frontend.yml']
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: false
+        default: 'production'
+        type: string
+      skip_tests:
+        description: 'Skip tests and linting'
+        required: false
+        default: false
+        type: boolean
   workflow_dispatch:
     inputs:
       environment:
@@ -43,7 +55,7 @@ jobs:
   test:
     name: Test & Validate Frontend
     runs-on: ubuntu-latest
-    if: ${{ !inputs.skip_tests }}
+    if: ${{ inputs.skip_tests != true }}
     
     steps:
     - name: Checkout Code

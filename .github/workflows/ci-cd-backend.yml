@@ -7,6 +7,18 @@ on:
   pull_request:
     branches: [main, develop]
     paths: ['backend/**', '.github/workflows/ci-cd-backend.yml']
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: false
+        default: 'production'
+        type: string
+      force_deploy:
+        description: 'Force deployment (skip tests)'
+        required: false
+        default: false
+        type: boolean
   workflow_dispatch:
     inputs:
       environment:
@@ -50,7 +62,7 @@ jobs:
   test:
     name: Test & Validate Backend
     runs-on: ubuntu-latest
-    if: ${{ !inputs.force_deploy }}
+    if: ${{ inputs.force_deploy != true }}
     
     steps:
     - name: Checkout Code
