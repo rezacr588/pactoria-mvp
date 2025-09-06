@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  RESOURCE_GROUP: 'pactoria-rg'
+  RESOURCE_GROUP: 'pactoria-mvp-rg'
   CONTAINER_APP: 'pactoria-backend'
   LOCATION: 'eastus'
 
