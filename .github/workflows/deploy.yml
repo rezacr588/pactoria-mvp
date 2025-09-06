@@ -40,7 +40,12 @@ jobs:
     # Build and push backend
     - name: Build & Push Backend
       run: |
-        az acr build --registry pactoriaacr --image pactoria-backend:${{ github.sha }} ./backend
+        # Login to ACR
+        az acr login --name pactoriaacr
+        
+        # Build and push Docker image
+        docker build -t pactoriaacr.azurecr.io/pactoria-backend:${{ github.sha }} ./backend
+        docker push pactoriaacr.azurecr.io/pactoria-backend:${{ github.sha }}
         
     # Deploy backend
     - name: Deploy Backend
