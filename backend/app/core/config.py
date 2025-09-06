@@ -36,6 +36,8 @@ class Settings(BaseSettings):
 
     # CORS - Dynamic for Azure Static Web Apps
     CORS_ORIGINS: List[str] = []
+    # Allow-all CORS (development only). Set via env CORS_ALLOW_ALL=true
+    CORS_ALLOW_ALL: bool = os.getenv("CORS_ALLOW_ALL", "false").lower() == "true"
 
     # Production connection safety flag
     PRODUCTION_CONNECTION_WARNING: bool = False

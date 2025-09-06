@@ -225,30 +225,42 @@ app.openapi = custom_openapi
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 
 # CORS middleware with detailed configuration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=[
-        "Accept",
-        "Accept-Language",
-        "Content-Language",
-        "Content-Type",
-        "Authorization",
-        "X-Requested-With",
-        "X-CSRFToken",
-        "X-API-Key",
-        "Cache-Control",
-        "Pragma"
-    ],
-    expose_headers=[
-        "X-Process-Time",
-        "X-Request-ID",
-        "X-Total-Count",
-        "X-Page-Count"
-    ],
-)
+# Allow-all CORS in development or when explicitly enabled
+if settings.CORS_ALLOW_ALL or settings.ENVIRONMENT == "development":
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[],  # use regex below for dynamic echo of any origin
+        allow_origin_regex=".*",
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["*"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=[
+            "Accept",
+            "Accept-Language",
+            "Content-Language",
+            "Content-Type",
+            "Authorization",
+            "X-Requested-With",
+            "X-CSRFToken",
+            "X-API-Key",
+            "Cache-Control",
+            "Pragma"
+        ],
+        expose_headers=[
+            "X-Process-Time",
+            "X-Request-ID",
+            "X-Total-Count",
+            "X-Page-Count"
+        ],
+    )
 
 
 # Security headers middleware
