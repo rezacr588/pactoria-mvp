@@ -144,7 +144,7 @@ class User(Base):
     invited_by = Column(String, ForeignKey("users.id"), nullable=True)
 
     company_id = Column(String, ForeignKey("companies.id"), nullable=True)
-    company = relationship("Company", back_populates="users")
+    company = relationship("Company", back_populates="users", foreign_keys=[company_id])
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -225,13 +225,13 @@ class Company(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
-    users = relationship("User", back_populates="company")
+    users = relationship("User", back_populates="company", foreign_keys="[User.company_id]")
     contracts = relationship("Contract", back_populates="company")
     integration_connections = relationship(
         "IntegrationConnection", back_populates="company"
     )
     team_invitations = relationship("TeamInvitation", back_populates="company")
-    created_by_user = relationship("User", foreign_keys=[created_by_user_id])
+    created_by_user = relationship("User", foreign_keys=[created_by_user_id], overlaps="users")
 
 
 class Template(Base):
