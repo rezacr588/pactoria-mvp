@@ -3,10 +3,12 @@ Pactoria MVP - Main FastAPI Application
 AI-Powered Contract Management Platform for UK SMEs
 """
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 import time
 import logging
 from contextlib import asynccontextmanager
@@ -313,20 +315,67 @@ async def add_process_time_header(request: Request, call_next):
         raise
 
 
+# Helper function to add CORS headers to error responses
+def add_cors_headers(response: JSONResponse, request: Request) -> JSONResponse:
+    """Add CORS headers to error responses"""
+    origin = request.headers.get("origin")
+    if origin:
+        if settings.CORS_ALLOW_ALL or settings.ENVIRONMENT == "development":
+            response.headers["Access-Control-Allow-Origin"] = origin
+        elif origin in settings.CORS_ORIGINS:
+            response.headers["Access-Control-Allow-Origin"] = origin
+        
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        response.headers["Access-Control-Expose-Headers"] = "*"
+    
+    return response
+
+
+# Handle validation errors
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle validation errors with proper CORS headers"""
+    logger.warning(f"Validation error: {exc.errors()}")
+    
+    response = JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
+    )
+    return add_cors_headers(response, request)
+
+
+# Handle HTTP exceptions
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """Handle HTTP exceptions with proper CORS headers"""
+    logger.warning(f"HTTP exception: {exc.status_code} - {exc.detail}")
+    
+    response = JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
+    return add_cors_headers(response, request)
+
+
 # Global exception handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Handle all unhandled exceptions"""
     logger.error(f"Global exception handler caught: {exc}", exc_info=True)
 
-    return JSONResponse(
+    response = JSONResponse(
         status_code=500,
         content={
             "detail": "Internal server error",
             "path": str(request.url.path),
             "method": request.method,
+            "error": str(exc) if settings.DEBUG else "Internal server error",
         },
     )
+    
+    return add_cors_headers(response, request)
 
 
 # Azure Container Apps health check endpoint (required path)

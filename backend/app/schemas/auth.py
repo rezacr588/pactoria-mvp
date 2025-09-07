@@ -185,11 +185,40 @@ class CompanyResponse(BaseModel):
 
     id: str
     name: str
-    registration_number: Optional[str]
-    address: Optional[str]
+    company_number: Optional[str] = None  # Maps to registration_number in some contexts
+    address_line1: Optional[str] = None
+    address_line2: Optional[str] = None
+    city: Optional[str] = None
+    county: Optional[str] = None
+    postcode: Optional[str] = None
+    country: Optional[str] = None
     subscription_tier: str
     max_users: int
     created_at: datetime
+    
+    # Add computed fields for backward compatibility
+    @property
+    def registration_number(self) -> Optional[str]:
+        """Alias for company_number for backward compatibility"""
+        return self.company_number
+    
+    @property
+    def address(self) -> Optional[str]:
+        """Combine address fields into a single string"""
+        parts = []
+        if self.address_line1:
+            parts.append(self.address_line1)
+        if self.address_line2:
+            parts.append(self.address_line2)
+        if self.city:
+            parts.append(self.city)
+        if self.county:
+            parts.append(self.county)
+        if self.postcode:
+            parts.append(self.postcode)
+        if self.country:
+            parts.append(self.country)
+        return ", ".join(parts) if parts else None
 
     class Config:
         from_attributes = True

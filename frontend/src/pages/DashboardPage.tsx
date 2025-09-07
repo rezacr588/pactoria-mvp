@@ -53,7 +53,7 @@ export default function DashboardPage() {
       ]);
       
       setDashboardData(analyticsData);
-      setContracts(contractsData.contracts);
+      setContracts(contractsData?.contracts || contractsData || []);
     } catch (err) {
       const errorMessage = getErrorMessage(err);
       setError(errorMessage);
@@ -241,7 +241,7 @@ export default function DashboardPage() {
       <header className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
         <div>
           <h1 className={`${typography.heading.h1} sm:${typography.display.small} font-bold ${textColors.primary}`}>
-            Good morning, {user?.name?.split(' ')[0]}!
+            Good morning{user?.name ? `, ${user.name.split(' ')[0]}` : ''}!
           </h1>
           <p className={`mt-1 sm:mt-2 ${typography.body.medium} sm:${typography.body.large} ${textColors.secondary}`}>
             Here's what's happening with your contracts today

@@ -7,9 +7,13 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
 from app.core.auth import get_current_user
+from app.core.database import get_db
 from app.infrastructure.database.models import User
+from app.infrastructure.repositories.sqlalchemy_notification_repository import SQLAlchemyNotificationRepository
+from app.domain.repositories.notification_repository import NotificationFilter, NotificationSortCriteria
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
@@ -155,6 +159,7 @@ async def get_notifications(
     ),
     search: Optional[str] = Query(None, description="Search in title and message"),
     current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get notifications for the current user with filtering and pagination
@@ -163,60 +168,62 @@ async def get_notifications(
     read status, and action required status.
     """
     try:
-        # TODO: Implement actual database query
-        # For now, return mock data
-        notifications = get_mock_notifications(current_user.id)
+        # Create repository
+        repository = SQLAlchemyNotificationRepository(db)
 
-        # Apply filters
-        filtered_notifications = notifications
+        # Build filters
+        filters = NotificationFilter(
+            user_id=current_user.id,
+            notification_type=type_filter,
+            priority=priority,
+            read=read,
+            action_required=action_required,
+            search_query=search,
+        )
 
-        if type_filter:
-            filtered_notifications = [
-                n for n in filtered_notifications if n.type == type_filter
-            ]
+        # Build sort criteria
+        sort_criteria = NotificationSortCriteria(
+            field="created_at",
+            direction="DESC"
+        )
 
-        if priority:
-            filtered_notifications = [
-                n for n in filtered_notifications if n.priority == priority
-            ]
+        # Get notifications
+        result = await repository.get_by_user(
+            user_id=current_user.id,
+            filters=filters,
+            sort_criteria=sort_criteria,
+            limit=size,
+            offset=(page - 1) * size
+        )
 
-        if read is not None:
-            filtered_notifications = [
-                n for n in filtered_notifications if n.read == read
-            ]
-
-        if action_required is not None:
-            filtered_notifications = [
-                n
-                for n in filtered_notifications
-                if n.action_required == action_required
-            ]
-
-        if search:
-            filtered_notifications = [
-                n
-                for n in filtered_notifications
-                if search.lower() in n.title.lower()
-                or search.lower() in n.message.lower()
-            ]
-
-        # Sort by timestamp (newest first)
-        filtered_notifications.sort(key=lambda x: x.timestamp, reverse=True)
-
-        # Pagination
-        total = len(filtered_notifications)
-        unread_count = sum(1 for n in notifications if not n.read)
-        start = (page - 1) * size
-        end = start + size
-        paginated_notifications = filtered_notifications[start:end]
+        # Convert domain notifications to API response format
+        api_notifications = []
+        for notification in result.notifications:
+            # Get the first recipient (should be the current user)
+            recipient = notification.recipients[0] if notification.recipients else None
+            
+            api_notification = Notification(
+                id=notification.id.value,
+                type=_map_domain_category_to_api_type(notification.category),
+                title=notification.subject,
+                message=notification.content,
+                priority=notification.priority.value.lower(),
+                action_required=False,  # Could be derived from notification logic
+                read=(notification.status.value == "read"),
+                timestamp=notification.created_at.isoformat() if hasattr(notification, 'created_at') else datetime.now().isoformat(),
+                user_id=recipient.user_id if recipient else current_user.id,
+                related_contract=_get_related_contract_info(notification),
+                metadata=notification.variables,
+            )
+            api_notifications.append(api_notification)
 
         return PaginatedNotificationResponse(
-            notifications=paginated_notifications,
-            total=total,
-            unread_count=unread_count,
-            page=page,
-            size=size,
-            pages=(total + size - 1) // size,
+            notifications=api_notifications,
+            total=result.total_count,
+            unread_count=result.unread_count,
+            page=result.page,
+            size=result.page_size,
+            pages=result.total_pages,
         )
 
     except Exception as e:
@@ -250,12 +257,29 @@ async def get_notification(
 
 @router.put("/{notification_id}/read")
 async def mark_notification_as_read(
-    notification_id: str, current_user: User = Depends(get_current_user)
+    notification_id: str, 
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     """Mark a specific notification as read"""
     try:
-        # TODO: Implement actual database update
-        # Mock implementation
+        from app.domain.entities.notification import NotificationId
+        
+        # Create repository
+        repository = SQLAlchemyNotificationRepository(db)
+        
+        # Mark as read
+        success = await repository.mark_as_read(
+            NotificationId(notification_id), 
+            current_user.id
+        )
+        
+        if not success:
+            raise HTTPException(
+                status_code=404, 
+                detail="Notification not found or user not authorized"
+            )
+
         return {
             "success": True,
             "data": {
@@ -266,6 +290,8 @@ async def mark_notification_as_read(
             },
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to mark notification as read: {str(e)}"
@@ -275,16 +301,21 @@ async def mark_notification_as_read(
 @router.put("/read-all")
 async def mark_all_notifications_as_read(
     current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     """Mark all notifications as read for the current user"""
     try:
-        # TODO: Implement actual database update
-        # Mock implementation
+        # Create repository
+        repository = SQLAlchemyNotificationRepository(db)
+        
+        # Mark all as read
+        updated_count = await repository.mark_all_as_read(current_user.id)
+
         return {
             "success": True,
             "data": {
                 "message": "All notifications marked as read",
-                "updated_count": 5,
+                "updated_count": updated_count,
                 "updated_at": datetime.now(),
             },
         }
@@ -393,3 +424,37 @@ async def create_notification(
         raise HTTPException(
             status_code=500, detail=f"Failed to create notification: {str(e)}"
         )
+
+
+# Helper functions for API response mapping
+
+def _map_domain_category_to_api_type(category) -> str:
+    """Map domain notification category to API type"""
+    from app.domain.entities.notification import NotificationCategory
+    
+    category_to_type = {
+        NotificationCategory.DEADLINE_REMINDER: "deadline",
+        NotificationCategory.COMPLIANCE_ALERT: "compliance",
+        NotificationCategory.CONTRACT_STATUS: "contract",
+        NotificationCategory.TEAM_ACTIVITY: "team",
+        NotificationCategory.SYSTEM_UPDATE: "system",
+        NotificationCategory.BILLING: "system",
+        NotificationCategory.SECURITY: "system",
+        NotificationCategory.LEGAL_REVIEW: "compliance",
+        NotificationCategory.APPROVAL_REQUEST: "contract",
+        NotificationCategory.INTEGRATION: "system",
+    }
+    return category_to_type.get(category, "system")
+
+
+def _get_related_contract_info(notification) -> Optional[dict]:
+    """Get related contract information from notification"""
+    if (hasattr(notification, 'related_entity_id') and 
+        notification.related_entity_id and 
+        hasattr(notification, 'related_entity_type') and
+        notification.related_entity_type == "contract"):
+        return {
+            "id": notification.related_entity_id,
+            "name": f"Contract {notification.related_entity_id}"  # Could be enhanced with actual contract name
+        }
+    return None
