@@ -77,30 +77,30 @@ function getNotificationIcon(type: Notification['type']) {
 function getPriorityColor(priority: Notification['priority']) {
   switch (priority) {
     case 'high':
-      return 'text-red-600 bg-red-50 border-red-200';
+      return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800';
     case 'medium':
-      return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      return 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800';
     case 'low':
-      return 'text-blue-600 bg-blue-50 border-blue-200';
+      return 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 border-primary-200 dark:border-primary-800';
     default:
-      return 'text-gray-600 bg-gray-50 border-gray-200';
+      return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700';
   }
 }
 
 function getTypeColor(type: Notification['type']) {
   switch (type) {
     case 'deadline':
-      return 'text-orange-700 bg-orange-100';
+      return 'text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900/30';
     case 'compliance':
-      return 'text-red-700 bg-red-100';
+      return 'text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/30';
     case 'contract':
-      return 'text-green-700 bg-green-100';
+      return 'text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/30';
     case 'team':
-      return 'text-blue-700 bg-blue-100';
+      return 'text-primary-700 dark:text-primary-300 bg-primary-100 dark:bg-primary-900/30';
     case 'system':
-      return 'text-gray-700 bg-gray-100';
+      return 'text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800';
     default:
-      return 'text-gray-700 bg-gray-100';
+      return 'text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800';
   }
 }
 
@@ -245,11 +245,11 @@ export default function NotificationsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Notifications</h1>
-          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Notifications</h1>
+          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600 dark:text-gray-300">
             Stay updated with important alerts and activities
             {pagination.unread_count > 0 && (
-              <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+              <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-300">
                 {pagination.unread_count} unread
               </span>
             )}
@@ -300,11 +300,11 @@ export default function NotificationsPage() {
 
       {/* Error Display */}
       {error && (
-        <div className="mb-4 text-red-600 text-sm">
+        <div className="mb-4 text-red-600 dark:text-red-400 text-sm">
           Error: {error}
           <button 
             onClick={clearError} 
-            className="ml-2 text-blue-600 hover:underline"
+            className="ml-2 text-primary-600 dark:text-primary-400 hover:underline"
           >
             Dismiss
           </button>
@@ -313,7 +313,7 @@ export default function NotificationsPage() {
 
       {/* Results Summary */}
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           Showing {notifications.length} of {pagination.total} notifications
         </p>
       </div>
@@ -336,9 +336,9 @@ export default function NotificationsPage() {
       ) : notifications.length === 0 ? (
         <Card>
           <div className="text-center py-12">
-            <FunnelIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No notifications found</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <FunnelIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No notifications found</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {searchQuery || typeFilter || priorityFilter || statusFilter
                 ? 'Try adjusting your search or filter criteria.'
                 : 'You have no notifications at this time.'}
@@ -355,18 +355,18 @@ export default function NotificationsPage() {
                 variant="bordered" 
                 className={classNames(
                   'transition-all duration-200 hover:shadow-md',
-                  !notification.read && 'ring-2 ring-primary-100 bg-primary-50/20'
+                  !notification.read && 'ring-2 ring-primary-100 dark:ring-primary-800 bg-primary-50/20 dark:bg-primary-900/20'
                 )}
               >
                 <div className="flex items-start justify-between p-4">
                   <div className="flex items-start space-x-4 flex-1">
                     <div className={classNames(
                       'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center',
-                      notification.action_required ? 'bg-orange-100' : 'bg-gray-100'
+                      notification.action_required ? 'bg-orange-100 dark:bg-orange-900/30' : 'bg-gray-100 dark:bg-gray-800'
                     )}>
                       <Icon className={classNames(
                         'h-5 w-5',
-                        notification.action_required ? 'text-orange-600' : 'text-gray-600'
+                        notification.action_required ? 'text-orange-600 dark:text-orange-400' : 'text-gray-600 dark:text-gray-400'
                       )} />
                     </div>
                     
@@ -374,12 +374,12 @@ export default function NotificationsPage() {
                       <div className="flex items-center space-x-2 mb-1">
                         <h3 className={classNames(
                           'text-sm font-medium truncate',
-                          notification.read ? 'text-gray-700' : 'text-gray-900'
+                          notification.read ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-gray-100'
                         )}>
                           {notification.title}
                         </h3>
                         {!notification.read && (
-                          <div className="w-2 h-2 bg-primary-600 rounded-full flex-shrink-0"></div>
+                          <div className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full flex-shrink-0"></div>
                         )}
                         {notification.action_required && (
                           <Badge variant="warning" className="text-xs">
@@ -390,7 +390,7 @@ export default function NotificationsPage() {
                       
                       <p className={classNames(
                         'text-sm mt-1',
-                        notification.read ? 'text-gray-500' : 'text-gray-600'
+                        notification.read ? 'text-gray-500 dark:text-gray-400' : 'text-gray-600 dark:text-gray-300'
                       )}>
                         {notification.message}
                       </p>
@@ -410,12 +410,12 @@ export default function NotificationsPage() {
                           {notification.priority.charAt(0).toUpperCase() + notification.priority.slice(1)} Priority
                         </span>
                         
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-400 dark:text-gray-500">
                           {formatTimestamp(notification.timestamp)}
                         </span>
                         
                         {notification.related_contract && (
-                          <button className="text-xs text-primary-600 hover:text-primary-700 font-medium">
+                          <button className="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium">
                             View Contract →
                           </button>
                         )}

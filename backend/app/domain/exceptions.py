@@ -233,3 +233,38 @@ class CompanyLimitExceededError(DomainError):
                 "max_allowed": max_allowed,
             }
         )
+
+
+class RepositoryError(DomainError):
+    """Raised when repository operations fail"""
+
+    def __init__(
+        self, message: str, repository_name: str, operation: str
+    ):
+        super().__init__(message, "REPOSITORY_ERROR")
+        self.repository_name = repository_name
+        self.operation = operation
+        self.details.update({
+            "repository_name": repository_name,
+            "operation": operation
+        })
+
+
+class NotFoundError(DomainError):
+    """Raised when a resource is not found"""
+
+    def __init__(
+        self, message: str, resource_type: str, resource_id: str
+    ):
+        super().__init__(message, "NOT_FOUND")
+        self.resource_type = resource_type
+        self.resource_id = resource_id
+        self.details.update({
+            "resource_type": resource_type,
+            "resource_id": resource_id
+        })
+
+
+class ValidationError(DomainValidationError):
+    """Alias for DomainValidationError for backward compatibility"""
+    pass

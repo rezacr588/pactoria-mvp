@@ -4,7 +4,7 @@ User registration, login, profile management
 """
 
 from app.core.datetime_utils import get_current_utc
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -36,6 +36,7 @@ from app.schemas.auth import (
     AuthResponse,
 )
 from app.schemas.common import ValidationError, UnauthorizedError, ConflictError
+from app.services.audit_service import audit_user_login
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -156,12 +157,25 @@ async def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
         },
     },
 )
-async def login_user(login_data: UserLogin, db: Session = Depends(get_db)):
+async def login_user(
+    login_data: UserLogin, 
+    request: Request,
+    db: Session = Depends(get_db)
+):
     """Authenticate user and return access token"""
 
     # Find user by email
     user = db.query(User).filter(User.email == login_data.email).first()
+    
+    # Log failed login attempt if user not found
     if not user:
+        audit_user_login(
+            db=db,
+            user_id=None,
+            user_name=login_data.email,  # Use email for failed attempts
+            success=False,
+            request=request
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
@@ -170,6 +184,14 @@ async def login_user(login_data: UserLogin, db: Session = Depends(get_db)):
 
     # Verify password
     if not verify_password(login_data.password, user.hashed_password):
+        # Log failed login attempt
+        audit_user_login(
+            db=db,
+            user_id=user.id,
+            user_name=user.full_name,
+            success=False,
+            request=request
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
@@ -178,6 +200,14 @@ async def login_user(login_data: UserLogin, db: Session = Depends(get_db)):
 
     # Check if user is active
     if not user.is_active:
+        # Log failed login attempt for inactive account
+        audit_user_login(
+            db=db,
+            user_id=user.id,
+            user_name=user.full_name,
+            success=False,
+            request=request
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Account is inactive"
         )
@@ -196,6 +226,15 @@ async def login_user(login_data: UserLogin, db: Session = Depends(get_db)):
     # Update last login
     user.last_login_at = get_current_utc()
     db.commit()
+
+    # Log successful login
+    audit_user_login(
+        db=db,
+        user_id=user.id,
+        user_name=user.full_name,
+        success=True,
+        request=request
+    )
 
     return AuthResponse(
         token=token,

@@ -4,6 +4,7 @@ import { useAuthStore } from './store/authStore';
 import { AppLayout } from './components/layout';
 import ThemeProvider from './contexts/ThemeContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import ToastContainer from './components/ui/ToastContainer';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 
@@ -84,109 +85,111 @@ function App() {
     <ErrorBoundary level="critical" showErrorDetails={process.env.NODE_ENV === 'development'}>
       <ThemeProvider defaultTheme="light">
         <ToastProvider>
-          <Router>
-            <KeyboardShortcutsProvider>
-              {/* Skip Links for accessibility */}
-              <SkipLinks />
-              
-              <Suspense fallback={<LoadingSpinner />}>
-                <Routes>
-                {/* Public routes - Landing page accessible to all users */}
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/login" element={<LoginPage />} />
-              
-              {/* Protected routes with layout */}
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <ErrorBoundary level="page">
-                    <AppLayout />
-                  </ErrorBoundary>
-                </ProtectedRoute>
-              }>
-                <Route path="dashboard" element={
-                  <ErrorBoundary level="component">
-                    <DashboardPage />
-                  </ErrorBoundary>
-                } />
-                <Route path="contracts" element={
-                  <ErrorBoundary level="component">
-                    <ContractsPage />
-                  </ErrorBoundary>
-                } />
-                <Route path="contracts/new" element={
-                  <ErrorBoundary level="component">
-                    <ContractCreatePage />
-                  </ErrorBoundary>
-                } />
-                <Route path="contracts/:id" element={
-                  <ErrorBoundary level="component">
-                    <ContractViewPage />
-                  </ErrorBoundary>
-                } />
-                <Route path="analytics" element={
-                  <ErrorBoundary level="component">
-                    <AnalyticsPage />
-                  </ErrorBoundary>
-                } />
-                <Route path="templates" element={
-                  <ErrorBoundary level="component">
-                    <TemplatesPage />
-                  </ErrorBoundary>
-                } />
-                <Route path="integrations" element={
-                  <ErrorBoundary level="component">
-                    <IntegrationsPage />
-                  </ErrorBoundary>
-                } />
-                <Route path="audit" element={
-                  <ErrorBoundary level="component">
-                    <AuditTrailPage />
-                  </ErrorBoundary>
-                } />
-                <Route path="team" element={
-                  <ErrorBoundary level="component">
-                    <TeamPage />
-                  </ErrorBoundary>
-                } />
-                <Route path="settings" element={
-                  <ErrorBoundary level="component">
-                    <SettingsPage />
-                  </ErrorBoundary>
-                } />
-                <Route path="notifications" element={
-                  <ErrorBoundary level="component">
-                    <NotificationsPage />
-                  </ErrorBoundary>
-                } />
-                <Route path="help" element={
-                  <ErrorBoundary level="component">
-                    <HelpPage />
-                  </ErrorBoundary>
-                } />
-              </Route>
-                </Routes>
-              </Suspense>
+          <NotificationProvider>
+            <Router>
+              <KeyboardShortcutsProvider>
+                {/* Skip Links for accessibility */}
+                <SkipLinks />
+                
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Routes>
+                  {/* Public routes - Landing page accessible to all users */}
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                
+                {/* Protected routes with layout */}
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <ErrorBoundary level="page">
+                      <AppLayout />
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }>
+                  <Route path="dashboard" element={
+                    <ErrorBoundary level="component">
+                      <DashboardPage />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="contracts" element={
+                    <ErrorBoundary level="component">
+                      <ContractsPage />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="contracts/new" element={
+                    <ErrorBoundary level="component">
+                      <ContractCreatePage />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="contracts/:id" element={
+                    <ErrorBoundary level="component">
+                      <ContractViewPage />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="analytics" element={
+                    <ErrorBoundary level="component">
+                      <AnalyticsPage />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="templates" element={
+                    <ErrorBoundary level="component">
+                      <TemplatesPage />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="integrations" element={
+                    <ErrorBoundary level="component">
+                      <IntegrationsPage />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="audit" element={
+                    <ErrorBoundary level="component">
+                      <AuditTrailPage />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="team" element={
+                    <ErrorBoundary level="component">
+                      <TeamPage />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="settings" element={
+                    <ErrorBoundary level="component">
+                      <SettingsPage />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="notifications" element={
+                    <ErrorBoundary level="component">
+                      <NotificationsPage />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="help" element={
+                    <ErrorBoundary level="component">
+                      <HelpPage />
+                    </ErrorBoundary>
+                  } />
+                </Route>
+                  </Routes>
+                </Suspense>
 
-            {/* Global Modals and Components - Only show for authenticated users */}
-            {user && (
-              <>
-                <CommandPalette
-                  isOpen={isCommandPaletteOpen}
-                  onClose={() => setIsCommandPaletteOpen(false)}
-                />
-                <KeyboardShortcutsHelp
-                  isOpen={isKeyboardHelpOpen}
-                  onClose={() => setIsKeyboardHelpOpen(false)}
-                />
-                <ToastContainer />
-              </>
-            )}
-            </KeyboardShortcutsProvider>
-          </Router>
+              {/* Global Modals and Components - Only show for authenticated users */}
+              {user && (
+                <>
+                  <CommandPalette
+                    isOpen={isCommandPaletteOpen}
+                    onClose={() => setIsCommandPaletteOpen(false)}
+                  />
+                  <KeyboardShortcutsHelp
+                    isOpen={isKeyboardHelpOpen}
+                    onClose={() => setIsKeyboardHelpOpen(false)}
+                  />
+                  <ToastContainer />
+                </>
+              )}
+              </KeyboardShortcutsProvider>
+            </Router>
+          </NotificationProvider>
         </ToastProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
 }
 
-export default App
+export default App;

@@ -14,6 +14,7 @@ from app.core.database import get_db
 from app.infrastructure.database.models import User
 from app.infrastructure.repositories.sqlalchemy_notification_repository import SQLAlchemyNotificationRepository
 from app.domain.repositories.notification_repository import NotificationFilter, NotificationSortCriteria
+from app.application.services.enhanced_notification_service import EnhancedNotificationService
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
@@ -168,62 +169,38 @@ async def get_notifications(
     read status, and action required status.
     """
     try:
-        # Create repository
-        repository = SQLAlchemyNotificationRepository(db)
+        # Create enhanced notification service
+        notification_service = EnhancedNotificationService(db)
 
         # Build filters
-        filters = NotificationFilter(
+        filters = {
+            'type': type_filter,
+            'read': read,
+            'action_required': action_required,
+            'search': search,
+        }
+
+        # Get notifications using the enhanced service
+        result = await notification_service.get_user_notifications(
             user_id=current_user.id,
-            notification_type=type_filter,
-            priority=priority,
-            read=read,
-            action_required=action_required,
-            search_query=search,
+            page=page,
+            size=size,
+            filters=filters
         )
 
-        # Build sort criteria
-        sort_criteria = NotificationSortCriteria(
-            field="created_at",
-            direction="DESC"
-        )
-
-        # Get notifications
-        result = await repository.get_by_user(
-            user_id=current_user.id,
-            filters=filters,
-            sort_criteria=sort_criteria,
-            limit=size,
-            offset=(page - 1) * size
-        )
-
-        # Convert domain notifications to API response format
+        # Convert to API response format
         api_notifications = []
-        for notification in result.notifications:
-            # Get the first recipient (should be the current user)
-            recipient = notification.recipients[0] if notification.recipients else None
-            
-            api_notification = Notification(
-                id=notification.id.value,
-                type=_map_domain_category_to_api_type(notification.category),
-                title=notification.subject,
-                message=notification.content,
-                priority=notification.priority.value.lower(),
-                action_required=False,  # Could be derived from notification logic
-                read=(notification.status.value == "read"),
-                timestamp=notification.created_at.isoformat() if hasattr(notification, 'created_at') else datetime.now().isoformat(),
-                user_id=recipient.user_id if recipient else current_user.id,
-                related_contract=_get_related_contract_info(notification),
-                metadata=notification.variables,
-            )
+        for notif_data in result["notifications"]:
+            api_notification = Notification(**notif_data)
             api_notifications.append(api_notification)
 
         return PaginatedNotificationResponse(
             notifications=api_notifications,
-            total=result.total_count,
-            unread_count=result.unread_count,
-            page=result.page,
-            size=result.page_size,
-            pages=result.total_pages,
+            total=result["total"],
+            unread_count=result["unread_count"],
+            page=result["page"],
+            size=result["size"],
+            pages=result["pages"],
         )
 
     except Exception as e:
@@ -263,16 +240,11 @@ async def mark_notification_as_read(
 ):
     """Mark a specific notification as read"""
     try:
-        from app.domain.entities.notification import NotificationId
+        # Create enhanced notification service
+        notification_service = EnhancedNotificationService(db)
         
-        # Create repository
-        repository = SQLAlchemyNotificationRepository(db)
-        
-        # Mark as read
-        success = await repository.mark_as_read(
-            NotificationId(notification_id), 
-            current_user.id
-        )
+        # Mark as read with real-time broadcasting
+        success = await notification_service.mark_as_read(notification_id, current_user.id)
         
         if not success:
             raise HTTPException(
@@ -305,11 +277,11 @@ async def mark_all_notifications_as_read(
 ):
     """Mark all notifications as read for the current user"""
     try:
-        # Create repository
-        repository = SQLAlchemyNotificationRepository(db)
+        # Create enhanced notification service
+        notification_service = EnhancedNotificationService(db)
         
-        # Mark all as read
-        updated_count = await repository.mark_all_as_read(current_user.id)
+        # Mark all as read with real-time broadcasting
+        updated_count = await notification_service.mark_all_as_read(current_user.id)
 
         return {
             "success": True,

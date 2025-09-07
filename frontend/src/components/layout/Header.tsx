@@ -16,6 +16,7 @@ import { useAuthStore } from '../../store/authStore';
 import { NotificationsService } from '../../services/api';
 import { Notification, NotificationMessage } from '../../types';
 import { useNotifications } from '../../hooks/useWebSocket';
+import { NotificationBell } from '../notifications/NotificationBell';
 import Button from '../ui/Button';
 import ThemeToggle from '../ui/ThemeToggle';
 import DropdownMenu from '../ui/DropdownMenu';
@@ -32,8 +33,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
 
   const handleSearch = useCallback((query: string) => {
     if (query.trim()) {
@@ -216,74 +217,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
           <ThemeToggle size="sm" />
 
           {/* Notifications */}
-          <DropdownMenu
-            width="lg"
-            trigger={
-              <button className={`relative p-2 ${textColors.subtle} hover:text-neutral-500 dark:hover:text-secondary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900 rounded-xl`}>
-                <BellIcon className="h-6 w-6" />
-                <NotificationBadge count={unreadCount} />
-              </button>
-            }
-            header={
-              <div className="p-4">
-                <h3 className={`${textStyles.sectionTitle} mb-3`}>Notifications</h3>
-                <div className="space-y-3">
-                  {isLoadingNotifications ? (
-                    // Loading skeleton
-                    [...Array(3)].map((_, i) => (
-                      <div key={i} className="flex items-start space-x-3 animate-pulse">
-                        <div className="flex-shrink-0 w-2 h-2 rounded-full mt-2 bg-neutral-300 dark:bg-secondary-600" />
-                        <div className="flex-1 space-y-2">
-                          <div className="h-4 bg-neutral-200 dark:bg-secondary-700 rounded-lg w-3/4"></div>
-                          <div className="h-3 bg-neutral-200 dark:bg-secondary-700 rounded w-full"></div>
-                          <div className="h-3 bg-neutral-200 dark:bg-secondary-700 rounded w-1/3"></div>
-                        </div>
-                      </div>
-                    ))
-                  ) : notifications.length > 0 ? (
-                    notifications.map((notification) => (
-                      <div 
-                        key={notification.id} 
-                        className="flex items-start space-x-3 cursor-pointer hover:bg-neutral-50 dark:hover:bg-secondary-800 rounded-lg p-2 -m-2 transition-colors"
-                        onClick={() => handleMarkAsRead(notification.id)}
-                      >
-                        <div className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ${
-                          !notification.read ? 'bg-primary-500' : 'bg-neutral-300 dark:bg-secondary-600'
-                        }`} />
-                        <div className="flex-1 min-w-0">
-                          <p className={`${textStyles.listTitle} ${!notification.read ? 'font-semibold' : ''}`}>
-                            {notification.title}
-                          </p>
-                          <p className={`${textStyles.listSubtitle} truncate`}>
-                            {notification.message}
-                          </p>
-                          <div className="flex items-center justify-between mt-1">
-                            <p className={`${textStyles.timestamp}`}>
-                              {formatNotificationTime(notification.timestamp)}
-                            </p>
-                            {notification.action_required && (
-                              <span className="text-xs text-orange-600 dark:text-orange-400 font-medium">
-                                Action Required
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className={textStyles.bodyTextSecondary}>No new notifications</p>
-                  )}
-                </div>
-              </div>
-            }
-            footer={
-              <div className="p-4 border-t border-neutral-200 dark:border-secondary-700">
-                <Link to="/notifications" className={`text-sm font-medium ${textStyles.link}`}>
-                  View all notifications
-                </Link>
-              </div>
-            }
-          />
+          <NotificationBell />
 
           {/* User Profile Menu */}
           <DropdownMenu

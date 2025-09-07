@@ -30,9 +30,9 @@ from app.domain.entities.company import (
 
 
 class SubscriptionTier(str, enum.Enum):
-    STARTER = "starter"
-    PROFESSIONAL = "professional"
-    BUSINESS = "business"
+    STARTER = "STARTER"
+    PROFESSIONAL = "PROFESSIONAL"
+    BUSINESS = "BUSINESS"
 
 
 class UserRole(str, enum.Enum):

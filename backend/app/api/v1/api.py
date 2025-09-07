@@ -19,6 +19,7 @@ from app.api.v1.websocket import router as websocket_router
 from app.api.v1.audit import router as audit_router
 from app.api.v1.notifications import router as notifications_router
 from app.api.v1.team import router as team_router
+from app.api.v1.integrations import router as integrations_router
 
 # Create main API router
 api_router = APIRouter()
@@ -38,3 +39,4 @@ api_router.include_router(websocket_router)
 api_router.include_router(audit_router)
 api_router.include_router(notifications_router)
 api_router.include_router(team_router)
+api_router.include_router(integrations_router)
