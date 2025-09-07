@@ -12,10 +12,24 @@ export default function AppLayout() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        await Promise.all([
-          fetchContracts(),
-          fetchTemplates()
+        // Fetch contracts and templates separately to handle failures independently
+        const results = await Promise.allSettled([
+          fetchContracts().catch(err => {
+            console.warn('Failed to load contracts:', err);
+            return null;
+          }),
+          fetchTemplates().catch(err => {
+            console.warn('Failed to load templates (non-critical):', err);
+            return null;
+          })
         ]);
+
+        // Log any failures but don't block the app
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            console.warn(`App initialization item ${index} failed:`, result.reason);
+          }
+        });
       } catch (error) {
         console.error('Failed to initialize app data:', error);
       }

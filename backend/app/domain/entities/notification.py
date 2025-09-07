@@ -81,6 +81,12 @@ class NotificationId:
 
     def __str__(self) -> str:
         return self.value
+    
+    @classmethod
+    def generate(cls) -> "NotificationId":
+        """Generate a new unique notification ID"""
+        import uuid
+        return cls(str(uuid.uuid4()))
 
 
 @dataclass(frozen=True)

@@ -695,10 +695,22 @@ class SQLAlchemyNotificationRepository(NotificationRepository):
             created_by_user_id="system",  # Default for existing notifications
             expires_at=model.expires_at,
         )
+        
+        # Set the created_at timestamp from the model
+        if model.created_at:
+            notification._created_at = model.created_at
 
-        # Set additional state based on model
+        # Set proper notification status based on model state
         if model.read:
+            # For read notifications, set to DELIVERED first, then mark as read
+            notification._status = NotificationStatus.DELIVERED
+            notification._delivered_at = model.read_at or model.created_at
+            # Now we can safely mark as read
             notification.mark_as_read(model.user_id)
+        else:
+            # For unread notifications, set appropriate status (DELIVERED for display)
+            notification._status = NotificationStatus.DELIVERED
+            notification._delivered_at = model.created_at
 
         if model.related_contract_id:
             notification.set_related_entity(model.related_contract_id, "contract")

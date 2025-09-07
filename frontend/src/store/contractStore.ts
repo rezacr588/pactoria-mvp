@@ -13,7 +13,9 @@ interface ContractState {
   selectedContract: Contract | null;
   templates: ContractTemplate[];
   isLoading: boolean;
+  isLoadingTemplates: boolean;
   error: string | null;
+  lastFetchTime: number;
   pagination: {
     page: number;
     size: number;
@@ -92,7 +94,9 @@ export const useContractStore = create<ContractState>((set, get) => ({
   selectedContract: null,
   templates: [],
   isLoading: false,
+  isLoadingTemplates: false,
   error: null,
+  lastFetchTime: 0,
   pagination: {
     page: 1,
     size: 10,
@@ -101,6 +105,14 @@ export const useContractStore = create<ContractState>((set, get) => ({
   },
 
   fetchContracts: async (params = {}) => {
+    const now = Date.now();
+    const state = get();
+    
+    // Skip if already loading or fetched recently (within 30 seconds)
+    if (state.isLoading || (now - state.lastFetchTime < 30000 && state.contracts.length > 0)) {
+      return;
+    }
+    
     set({ isLoading: true, error: null });
     try {
       const response = await ContractService.getContracts(params);
@@ -113,7 +125,8 @@ export const useContractStore = create<ContractState>((set, get) => ({
           pages: response.pages
         },
         isLoading: false,
-        error: null
+        error: null,
+        lastFetchTime: now
       });
     } catch (error: any) {
       const errorMessage = error.data?.detail || error.message || 'Failed to load contracts';
@@ -121,7 +134,8 @@ export const useContractStore = create<ContractState>((set, get) => ({
         error: errorMessage,
         isLoading: false,
         contracts: [],
-        pagination: { page: 1, size: 10, total: 0, pages: 0 }
+        pagination: { page: 1, size: 10, total: 0, pages: 0 },
+        lastFetchTime: now
       });
       throw error;
     }
@@ -148,22 +162,38 @@ export const useContractStore = create<ContractState>((set, get) => ({
   },
 
   fetchTemplates: async (params = {}) => {
-    set({ isLoading: true, error: null });
+    const state = get();
+    
+    // Skip if already loading templates or have templates
+    if (state.isLoadingTemplates || state.templates.length > 0) {
+      return;
+    }
+    
+    set({ isLoadingTemplates: true, error: null });
     try {
       const templates = await ContractService.getTemplates(params);
       set({ 
         templates,
-        isLoading: false,
+        isLoadingTemplates: false,
         error: null
       });
     } catch (error: any) {
-      const errorMessage = error.data?.detail || error.message || 'Failed to load templates';
+      // Handle templates not found as non-critical error
+      const isNotFoundError = error.status === 404 || error.message?.includes('not found');
+      const errorMessage = isNotFoundError 
+        ? 'No templates available' 
+        : error.data?.detail || error.message || 'Failed to load templates';
+        
       set({ 
-        error: errorMessage,
-        isLoading: false,
+        error: isNotFoundError ? null : errorMessage, // Don't show error for missing templates
+        isLoadingTemplates: false,
         templates: []
       });
-      throw error;
+      
+      // Only re-throw non-404 errors to prevent blocking app initialization
+      if (!isNotFoundError) {
+        throw error;
+      }
     }
   },
 

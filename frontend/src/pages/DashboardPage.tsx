@@ -34,6 +34,7 @@ function getComplianceColor(score: number) {
 export default function DashboardPage() {
   const { showToast } = useToast();
   const { user } = useAuthStore();
+  const { contracts: storeContracts } = useContractStore();
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [contracts, setContracts] = useState<any[]>([]);
@@ -46,14 +47,24 @@ export default function DashboardPage() {
       setIsLoading(true);
       setError(null);
       
-      // Fetch both analytics dashboard and recent contracts
-      const [analyticsData, contractsData] = await Promise.all([
-        AnalyticsService.getDashboard(),
-        ContractService.getContracts({ page: 1, size: 10 })
-      ]);
+      // Use existing contracts if available to avoid duplicate API calls
+      const useExistingContracts = storeContracts.length > 0;
       
-      setDashboardData(analyticsData);
-      setContracts(contractsData?.contracts || contractsData || []);
+      if (useExistingContracts) {
+        // Only fetch analytics data, use existing contracts
+        const analyticsData = await AnalyticsService.getDashboard();
+        setDashboardData(analyticsData);
+        setContracts(storeContracts);
+      } else {
+        // Fetch both analytics dashboard and recent contracts
+        const [analyticsData, contractsData] = await Promise.all([
+          AnalyticsService.getDashboard(),
+          ContractService.getContracts({ page: 1, size: 10 })
+        ]);
+        
+        setDashboardData(analyticsData);
+        setContracts(contractsData?.contracts || contractsData || []);
+      }
     } catch (err) {
       const errorMessage = getErrorMessage(err);
       setError(errorMessage);
@@ -61,7 +72,7 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [showToast]);
+  }, [showToast, storeContracts]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -167,16 +178,6 @@ export default function DashboardPage() {
     setError(null);
   }, []);
 
-  // Show skeleton while loading - moved after all hooks
-  if (isLoading && !dashboardData) {
-    return (
-      <div className="p-4 sm:p-6 max-w-7xl mx-auto" role="main" aria-label="Loading dashboard">
-        <div className="sr-only" aria-live="polite">Loading your dashboard data...</div>
-        <SkeletonDashboard />
-      </div>
-    );
-  }
-
   // Build quick stats from actual data - no hardcoded changes
   const quickStats = useMemo(() => {
     if (!dashboardData) return [];
@@ -234,6 +235,16 @@ export default function DashboardPage() {
       },
     ];
   }, [dashboardData, totalContracts, activeContracts, pendingContracts, averageCompliance]);
+
+  // Show skeleton while loading - after all hooks to prevent hook count mismatch
+  if (isLoading && !dashboardData) {
+    return (
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto" role="main" aria-label="Loading dashboard">
+        <div className="sr-only" aria-live="polite">Loading your dashboard data...</div>
+        <SkeletonDashboard />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto">

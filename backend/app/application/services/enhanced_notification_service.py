@@ -125,9 +125,9 @@ class EnhancedNotificationService:
         try:
             from app.domain.repositories.notification_repository import NotificationFilter, NotificationSortCriteria
 
-            # Build filters
+            # Build filters (don't include user_id as it's already filtered in repository)
             notification_filter = NotificationFilter(
-                user_id=user_id,
+                user_id=None,  # Don't include user_id as get_by_user already filters by it
                 notification_type=filters.get('type') if filters else None,
                 read=filters.get('read') if filters else None,
                 action_required=filters.get('action_required') if filters else None,
@@ -447,6 +447,16 @@ class EnhancedNotificationService:
         """
         recipient = notification.recipients[0] if notification.recipients else None
         
+        # Determine read status from domain entity
+        is_read = (notification.status.value == "read")
+        
+        # Get timestamp - use _created_at if available, otherwise current time with timezone
+        timestamp = datetime.now(timezone.utc)
+        if hasattr(notification, '_created_at') and notification._created_at:
+            timestamp = notification._created_at
+        elif hasattr(notification, 'created_at') and notification.created_at:
+            timestamp = notification.created_at
+        
         return {
             "id": notification.id.value,
             "type": self._map_category_to_api_type(notification.category),
@@ -454,11 +464,11 @@ class EnhancedNotificationService:
             "message": notification.content,
             "priority": notification.priority.value.lower(),
             "action_required": False,  # Could be derived from notification logic
-            "read": (notification.status.value == "read"),
-            "timestamp": notification.created_at.isoformat() if hasattr(notification, 'created_at') else datetime.now().isoformat(),
+            "read": is_read,
+            "timestamp": timestamp.isoformat() if timestamp else datetime.now(timezone.utc).isoformat(),
             "user_id": recipient.user_id if recipient else None,
             "related_contract": self._get_related_contract_info(notification),
-            "metadata": notification.variables,
+            "metadata": notification.variables or {},
         }
 
     def _map_api_type_to_category(self, api_type: str) -> NotificationCategory:

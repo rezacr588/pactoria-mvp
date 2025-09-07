@@ -84,8 +84,8 @@ function App() {
   return (
     <ErrorBoundary level="critical" showErrorDetails={process.env.NODE_ENV === 'development'}>
       <ThemeProvider defaultTheme="light">
-        <ToastProvider>
-          <NotificationProvider>
+        <NotificationProvider>
+          <ToastProvider>
             <Router>
               <KeyboardShortcutsProvider>
                 {/* Skip Links for accessibility */}
@@ -185,8 +185,8 @@ function App() {
               )}
               </KeyboardShortcutsProvider>
             </Router>
-          </NotificationProvider>
-        </ToastProvider>
+          </ToastProvider>
+        </NotificationProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
