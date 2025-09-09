@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     APP_VERSION: str = "0.1.0-mvp"
     DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "production")
+    ENABLE_DOCS: bool = os.getenv("ENABLE_DOCS", "true").lower() == "true"  # Allow docs even in production
 
     # API
     API_V1_PREFIX: str = "/api/v1"

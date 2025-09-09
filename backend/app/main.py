@@ -86,8 +86,8 @@ For technical support or business inquiries, contact us at support@pactoria.com
 
 This API is proprietary software. Unauthorized access or use is prohibited.
     """,
-    docs_url="/docs" if settings.DEBUG else None,
-    redoc_url="/redoc" if settings.DEBUG else None,
+    docs_url="/docs" if settings.ENABLE_DOCS else None,
+    redoc_url="/redoc" if settings.ENABLE_DOCS else None,
     lifespan=lifespan,
     # OpenAPI metadata
     terms_of_service="https://pactoria.com/terms",
