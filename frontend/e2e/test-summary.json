@@ -1,7 +1,7 @@
 {
-  "testRunId": "test-1757429248971",
-  "startTime": "2025-09-09T14:47:28.971Z",
-  "endTime": "2025-09-09T14:48:57.621Z",
+  "testRunId": "test-1757441401513",
+  "startTime": "2025-09-09T18:10:01.513Z",
+  "endTime": "2025-09-09T18:10:11.826Z",
   "environment": {
     "baseURL": "http://localhost:5173",
     "apiBaseUrl": "http://localhost:8000/api/v1",

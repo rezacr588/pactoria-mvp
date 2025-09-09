@@ -1,23 +1,23 @@
 import { type Page } from '@playwright/test';
 
-export const demoCredentials = {
-  email: 'demo@pactoria.com',
-  password: 'Demo123!' // Updated to match actual demo password
+export const testCredentials = {
+  email: 'test@pactoria.com',
+  password: 'TestPassword123!'
 };
 
-export async function loginWithDemoAccount(page: Page) {
+export async function loginWithTestAccount(page: Page) {
   // Mock successful login API response
   await page.route('**/api/v1/auth/login*', async route => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        token: 'mock-demo-token-12345',
+        token: 'mock-test-token-12345',
         user: {
-          id: 'demo-user-123',
-          email: demoCredentials.email,
-          full_name: 'Demo User',
-          company_name: 'Demo Company Ltd'
+          id: 'test-user-123',
+          email: testCredentials.email,
+          full_name: 'Test User',
+          company_name: 'Test Company Ltd'
         }
       })
     });
@@ -27,8 +27,8 @@ export async function loginWithDemoAccount(page: Page) {
   await page.goto('/login');
   
   // Fill login form
-  await page.fill('input[name="email"]', demoCredentials.email);
-  await page.fill('input[name="password"]', demoCredentials.password);
+  await page.fill('input[name="email"]', testCredentials.email);
+  await page.fill('input[name="password"]', testCredentials.password);
   
   // Submit form
   await page.click('button[type="submit"]');
@@ -43,15 +43,15 @@ export async function loginWithDemoAccount(page: Page) {
   
   // Set auth token in localStorage for subsequent requests
   await page.evaluate(() => {
-    localStorage.setItem('pactoria_auth_token', 'mock-demo-token-12345');
+    localStorage.setItem('pactoria_auth_token', 'mock-test-token-12345');
     localStorage.setItem('auth-storage', JSON.stringify({
       state: {
-        token: 'mock-demo-token-12345',
+        token: 'mock-test-token-12345',
         user: {
-          id: 'demo-user-123',
-          email: 'demo@pactoria.com',
-          full_name: 'Demo User',
-          company_name: 'Demo Company Ltd'
+          id: 'test-user-123',
+          email: 'test@pactoria.com',
+          full_name: 'Test User',
+          company_name: 'Test Company Ltd'
         }
       }
     }));
@@ -78,7 +78,7 @@ export async function loginWithCredentials(page: Page, email: string, password: 
 
 export async function logout(page: Page) {
   // Find and click user menu
-  const userMenu = page.locator('[data-testid="user-menu"], button[aria-label*="profile"], button:has-text("Demo")').first();
+  const userMenu = page.locator('[data-testid="user-menu"], button[aria-label*="profile"], [data-testid="user-avatar"]').first();
   
   if (await userMenu.isVisible()) {
     await userMenu.click();

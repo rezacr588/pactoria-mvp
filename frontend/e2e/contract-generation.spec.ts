@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { loginWithDemoAccount } from './helpers/auth';
+import { loginWithTestAccount } from './helpers/auth';
 
 test.describe('Contract Generation with Groq AI', () => {
   test.beforeEach(async ({ page }) => {
     // Set longer timeout for AI generation tests
     test.setTimeout(120000); // 2 minutes
     
-    await loginWithDemoAccount(page);
+    await loginWithTestAccount(page);
   });
 
   test('should generate contract with Groq AI - FULL TEST', async ({ page }) => {
@@ -324,7 +324,7 @@ test.describe('Contract Generation API Verification', () => {
   test('should verify Groq API is configured', async ({ page }) => {
     console.log('🔍 Verifying Groq API configuration');
     
-    await loginWithDemoAccount(page);
+    await loginWithTestAccount(page);
     
     // Check if API is responding
     const response = await page.evaluate(async () => {

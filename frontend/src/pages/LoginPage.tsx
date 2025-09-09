@@ -44,28 +44,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoLogin = async () => {
-    setLoading(true);
-    try {
-      // Use a demo account if available, or direct to registration
-      setFormData({
-        email: 'demo@pactoria.com',
-        password: 'Demo123!',
-        full_name: 'Demo User',
-        company_name: 'Demo Company Ltd',
-        timezone: 'Europe/London'
-      });
-      setIsLogin(true);
-      await login('demo@pactoria.com', 'Demo123!');
-      navigate('/dashboard');
-    } catch (error: unknown) {
-      // If demo login fails, show registration form with pre-filled data
-      setIsLogin(false);
-      setErrors({ form: 'Demo account not found. Please register to create an account.' });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
@@ -94,15 +72,6 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <Card variant="bordered" className="bg-blue-50 border-blue-200 p-4 mb-6">
-            <div className="text-sm text-blue-700">
-              <strong>Demo Account:</strong> Use the button below or login with:
-              <div className="mt-1 font-mono text-xs">
-                Email: demo@pactoria.com<br />
-                Password: Demo123!
-              </div>
-            </div>
-          </Card>
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           {!isLogin && (
@@ -195,18 +164,6 @@ export default function LoginPage() {
               {isLogin ? 'Sign in' : 'Create Account'}
             </Button>
 
-            {isLogin && (
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={handleDemoLogin}
-                loading={loading}
-                fullWidth
-                size="lg"
-              >
-                Try Demo Account
-              </Button>
-            )}
           </div>
 
           <div className="text-center pt-4">

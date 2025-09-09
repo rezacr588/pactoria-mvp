@@ -445,7 +445,7 @@ export default function LandingPage() {
                   </Link>
                   {!user && (
                     <Link to="/login" className={`${typography.body.large} font-semibold leading-6 text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-200 flex items-center justify-center sm:justify-start group hover:scale-105 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 min-h-[44px]`}>
-                      View Demo <ArrowRightIcon className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
+                      Sign In <ArrowRightIcon className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
                     </Link>
                   )}
                 </div>
@@ -796,7 +796,7 @@ export default function LandingPage() {
             </Link>
             {!user && (
               <Link to="/login" className={`${typography.body.large} font-semibold leading-6 text-white hover:text-primary-200 transition-colors duration-200 flex items-center group focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary-800 rounded-lg px-3 py-2`}>
-                Book a Demo 
+                Get Started 
                 <ArrowRightIcon className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
               </Link>
             )}

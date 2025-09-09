@@ -1,7 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  BellIcon,
   MagnifyingGlassIcon,
   PlusIcon,
   Bars3Icon,
@@ -13,15 +12,13 @@ import {
   GlobeAltIcon,
 } from '@heroicons/react/24/outline';
 import { useAuthStore } from '../../store/authStore';
-import { NotificationsService } from '../../services/api';
-import { Notification, NotificationMessage } from '../../types';
+import { NotificationMessage } from '../../types';
 import { useNotifications } from '../../hooks/useWebSocket';
 import { NotificationBell } from '../notifications/NotificationBell';
 import Button from '../ui/Button';
 import ThemeToggle from '../ui/ThemeToggle';
 import DropdownMenu from '../ui/DropdownMenu';
 import Avatar from '../ui/Avatar';
-import { NotificationBadge } from '../ui/Badge';
 import { textStyles, textColors, typography } from '../../utils/typography';
 
 interface HeaderProps {
@@ -32,9 +29,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
 
   const handleSearch = useCallback((query: string) => {
     if (query.trim()) {
@@ -55,95 +50,15 @@ export default function Header({ onMenuClick }: HeaderProps) {
     }
   };
 
-  // Fetch notifications from the API
-  const fetchNotifications = useCallback(async () => {
-    if (!user) return;
-    
-    setIsLoadingNotifications(true);
-    try {
-      const response = await NotificationsService.getNotifications({
-        page: 1,
-        size: 10, // Show only the most recent 10 notifications in header
-        read: false // Only show unread for header badge
-      });
-      
-      setNotifications(response.notifications);
-      setUnreadCount(response.unread_count);
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
-      // Don't show error in header, just log it
-    } finally {
-      setIsLoadingNotifications(false);
-    }
-  }, [user]);
 
   // WebSocket notifications
   useNotifications((message: NotificationMessage) => {
-    // Convert WebSocket notification to local notification format
-    const validNotificationTypes = ['deadline', 'compliance', 'team', 'system', 'contract'];
-    const notificationType = validNotificationTypes.includes(message.notification_type) 
-      ? message.notification_type as 'deadline' | 'compliance' | 'team' | 'system' | 'contract'
-      : 'system';
-      
-    const newNotification: Notification = {
-      id: message.message_id || `ws-${Date.now()}`,
-      type: notificationType,
-      title: message.title,
-      message: message.message,
-      priority: message.priority.toLowerCase() as 'low' | 'medium' | 'high',
-      action_required: false, // WebSocket message doesn't have this field
-      read: false,
-      timestamp: message.timestamp,
-      user_id: message.target_user_id || '',
-      related_contract: message.data?.contract ? {
-        id: message.data.contract.id,
-        name: message.data.contract.name
-      } : undefined,
-      metadata: message.data
-    };
-    
-    // Add to notifications list
-    setNotifications(prev => [newNotification, ...prev.slice(0, 9)]); // Keep only 10 notifications
     setUnreadCount(prev => prev + 1);
-    
-    // Show toast notification or other UI feedback
     console.log('Real-time notification received:', message);
   });
 
-  // Load notifications on mount and when user changes
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
 
-  const handleMarkAsRead = useCallback(async (notificationId: string) => {
-    try {
-      await NotificationsService.markAsRead(notificationId);
-      // Update local state
-      setNotifications(prev => 
-        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
-    }
-  }, []);
 
-  const formatNotificationTime = (timestamp: string): string => {
-    const now = new Date();
-    const notificationTime = new Date(timestamp);
-    const diffInMinutes = Math.floor((now.getTime() - notificationTime.getTime()) / (1000 * 60));
-    
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays}d ago`;
-    
-    return notificationTime.toLocaleDateString();
-  };
 
   return (
     <header className="bg-white dark:bg-secondary-900 border-b border-neutral-200 dark:border-secondary-700 h-16">

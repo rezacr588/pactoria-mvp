@@ -30,9 +30,6 @@ test.describe('Navigation and Routing Tests', () => {
     contractViewPage = new ContractViewPage(page);
     analyticsPage = new AnalyticsPage(page);
     appLayout = new AppLayout(page);
-    apiMocker = new APIMocker(page);
-
-    await apiMocker.mockAllEndpoints();
 
     // Set up authenticated state
     await page.addInitScript(() => {

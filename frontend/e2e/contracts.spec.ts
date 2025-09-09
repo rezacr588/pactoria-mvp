@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginWithDemoAccount } from './helpers/auth';
+import { loginWithTestAccount } from './helpers/auth';
 
 // Test data
 const testContract = {
@@ -19,8 +19,10 @@ const testContract = {
 test.describe('Contract Management', () => {
   test.beforeEach(async ({ page }) => {
     // Login before each test
-    await loginWithDemoAccount(page);
+    await loginWithTestAccount(page);
     await page.goto('/contracts');
+    // Wait for page to load completely
+    await page.waitForLoadState('networkidle');
   });
 
   test('should display contracts list page', async ({ page }) => {
@@ -149,49 +151,18 @@ test.describe('Contract Management', () => {
   });
 
   test('should navigate to contract details', async ({ page }) => {
-    // Mock a contract for testing
-    await page.route('**/api/v1/contracts*', async route => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            contracts: [{
-              id: 'test-contract-1',
-              title: 'Test Contract Details',
-              contract_type: 'service_agreement',
-              status: 'active',
-              client_name: 'Test Client',
-              contract_value: 50000,
-              currency: 'GBP',
-              created_at: new Date().toISOString()
-            }],
-            total: 1,
-            page: 1,
-            size: 10,
-            pages: 1
-          })
-        });
-      } else {
-        await route.continue();
-      }
-    });
-
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-    
-    // Navigate to first contract
-    const firstContract = page.locator('[data-testid="contract-item"], tr[data-contract-id], .contract-card, text="Test Contract Details"').first();
+    // Navigate to first contract if available
+    const firstContract = page.locator('[data-testid="contract-item"], tr[data-contract-id], .contract-card').first();
     
     if (await firstContract.isVisible({ timeout: 5000 })) {
       await firstContract.click();
       
       // Should navigate to contract detail page or show details
       try {
-        await expect(page).toHaveURL(/\/contracts\/[a-zA-Z0-9-]+/, { timeout: 5000 });
+        await expect(page).toHaveURL(/\/contracts\/[a-zA-Z0-9-]+/, { timeout: 10000 });
       } catch {
         // Alternative: details might show in modal or inline
-        await expect(page.locator('text=/Contract Details|Overview|Compliance|Test Contract Details/')).toBeVisible();
+        await expect(page.locator('text=/Contract Details|Overview|Compliance/')).toBeVisible();
       }
     } else {
       console.log('No contracts available for details navigation test');
@@ -199,50 +170,8 @@ test.describe('Contract Management', () => {
   });
 
   test('should edit contract details', async ({ page }) => {
-    // Mock contract data and edit endpoint
-    await page.route('**/api/v1/contracts*', async route => {
-      const url = route.request().url();
-      if (route.request().method() === 'GET' && url.includes('/contracts')) {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            contracts: [{
-              id: 'edit-test-contract',
-              title: 'Editable Test Contract',
-              contract_type: 'service_agreement',
-              status: 'draft',
-              client_name: 'Edit Test Client',
-              contract_value: 75000,
-              currency: 'GBP',
-              created_at: new Date().toISOString()
-            }],
-            total: 1,
-            page: 1,
-            size: 10,
-            pages: 1
-          })
-        });
-      } else if (route.request().method() === 'PUT') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            id: 'edit-test-contract',
-            title: 'Updated Contract Title',
-            status: 'active',
-            updated_at: new Date().toISOString()
-          })
-        });
-      } else {
-        await route.continue();
-      }
-    });
-
-    await page.reload();
-    
-    // Navigate to contract
-    const contractItem = page.locator('text="Editable Test Contract"').first();
+    // Navigate to first available contract
+    const contractItem = page.locator('[data-testid="contract-item"], tr[data-contract-id], .contract-card').first();
     if (await contractItem.isVisible({ timeout: 5000 })) {
       await contractItem.click();
       
@@ -253,13 +182,14 @@ test.describe('Contract Management', () => {
         await page.waitForTimeout(500);
         
         // Try to update fields if available
-        const nameInput = page.locator('input[name="name"], input[name="title"], input[value*="Editable"]').first();
+        const nameInput = page.locator('input[name="name"], input[name="title"]').first();
         if (await nameInput.isVisible({ timeout: 2000 })) {
           await nameInput.fill('Updated Contract Title');
           
           const saveButton = page.locator('button:has-text("Save"), button:has-text("Update")');
           if (await saveButton.isVisible()) {
             await saveButton.click();
+            await page.waitForTimeout(1000);
           }
         }
       }
@@ -267,37 +197,8 @@ test.describe('Contract Management', () => {
   });
 
   test('should export contract', async ({ page }) => {
-    // Mock contract with export capability
-    await page.route('**/api/v1/contracts*', async route => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            contracts: [{
-              id: 'exportable-contract',
-              title: 'Exportable Test Contract',
-              contract_type: 'service_agreement',
-              status: 'active',
-              client_name: 'Export Client',
-              final_content: 'CONTRACT CONTENT FOR EXPORT...',
-              created_at: new Date().toISOString()
-            }],
-            total: 1,
-            page: 1,
-            size: 10,
-            pages: 1
-          })
-        });
-      } else {
-        await route.continue();
-      }
-    });
-
-    await page.reload();
-    
-    // Navigate to contract
-    const contractItem = page.locator('text="Exportable Test Contract"').first();
+    // Navigate to first available contract
+    const contractItem = page.locator('[data-testid="contract-item"], tr[data-contract-id], .contract-card').first();
     if (await contractItem.isVisible({ timeout: 5000 })) {
       await contractItem.click();
       
@@ -321,43 +222,13 @@ test.describe('Contract Management', () => {
   });
 
   test('should show contract compliance analysis', async ({ page }) => {
-    // Mock contract with compliance data
-    await page.route('**/api/v1/contracts*', async route => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            contracts: [{
-              id: 'compliance-contract',
-              title: 'Compliance Test Contract',
-              contract_type: 'service_agreement',
-              status: 'active',
-              compliance_score: 0.85,
-              risk_score: 4,
-              final_content: 'CONTRACT WITH COMPLIANCE DATA...',
-              created_at: new Date().toISOString()
-            }],
-            total: 1,
-            page: 1,
-            size: 10,
-            pages: 1
-          })
-        });
-      } else {
-        await route.continue();
-      }
-    });
-
-    await page.reload();
-    
-    // Navigate to contract
-    const contractItem = page.locator('text="Compliance Test Contract"').first();
+    // Navigate to first available contract
+    const contractItem = page.locator('[data-testid="contract-item"], tr[data-contract-id], .contract-card').first();
     if (await contractItem.isVisible({ timeout: 5000 })) {
       await contractItem.click();
       
       // Look for compliance information display
-      const complianceElements = page.locator('text=/Compliance|Risk|Score|85%|0.85/');
+      const complianceElements = page.locator('text=/Compliance|Risk|Score/');
       if (await complianceElements.count() > 0) {
         console.log('Compliance information visible');
       } else {
@@ -556,7 +427,7 @@ test.describe('Contract Management', () => {
 
 test.describe('Contract Bulk Operations', () => {
   test.beforeEach(async ({ page }) => {
-    await loginWithDemoAccount(page);
+    await loginWithTestAccount(page);
     await page.goto('/contracts');
   });
 

@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { loginWithDemoAccount } from './helpers/auth';
+import { loginWithTestAccount } from './helpers/auth';
 import { TEST_TIMEOUT } from './helpers/config';
 
 test.describe('Dashboard Features', () => {
   test.beforeEach(async ({ page }) => {
-    await loginWithDemoAccount(page);
+    await loginWithTestAccount(page);
     await page.goto('/dashboard');
   });
 
@@ -195,7 +195,7 @@ test.describe('Dashboard Features', () => {
 
 test.describe('Dashboard Analytics', () => {
   test.beforeEach(async ({ page }) => {
-    await loginWithDemoAccount(page);
+    await loginWithTestAccount(page);
     await page.goto('/analytics');
   });
 
@@ -298,7 +298,7 @@ test.describe('Dashboard Responsiveness', () => {
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 812 });
     
-    await loginWithDemoAccount(page);
+    await loginWithTestAccount(page);
     await page.goto('/dashboard');
     
     // Check that dashboard is still functional
@@ -319,7 +319,7 @@ test.describe('Dashboard Responsiveness', () => {
     // Set tablet viewport
     await page.setViewportSize({ width: 768, height: 1024 });
     
-    await loginWithDemoAccount(page);
+    await loginWithTestAccount(page);
     await page.goto('/dashboard');
     
     // Check layout
@@ -335,7 +335,7 @@ test.describe('Dashboard Responsiveness', () => {
   });
 
   test('should handle dark mode', async ({ page }) => {
-    await loginWithDemoAccount(page);
+    await loginWithTestAccount(page);
     await page.goto('/dashboard');
     
     // Look for theme toggle
