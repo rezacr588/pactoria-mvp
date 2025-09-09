@@ -105,11 +105,11 @@ class SQLAlchemyNotificationRepository(NotificationRepository):
             raise RepositoryError(f"Failed to delete notification: {str(e)}")
 
     async def get_by_user(
-        self, 
-        user_id: str, 
+        self,
+        user_id: str,
         filters: Optional[NotificationFilter] = None,
         sort_criteria: Optional[NotificationSortCriteria] = None,
-        limit: int = 20, 
+        limit: int = 20,
         offset: int = 0
     ) -> NotificationSearchResult:
         """Get notifications for a specific user with filtering, sorting, and pagination"""
@@ -158,10 +158,10 @@ class SQLAlchemyNotificationRepository(NotificationRepository):
             raise RepositoryError(f"Failed to get notifications: {str(e)}")
 
     async def get_by_recipient(
-        self, 
-        user_id: str, 
+        self,
+        user_id: str,
         filters: Optional[Dict[str, Any]] = None,
-        limit: int = 20, 
+        limit: int = 20,
         offset: int = 0
     ) -> List[DomainNotification]:
         """Get notifications where user is a recipient (for compatibility)"""
@@ -314,7 +314,7 @@ class SQLAlchemyNotificationRepository(NotificationRepository):
 
     async def get_scheduled_for_delivery(self) -> List[DomainNotification]:
         """Get notifications that are scheduled for delivery"""
-        # Note: This is a simplified implementation since the current model doesn't 
+        # Note: This is a simplified implementation since the current model doesn't
         # have all the complex delivery tracking from the domain entity
         try:
             models = (
@@ -375,9 +375,9 @@ class SQLAlchemyNotificationRepository(NotificationRepository):
             raise RepositoryError(f"Failed to get expired notifications: {str(e)}")
 
     async def get_statistics(
-        self, 
-        date_from: datetime, 
-        date_to: datetime, 
+        self,
+        date_from: datetime,
+        date_to: datetime,
         user_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Get notification statistics for a date range"""
@@ -454,18 +454,18 @@ class SQLAlchemyNotificationRepository(NotificationRepository):
         """Clean up old notifications"""
         try:
             cutoff_date = datetime.now(timezone.utc) - timedelta(days=older_than_days)
-            
+
             deleted = (
                 self.db.query(NotificationModel)
                 .filter(NotificationModel.created_at < cutoff_date)
-                .filter(NotificationModel.read == True)  # Only delete read notifications
+                .filter(NotificationModel.read)  # Only delete read notifications
                 .count()
             )
 
             self.db.query(NotificationModel).filter(
                 and_(
                     NotificationModel.created_at < cutoff_date,
-                    NotificationModel.read == True
+                    NotificationModel.read
                 )
             ).delete()
 
@@ -492,8 +492,8 @@ class SQLAlchemyNotificationRepository(NotificationRepository):
             raise RepositoryError(f"Failed to bulk create notifications: {str(e)}")
 
     async def get_by_related_entity(
-        self, 
-        entity_type: str, 
+        self,
+        entity_type: str,
         entity_id: str,
         limit: int = 50
     ) -> List[DomainNotification]:
@@ -547,8 +547,8 @@ class SQLAlchemyNotificationRepository(NotificationRepository):
             raise RepositoryError(f"Failed to count by type: {str(e)}")
 
     async def get_recent_activity(
-        self, 
-        user_id: str, 
+        self,
+        user_id: str,
         limit: int = 10
     ) -> List[Dict[str, Any]]:
         """Get recent notification activity for dashboard"""
@@ -645,7 +645,7 @@ class SQLAlchemyNotificationRepository(NotificationRepository):
         }
 
         field = field_map.get(sort_criteria.field, NotificationModel.created_at)
-        
+
         if sort_criteria.direction == "DESC":
             return query.order_by(desc(field))
         else:
@@ -666,7 +666,7 @@ class SQLAlchemyNotificationRepository(NotificationRepository):
             email = None
             try:
                 email = Email(user.email) if user.email else None
-            except:
+            except BaseException:
                 pass  # Invalid email, skip
 
             recipient = NotificationRecipient(
@@ -695,7 +695,7 @@ class SQLAlchemyNotificationRepository(NotificationRepository):
             created_by_user_id="system",  # Default for existing notifications
             expires_at=model.expires_at,
         )
-        
+
         # Set the created_at timestamp from the model
         if model.created_at:
             notification._created_at = model.created_at
@@ -704,14 +704,14 @@ class SQLAlchemyNotificationRepository(NotificationRepository):
         # First set to DELIVERED (required for proper domain state)
         notification._status = NotificationStatus.DELIVERED
         notification._delivered_at = model.created_at
-        
+
         # For read notifications, set the appropriate status
         if model.read:
             # Use the domain method properly - first ensure it's delivered, then mark as read
             try:
                 notification.mark_as_read(model.user_id)
             except Exception:
-                # If domain validation fails, set the status directly 
+                # If domain validation fails, set the status directly
                 notification._status = NotificationStatus.READ
                 notification._read_at = model.read_at or model.created_at
 
@@ -727,7 +727,7 @@ class SQLAlchemyNotificationRepository(NotificationRepository):
         """Convert domain entity to database model"""
         # Get the primary recipient (first one)
         recipient = notification.recipients[0] if notification.recipients else None
-        
+
         model = NotificationModel(
             id=notification.id.value,
             type=self._map_domain_type_to_model(notification.notification_type),
@@ -754,7 +754,7 @@ class SQLAlchemyNotificationRepository(NotificationRepository):
         model.read = (notification.status == NotificationStatus.READ)
         model.expires_at = notification.expires_at
         model.notification_metadata = notification.variables
-        
+
         if notification.status == NotificationStatus.READ and not model.read_at:
             model.read_at = datetime.now(timezone.utc)
 

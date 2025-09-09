@@ -63,7 +63,7 @@ class EnhancedNotificationService:
             email = None
             try:
                 email = Email(user.email) if user.email else None
-            except:
+            except BaseException:
                 pass  # Invalid email, proceed without
 
             recipient = NotificationRecipient(
@@ -174,7 +174,7 @@ class EnhancedNotificationService:
         """
         try:
             success = await self.repository.mark_as_read(
-                NotificationId(notification_id), 
+                NotificationId(notification_id),
                 user_id
             )
 
@@ -229,7 +229,7 @@ class EnhancedNotificationService:
 
             # Check if user is authorized (notification recipient)
             user_authorized = any(
-                recipient.user_id == user_id 
+                recipient.user_id == user_id
                 for recipient in notification.recipients
             )
             if not user_authorized:
@@ -323,7 +323,7 @@ class EnhancedNotificationService:
             # Get all active users in the company
             query = self.db_session.query(User).filter(
                 User.company_id == company_id,
-                User.is_active == True
+                User.is_active
             )
 
             if exclude_user_ids:
@@ -357,8 +357,8 @@ class EnhancedNotificationService:
     # Private helper methods
 
     async def _broadcast_notification(
-        self, 
-        notification: DomainNotification, 
+        self,
+        notification: DomainNotification,
         action_required: bool = False
     ):
         """
@@ -446,17 +446,17 @@ class EnhancedNotificationService:
         Convert domain notification to API format
         """
         recipient = notification.recipients[0] if notification.recipients else None
-        
+
         # Determine read status from domain entity
         is_read = (notification.status.value == "read")
-        
+
         # Get timestamp - use _created_at if available, otherwise current time with timezone
         timestamp = datetime.now(timezone.utc)
         if hasattr(notification, '_created_at') and notification._created_at:
             timestamp = notification._created_at
         elif hasattr(notification, 'created_at') and notification.created_at:
             timestamp = notification.created_at
-        
+
         return {
             "id": notification.id.value,
             "type": self._map_category_to_api_type(notification.category),
@@ -518,10 +518,10 @@ class EnhancedNotificationService:
         """
         Get related contract information
         """
-        if (hasattr(notification, 'related_entity_id') and 
-            notification.related_entity_id and 
+        if (hasattr(notification, 'related_entity_id') and
+            notification.related_entity_id and
             hasattr(notification, 'related_entity_type') and
-            notification.related_entity_type == "contract"):
+                notification.related_entity_type == "contract"):
             return {
                 "id": notification.related_entity_id,
                 "name": f"Contract {notification.related_entity_id}"  # Could be enhanced

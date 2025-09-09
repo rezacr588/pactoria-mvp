@@ -13,11 +13,11 @@ from sqlalchemy import func, or_, desc
 from app.core.auth import get_current_user, get_user_company
 from app.core.database import get_db
 from app.infrastructure.database.models import (
-    User, 
-    Company, 
-    AuditLog, 
-    AuditAction, 
-    AuditResourceType, 
+    User,
+    Company,
+    AuditLog,
+    AuditAction,
+    AuditResourceType,
     AuditRiskLevel
 )
 from app.services.audit_service import AuditService
@@ -97,8 +97,6 @@ class PaginatedAuditResponse(BaseModel):
     pages: int
 
 
-
-
 @router.get("/entries", response_model=PaginatedAuditResponse)
 async def get_audit_entries(
     page: int = Query(1, ge=1, description="Page number"),
@@ -127,18 +125,18 @@ async def get_audit_entries(
     try:
         # Build the base query
         query = db.query(AuditLog)
-        
+
         # Apply company-scoped access control (non-admins only see their company's data)
         if current_user.role.value != "admin":
             # Filter by company if user is not admin
             query = query.join(User, AuditLog.user_id == User.id).filter(
                 User.company_id == current_user.company_id
             )
-        
+
         # Apply filters
         if user_id:
             query = query.filter(AuditLog.user_id == user_id)
-            
+
         if action:
             try:
                 action_enum = AuditAction(action.upper())
@@ -146,7 +144,7 @@ async def get_audit_entries(
             except ValueError:
                 # Invalid action enum value
                 pass
-                
+
         if resource_type:
             try:
                 resource_type_enum = AuditResourceType(resource_type.upper())
@@ -154,7 +152,7 @@ async def get_audit_entries(
             except ValueError:
                 # Invalid resource type enum value
                 pass
-                
+
         if risk_level:
             try:
                 risk_level_enum = AuditRiskLevel(risk_level.upper())
@@ -162,16 +160,16 @@ async def get_audit_entries(
             except ValueError:
                 # Invalid risk level enum value
                 pass
-                
+
         if compliance_flag is not None:
             query = query.filter(AuditLog.compliance_flag == compliance_flag)
-            
+
         if date_from:
             query = query.filter(AuditLog.timestamp >= date_from)
-            
+
         if date_to:
             query = query.filter(AuditLog.timestamp <= date_to)
-            
+
         if search:
             search_term = f"%{search.lower()}%"
             query = query.filter(
@@ -181,10 +179,10 @@ async def get_audit_entries(
                     func.lower(AuditLog.details).like(search_term)
                 )
             )
-        
+
         # Get total count before pagination
         total = query.count()
-        
+
         # Apply pagination and ordering
         audit_logs = (
             query.order_by(desc(AuditLog.timestamp))
@@ -192,7 +190,7 @@ async def get_audit_entries(
             .limit(size)
             .all()
         )
-        
+
         # Convert to response models
         entries = [
             AuditEntry(
@@ -232,7 +230,7 @@ async def get_audit_entries(
 
 @router.get("/entries/{entry_id}", response_model=AuditEntry)
 async def get_audit_entry(
-    entry_id: str, 
+    entry_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -240,19 +238,19 @@ async def get_audit_entry(
     try:
         # Build the base query
         query = db.query(AuditLog).filter(AuditLog.id == entry_id)
-        
+
         # Apply company-scoped access control (non-admins only see their company's data)
         if current_user.role.value != "admin":
             # Filter by company if user is not admin
             query = query.join(User, AuditLog.user_id == User.id).filter(
                 User.company_id == current_user.company_id
             )
-        
+
         audit_log = query.first()
-        
+
         if not audit_log:
             raise HTTPException(status_code=404, detail="Audit entry not found")
-        
+
         # Convert to response model
         return AuditEntry(
             id=str(audit_log.id),
@@ -303,30 +301,30 @@ async def get_audit_stats(
 
         # Total events
         total_events = base_query.count()
-        
+
         # High risk events
         high_risk_events = base_query.filter(
             AuditLog.risk_level == AuditRiskLevel.HIGH
         ).count()
-        
+
         # Compliance flags
         compliance_flags = base_query.filter(
-            AuditLog.compliance_flag == True
+            AuditLog.compliance_flag
         ).count()
-        
+
         # Events by time period
         events_today = base_query.filter(
             AuditLog.timestamp >= today
         ).count()
-        
+
         events_this_week = base_query.filter(
             AuditLog.timestamp >= week_start
         ).count()
-        
+
         events_this_month = base_query.filter(
             AuditLog.timestamp >= month_start
         ).count()
-        
+
         # Most active users (top 5)
         most_active_users_query = (
             base_query
@@ -341,7 +339,7 @@ async def get_audit_stats(
             {"user_name": user_name, "action_count": action_count}
             for user_name, action_count in most_active_users_query
         ]
-        
+
         # Most common actions (top 5)
         most_common_actions_query = (
             base_query
@@ -355,7 +353,7 @@ async def get_audit_stats(
             {"action": action.value.lower(), "count": count}
             for action, count in most_common_actions_query
         ]
-        
+
         # Risk level distribution
         risk_distribution_query = (
             base_query
@@ -367,7 +365,7 @@ async def get_audit_stats(
             risk_level.value.lower(): count
             for risk_level, count in risk_distribution_query
         }
-        
+
         # Ensure all risk levels are present
         for level in ["low", "medium", "high"]:
             if level not in risk_distribution:
@@ -393,7 +391,7 @@ async def get_audit_stats(
 
 @router.post("/entries/export")
 async def export_audit_entries(
-    export_request: AuditExportRequest, 
+    export_request: AuditExportRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -405,50 +403,50 @@ async def export_audit_entries(
     try:
         # Build query based on filters
         query = db.query(AuditLog)
-        
+
         # Apply company-scoped access control
         if current_user.role.value != "admin":
             query = query.join(User, AuditLog.user_id == User.id).filter(
                 User.company_id == current_user.company_id
             )
-        
+
         # Apply filters if provided
         if export_request.filters:
             filters = export_request.filters
-            
+
             if filters.user_id:
                 query = query.filter(AuditLog.user_id == filters.user_id)
-            
+
             if filters.action:
                 try:
                     action_enum = AuditAction(filters.action.upper())
                     query = query.filter(AuditLog.action == action_enum)
                 except ValueError:
                     pass
-            
+
             if filters.resource_type:
                 try:
                     resource_type_enum = AuditResourceType(filters.resource_type.upper())
                     query = query.filter(AuditLog.resource_type == resource_type_enum)
                 except ValueError:
                     pass
-            
+
             if filters.risk_level:
                 try:
                     risk_level_enum = AuditRiskLevel(filters.risk_level.upper())
                     query = query.filter(AuditLog.risk_level == risk_level_enum)
                 except ValueError:
                     pass
-            
+
             if filters.compliance_flag is not None:
                 query = query.filter(AuditLog.compliance_flag == filters.compliance_flag)
-            
+
             if filters.date_from:
                 query = query.filter(AuditLog.timestamp >= filters.date_from)
-            
+
             if filters.date_to:
                 query = query.filter(AuditLog.timestamp <= filters.date_to)
-            
+
             if filters.search:
                 search_term = f"%{filters.search.lower()}%"
                 query = query.filter(
@@ -458,19 +456,19 @@ async def export_audit_entries(
                         func.lower(AuditLog.details).like(search_term)
                     )
                 )
-        
+
         # Get total count
         total_records = query.count()
-        
+
         # TODO: Implement actual file generation and storage
         # For now, return a placeholder response indicating the export would be generated
-        
+
         import uuid
         export_id = str(uuid.uuid4())
-        
+
         # Estimate file size based on record count (approximate)
         estimated_size_bytes = total_records * 1024  # rough estimate of 1KB per record
-        
+
         return {
             "success": True,
             "data": {

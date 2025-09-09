@@ -73,10 +73,10 @@ class NotificationFilter:
 @dataclass
 class NotificationSortCriteria:
     """Sort criteria for notification queries"""
-    
+
     field: str = "created_at"  # timestamp in API format
     direction: str = "DESC"  # DESC for newest first
-    
+
     VALID_FIELDS = [
         "timestamp", "created_at", "priority", "type", "read", "action_required"
     ]
@@ -92,7 +92,7 @@ class NotificationSortCriteria:
 @dataclass
 class NotificationSearchResult:
     """Paginated search results for notifications"""
-    
+
     notifications: List[Notification]
     total_count: int
     unread_count: int
@@ -123,11 +123,11 @@ class NotificationRepository(ABC):
 
     @abstractmethod
     async def get_by_user(
-        self, 
-        user_id: str, 
+        self,
+        user_id: str,
         filters: Optional[NotificationFilter] = None,
         sort_criteria: Optional[NotificationSortCriteria] = None,
-        limit: int = 20, 
+        limit: int = 20,
         offset: int = 0
     ) -> NotificationSearchResult:
         """Get notifications for a specific user with filtering, sorting, and pagination"""
@@ -135,10 +135,10 @@ class NotificationRepository(ABC):
 
     @abstractmethod
     async def get_by_recipient(
-        self, 
-        user_id: str, 
+        self,
+        user_id: str,
         filters: Optional[Dict[str, Any]] = None,
-        limit: int = 20, 
+        limit: int = 20,
         offset: int = 0
     ) -> List[Notification]:
         """Get notifications where user is a recipient (for compatibility with existing service)"""
@@ -187,9 +187,9 @@ class NotificationRepository(ABC):
 
     @abstractmethod
     async def get_statistics(
-        self, 
-        date_from: datetime, 
-        date_to: datetime, 
+        self,
+        date_from: datetime,
+        date_to: datetime,
         user_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Get notification statistics for a date range"""
@@ -207,8 +207,8 @@ class NotificationRepository(ABC):
 
     @abstractmethod
     async def get_by_related_entity(
-        self, 
-        entity_type: str, 
+        self,
+        entity_type: str,
         entity_id: str,
         limit: int = 50
     ) -> List[Notification]:
@@ -222,8 +222,8 @@ class NotificationRepository(ABC):
 
     @abstractmethod
     async def get_recent_activity(
-        self, 
-        user_id: str, 
+        self,
+        user_id: str,
         limit: int = 10
     ) -> List[Dict[str, Any]]:
         """Get recent notification activity for dashboard"""

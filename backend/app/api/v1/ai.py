@@ -52,13 +52,12 @@ async def ai_health_check():
         )
 
 
-@router.post(
-    "/analyze-contract",
-    response_model=ContractAnalysisResponse,
-    summary="AI Contract Compliance Analysis",
-    description="""
+@router.post("/analyze-contract",
+             response_model=ContractAnalysisResponse,
+             summary="AI Contract Compliance Analysis",
+             description="""
     Analyze contract content using AI to assess UK legal compliance and identify risks.
-    
+
     **Key Features:**
     - **GDPR Compliance**: Analyzes data protection clauses and privacy compliance
     - **Employment Law**: Reviews employment contracts for UK legislation compliance
@@ -66,14 +65,14 @@ async def ai_health_check():
     - **Commercial Terms**: Assesses standard commercial contract terms
     - **Risk Scoring**: Provides 1-10 risk score (1=low risk, 10=high risk)
     - **Actionable Recommendations**: Specific suggestions for improving compliance
-    
+
     **AI Analysis Includes:**
     - Overall compliance score (0.0-1.0, target >0.95 for MVP)
     - Detailed breakdown by legal area
     - Risk factors identification
     - Specific clause recommendations
     - Processing time tracking for performance monitoring
-    
+
     **Supported Contract Types:**
     - service_agreement: Professional services contracts
     - employment_contract: Employment agreements
@@ -83,54 +82,45 @@ async def ai_health_check():
     - consultancy: Consultancy agreements
     - partnership: Partnership agreements
     - lease: Lease agreements
-    
+
     **Use Cases:**
     - Pre-signature compliance review
     - Risk assessment for existing contracts
     - Legal team validation support
     - Compliance dashboard metrics
     - Contract improvement recommendations
-    
+
     **Performance:** Target response time <3 seconds for contracts up to 50 pages
-    
+
     **Requires Authentication:** JWT Bearer token
     """,
-    responses={
-        200: {
-            "description": "Contract analysis completed successfully",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "contract_type": "service_agreement",
-                        "compliance_score": 0.92,
-                        "gdpr_compliance": 0.95,
-                        "employment_law_compliance": 0.90,
-                        "consumer_rights_compliance": 0.88,
-                        "commercial_terms_compliance": 0.94,
-                        "risk_score": 3,
-                        "risk_factors": [
-                            "Missing specific termination clauses",
-                            "Data processing terms could be clearer",
-                            "Liability caps should be explicit",
-                        ],
-                        "recommendations": [
-                            "Add GDPR Article 28 compliant data processing clauses",
-                            "Include clear termination notice periods (minimum 30 days)",
-                            "Define specific liability limitations and exclusions",
-                            "Add force majeure clause for contract protection",
-                        ],
-                        "analysis_summary": "Overall strong contract with minor compliance gaps in data protection and termination terms.",
-                        "processing_time_ms": 2150,
-                    }
-                }
-            },
-        },
-        400: {"description": "Invalid contract content or unsupported contract type"},
-        401: {"description": "Authentication required"},
-        500: {"description": "AI analysis service error"},
-        503: {"description": "AI service temporarily unavailable"},
-    },
-)
+             responses={200: {"description": "Contract analysis completed successfully",
+                              "content": {"application/json": {"example": {"contract_type": "service_agreement",
+                                                                           "compliance_score": 0.92,
+                                                                           "gdpr_compliance": 0.95,
+                                                                           "employment_law_compliance": 0.90,
+                                                                           "consumer_rights_compliance": 0.88,
+                                                                           "commercial_terms_compliance": 0.94,
+                                                                           "risk_score": 3,
+                                                                           "risk_factors": ["Missing specific termination clauses",
+                                                                                            "Data processing terms could be clearer",
+                                                                                            "Liability caps should be explicit",
+                                                                                            ],
+                                                                           "recommendations": ["Add GDPR Article 28 compliant data processing clauses",
+                                                                                               "Include clear termination notice periods (minimum 30 days)",
+                                                                                               "Define specific liability limitations and exclusions",
+                                                                                               "Add force majeure clause for contract protection",
+                                                                                               ],
+                                                                           "analysis_summary": "Overall strong contract with minor compliance gaps in data protection and termination terms.",
+                                                                           "processing_time_ms": 2150,
+                                                                           }}},
+                              },
+                        400: {"description": "Invalid contract content or unsupported contract type"},
+                        401: {"description": "Authentication required"},
+                        500: {"description": "AI analysis service error"},
+                        503: {"description": "AI service temporarily unavailable"},
+                        },
+             )
 async def analyze_contract(
     request: ContractAnalysisRequest, current_user: dict = Depends(get_current_user)
 ):

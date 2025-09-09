@@ -41,7 +41,7 @@ router = APIRouter(prefix="/search", tags=["Advanced Search"])
     summary="Advanced Contract Search",
     description="""
     Perform advanced search on contracts with complex filtering, sorting, and pagination.
-    
+
     **Key Features:**
     - Full-text search across contract fields (title, client name, content, etc.)
     - Advanced filters: status, type, date ranges, value ranges, compliance scores
@@ -49,28 +49,28 @@ router = APIRouter(prefix="/search", tags=["Advanced Search"])
     - Pagination with configurable page size
     - Search result highlighting
     - Company isolation - only searches user's company contracts
-    
+
     **Search Operators:**
     - **AND**: All terms must be present (default)
     - **OR**: Any term can match
     - **NOT**: Exclude documents with terms
-    
+
     **Filter Options:**
     - **Status**: DRAFT, ACTIVE, COMPLETED, EXPIRED, TERMINATED
     - **Contract Type**: SERVICE_AGREEMENT, NDA, EMPLOYMENT_CONTRACT, etc.
     - **Date Ranges**: start_date, end_date, created_at, updated_at
     - **Value Ranges**: contract_value with min/max bounds
     - **Compliance**: compliance_score, risk_score ranges
-    
+
     **Sorting Options:**
     - Multiple sort fields with direction (ASC/DESC)
     - Common sorts: relevance, date, value, status
-    
+
     **Performance:**
     - Optimized queries with proper indexing
     - Pagination prevents large result sets
     - Maximum 10,000 searchable results
-    
+
     **Permissions:** Requires valid user authentication
     """,
     responses={
@@ -108,7 +108,7 @@ async def search_contracts(
     summary="Advanced User Search",
     description="""
     Perform advanced search on users within the company with filtering and sorting.
-    
+
     **Key Features:**
     - Search by email, name, and department
     - Filter by role, status, and department
@@ -116,29 +116,29 @@ async def search_contracts(
     - Sort by multiple criteria
     - Company isolation - only searches users in same company
     - Privacy-conscious (no sensitive data exposure)
-    
+
     **Search Fields:**
     - **Email**: User email addresses
     - **Full Name**: Complete user names
     - **Department**: User departments
-    
+
     **Filter Options:**
     - **Role**: ADMIN, CONTRACT_MANAGER, LEGAL_REVIEWER, VIEWER
     - **Status**: Active/Inactive users
     - **Department**: Filter by department names
     - **Date Ranges**: created_at, last_login_at
-    
+
     **Security Notes:**
     - Only returns users from same company
     - No password or sensitive data in results
     - Admin permissions may be required for full access
-    
+
     **Use Cases:**
     - Find team members for contract assignments
     - Locate users by role for permission management
     - Identify inactive users for cleanup
     - Department-based user management
-    
+
     **Permissions:** Requires valid user authentication
     """,
     responses={
@@ -174,40 +174,40 @@ async def search_users(
     summary="Advanced Template Search",
     description="""
     Perform advanced search on contract templates with filtering and sorting.
-    
+
     **Key Features:**
     - Search across template names, descriptions, and categories
     - Filter by contract type, category, and suitability
     - Find templates by industry or use case
     - Sort by relevance, name, or creation date
     - Access to all active public templates
-    
+
     **Search Fields:**
     - **Name**: Template names and titles
     - **Description**: Template descriptions and summaries
     - **Category**: Template categories (legal, service, employment, etc.)
     - **Legal Notes**: Additional legal guidance text
-    
+
     **Filter Options:**
     - **Contract Type**: SERVICE_AGREEMENT, NDA, EMPLOYMENT_CONTRACT, etc.
     - **Category**: Filter by template categories
     - **Status**: Active/Inactive templates
     - **Suitable For**: Industries or business types
     - **Version**: Specific template versions
-    
+
     **Template Categories:**
     - **Legal**: NDAs, privacy policies, terms of service
     - **Service**: Service agreements, consulting contracts
     - **Employment**: Employment contracts, contractor agreements
     - **Commercial**: Purchase orders, supplier agreements
     - **Partnership**: Joint ventures, collaboration agreements
-    
+
     **Use Cases:**
     - Find templates for specific contract types
     - Discover templates by industry suitability
     - Locate updated template versions
     - Browse available legal frameworks
-    
+
     **Permissions:** Requires valid user authentication
     """,
     responses={
@@ -243,7 +243,7 @@ async def search_templates(
     summary="Quick Contract Search",
     description="""
     Simplified contract search for common use cases.
-    
+
     **Quick Search Parameters:**
     - **q**: Search query text
     - **status**: Filter by contract status
@@ -251,15 +251,15 @@ async def search_templates(
     - **client**: Filter by client name
     - **page**: Page number (default: 1)
     - **size**: Results per page (default: 20)
-    
+
     This endpoint provides a simplified interface for common contract searches
     without needing to construct complex search requests.
-    
+
     **Examples:**
     - `GET /search/contracts/quick?q=service agreement&status=ACTIVE`
     - `GET /search/contracts/quick?client=ABC Corp&type=SERVICE_AGREEMENT`
     - `GET /search/contracts/quick?q=NDA&page=2&size=10`
-    
+
     **Permissions:** Requires valid user authentication
     """,
     responses={
@@ -318,23 +318,23 @@ async def quick_search_contracts(
     summary="Contract Search Suggestions",
     description="""
     Get search suggestions for contract searches.
-    
+
     Provides autocomplete suggestions based on:
     - Recent contract titles
-    - Popular client names  
+    - Popular client names
     - Common contract types
     - Frequently used terms
-    
+
     **Parameters:**
     - **q**: Partial query for suggestions
     - **limit**: Maximum suggestions to return (default: 10)
     - **type**: Suggestion type (titles, clients, terms)
-    
+
     **Use Cases:**
     - Autocomplete in search interfaces
     - Discover common search terms
     - Improve search experience
-    
+
     **Permissions:** Requires valid user authentication
     """,
     responses={
@@ -377,19 +377,19 @@ async def get_contract_search_suggestions(
     summary="Contract Search Facets",
     description="""
     Get faceted search information for contracts.
-    
+
     Returns aggregated information about contracts to help with filtering:
     - Available contract statuses with counts
-    - Contract types with counts  
+    - Contract types with counts
     - Popular clients
     - Date ranges
     - Value ranges
-    
+
     **Use Cases:**
     - Build dynamic search filters
     - Show available filter options
     - Display search result statistics
-    
+
     **Permissions:** Requires valid user authentication
     """,
     responses={

@@ -70,7 +70,7 @@ class Settings(BaseSettings):
         """Setup CORS origins dynamically based on environment"""
         if self.ENVIRONMENT == "development":
             self.CORS_ORIGINS = [
-                "http://localhost:3000", 
+                "http://localhost:3000",
                 "http://localhost:5173",
                 "http://127.0.0.1:3000",
                 "http://127.0.0.1:5173"
@@ -84,11 +84,11 @@ class Settings(BaseSettings):
                 # Azure Static Web Apps specific origins
                 # These patterns need to be specific domains in production
                 default_origins = []
-                
+
                 # Add known Azure Static Web App domain if available
                 if os.getenv("AZURE_STATIC_WEB_APP_URL"):
                     default_origins.append(os.getenv("AZURE_STATIC_WEB_APP_URL"))
-                
+
                 # Common Azure patterns - these need to be replaced with actual domains
                 # Note: Wildcard domains don't work with credentials=True in CORS
                 default_origins.extend([
@@ -97,7 +97,7 @@ class Settings(BaseSettings):
                     "https://pactoria.com",
                     "https://app.pactoria.com"
                 ])
-                
+
                 self.CORS_ORIGINS = default_origins
 
     def _setup_azure_config(self):
@@ -146,9 +146,8 @@ class Settings(BaseSettings):
             logger.warning("⚠️  PRODUCTION CONNECTION DETECTED")
             logger.warning("=" * 80)
             logger.warning("🔴 Local environment is connecting to PRODUCTION resources")
-            logger.warning(
-                f"🔴 Database: {self.DATABASE_URL.split('@')[1].split('/')[0] if '@' in self.DATABASE_URL else 'Unknown'}"
-            )
+            logger.warning(f"🔴 Database: {self.DATABASE_URL.split(
+                '@')[1].split('/')[0] if '@' in self.DATABASE_URL else 'Unknown'}")
             logger.warning("🔴 All data changes will be PERMANENT")
             logger.warning("🔴 Use with extreme caution")
             logger.warning("=" * 80)

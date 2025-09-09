@@ -3,25 +3,8 @@ Authentication endpoints for Pactoria MVP
 User registration, login, profile management
 """
 
-from app.core.datetime_utils import get_current_utc
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from fastapi.security import HTTPBearer
-from sqlalchemy.orm import Session
-
-# Security scheme for OpenAPI documentation
-security = HTTPBearer()
-
-from app.core.database import get_db
-from app.core.security import (
-    create_access_token,
-    get_password_hash,
-    verify_password,
-    create_password_reset_token,
-    verify_password_reset_token,
-)
-from app.core.auth import get_current_user, get_user_company
-from app.core.config import settings
-from app.infrastructure.database.models import User, Company, SubscriptionTier
+from app.services.audit_service import audit_user_login
+from app.schemas.common import ValidationError, UnauthorizedError, ConflictError
 from app.schemas.auth import (
     UserLogin,
     UserRegister,
@@ -35,8 +18,25 @@ from app.schemas.auth import (
     CompanyResponse,
     AuthResponse,
 )
-from app.schemas.common import ValidationError, UnauthorizedError, ConflictError
-from app.services.audit_service import audit_user_login
+from app.infrastructure.database.models import User, Company, SubscriptionTier
+from app.core.config import settings
+from app.core.auth import get_current_user, get_user_company
+from app.core.security import (
+    create_access_token,
+    get_password_hash,
+    verify_password,
+    create_password_reset_token,
+    verify_password_reset_token,
+)
+from app.core.database import get_db
+from app.core.datetime_utils import get_current_utc
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.security import HTTPBearer
+from sqlalchemy.orm import Session
+
+# Security scheme for OpenAPI documentation
+security = HTTPBearer()
+
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -48,13 +48,13 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
     summary="Register New User",
     description="""
     Register a new user account with optional company creation.
-    
+
     **Features:**
     - Creates user account with secure password hashing
     - Optionally creates company with STARTER subscription
     - Returns JWT token for immediate authentication
     - Sets user timezone (defaults to Europe/London for UK SMEs)
-    
+
     **Business Rules:**
     - Email must be unique across all users
     - Password must be at least 8 characters
@@ -132,14 +132,14 @@ async def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
     summary="User Login",
     description="""
     Authenticate user and return JWT access token.
-    
+
     **Authentication Process:**
     - Validates email and password
     - Checks if user account is active
     - Updates last login timestamp
     - Returns JWT token with 24-hour expiration
     - Includes user profile and company information
-    
+
     **Security:**
     - Uses secure password hashing (bcrypt)
     - Rate limiting applied (configured at middleware level)
@@ -158,7 +158,7 @@ async def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
     },
 )
 async def login_user(
-    login_data: UserLogin, 
+    login_data: UserLogin,
     request: Request,
     db: Session = Depends(get_db)
 ):
@@ -166,7 +166,7 @@ async def login_user(
 
     # Find user by email
     user = db.query(User).filter(User.email == login_data.email).first()
-    
+
     # Log failed login attempt if user not found
     if not user:
         audit_user_login(
@@ -249,9 +249,9 @@ async def login_user(
     summary="Get Current User Profile",
     description="""
     Get the current authenticated user's profile information.
-    
+
     **Requires Authentication:** JWT Bearer token
-    
+
     **Returns:**
     - User ID and email
     - Full name and timezone

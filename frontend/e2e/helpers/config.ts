@@ -17,5 +17,5 @@ export const TEST_USER = {
 
 export const DEMO_USER = {
   email: 'demo@pactoria.com',
-  password: 'demo123'
+  password: 'Demo123!' // Updated to match actual demo password
 };

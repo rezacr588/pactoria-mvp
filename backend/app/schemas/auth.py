@@ -92,8 +92,7 @@ class Token(BaseModel):
                 "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIiwiZXhwIjoxNjg1NzE2ODAwfQ...",
                 "token_type": "bearer",
                 "expires_in": 86400,
-            }
-        }
+            }}
 
 
 class TokenData(BaseModel):
@@ -195,13 +194,13 @@ class CompanyResponse(BaseModel):
     subscription_tier: str
     max_users: int
     created_at: datetime
-    
+
     # Add computed fields for backward compatibility
     @property
     def registration_number(self) -> Optional[str]:
         """Alias for company_number for backward compatibility"""
         return self.company_number
-    
+
     @property
     def address(self) -> Optional[str]:
         """Combine address fields into a single string"""

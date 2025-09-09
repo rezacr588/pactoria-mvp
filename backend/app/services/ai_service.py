@@ -237,7 +237,7 @@ CONTRACT DETAILS:
 - Client: {request.client_name or 'Not specified'}
 - Supplier: {request.supplier_name or 'Not specified'}
 - Value: {f"{request.contract_value} {request.currency}" if request.contract_value else "Not specified"}
-- Start Date: {request.start_date or 'Not specified'}  
+- Start Date: {request.start_date or 'Not specified'}
 - End Date: {request.end_date or 'Not specified'}
 
 ADDITIONAL TERMS: {', '.join(request.additional_terms) if request.additional_terms else 'None'}

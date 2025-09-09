@@ -24,9 +24,12 @@ router = APIRouter(
 )
 
 # Dependency injection
+
+
 async def get_integration_repository() -> IntegrationRepository:
     """Get integration repository instance"""
     return InMemoryIntegrationRepository()
+
 
 async def get_integration_service(
     repository: IntegrationRepository = Depends(get_integration_repository)
@@ -51,8 +54,8 @@ class IntegrationResponse(BaseModel):
     rating: float
     price_tier: str
     features: List[str]
-    
-    
+
+
 class IntegrationConnectionRequest(BaseModel):
     """Request model for connecting an integration"""
     configuration: Dict[str, Any] = Field(default_factory=dict)
@@ -64,7 +67,7 @@ class IntegrationConfigurationRequest(BaseModel):
     """Request model for configuring an integration"""
     configuration: Dict[str, Any]
     webhook_url: Optional[str] = None
-    
+
 
 class StandardResponse(BaseModel):
     """Standard API response wrapper"""
@@ -88,7 +91,7 @@ async def get_integrations(
     try:
         # Convert string parameters to enums if provided
         from app.domain.entities.integration import IntegrationCategory, IntegrationStatus
-        
+
         category_filter = None
         if category:
             try:
@@ -98,7 +101,7 @@ async def get_integrations(
                     status_code=400,
                     detail=f"Invalid category: {category}"
                 )
-        
+
         status_filter = None
         if status:
             try:
@@ -108,7 +111,7 @@ async def get_integrations(
                     status_code=400,
                     detail=f"Invalid status: {status}"
                 )
-        
+
         # Get filtered integrations
         repository = await get_integration_repository()
         integrations = await repository.get_filtered(
@@ -119,7 +122,7 @@ async def get_integrations(
             search=search,
             company_id=current_user.company_id
         )
-        
+
         # Convert to response format
         return [
             IntegrationResponse(
@@ -139,7 +142,7 @@ async def get_integrations(
             )
             for integration in integrations
         ]
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -157,13 +160,13 @@ async def get_integration(
     try:
         repository = await get_integration_repository()
         integration = await repository.get_by_id(integration_id)
-        
+
         if not integration:
             raise HTTPException(
                 status_code=404,
                 detail=f"Integration with id '{integration_id}' not found"
             )
-        
+
         return IntegrationResponse(
             id=integration.id,
             name=integration.name,
@@ -179,7 +182,7 @@ async def get_integration(
             price_tier=integration.price_tier.value,
             features=integration.features.features
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -206,7 +209,7 @@ async def connect_integration(
                 api_key=request.api_key,
                 webhook_url=request.webhook_url
             )
-        
+
         # Connect integration
         result = await integration_service.connect_integration(
             integration_id=integration_id,
@@ -214,12 +217,12 @@ async def connect_integration(
             company_id=current_user.company_id,
             configuration=configuration
         )
-        
+
         return StandardResponse(
             success=True,
             data=result
         )
-        
+
     except ValueError as e:
         raise HTTPException(
             status_code=400,
@@ -245,12 +248,12 @@ async def disconnect_integration(
             user_id=current_user.id,
             company_id=current_user.company_id
         )
-        
+
         return StandardResponse(
             success=True,
             data=result
         )
-        
+
     except ValueError as e:
         raise HTTPException(
             status_code=400,
@@ -277,19 +280,19 @@ async def configure_integration(
             settings=request.configuration,
             webhook_url=request.webhook_url
         )
-        
+
         result = await integration_service.configure_integration(
             integration_id=integration_id,
             user_id=current_user.id,
             company_id=current_user.company_id,
             configuration=configuration
         )
-        
+
         return StandardResponse(
             success=True,
             data=result
         )
-        
+
     except ValueError as e:
         raise HTTPException(
             status_code=400,
@@ -319,12 +322,12 @@ async def get_sync_status(
             integration_id=integration_id,
             company_id=current_user.company_id
         )
-        
+
         return StandardResponse(
             success=True,
             data=result
         )
-        
+
     except ValueError as e:
         raise HTTPException(
             status_code=404,
@@ -350,12 +353,12 @@ async def trigger_sync(
             user_id=current_user.id,
             company_id=current_user.company_id
         )
-        
+
         return StandardResponse(
             success=True,
             data=result
         )
-        
+
     except ValueError as e:
         raise HTTPException(
             status_code=400,
@@ -377,7 +380,7 @@ async def get_integration_stats(
     try:
         stats = await integration_service.get_integration_statistics()
         return stats
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -397,7 +400,7 @@ async def get_integration_categories(
             success=True,
             data=categories
         )
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=500,

@@ -234,7 +234,7 @@ async def get_notification(
 
 @router.put("/{notification_id}/read")
 async def mark_notification_as_read(
-    notification_id: str, 
+    notification_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -242,13 +242,13 @@ async def mark_notification_as_read(
     try:
         # Create enhanced notification service
         notification_service = EnhancedNotificationService(db)
-        
+
         # Mark as read with real-time broadcasting
         success = await notification_service.mark_as_read(notification_id, current_user.id)
-        
+
         if not success:
             raise HTTPException(
-                status_code=404, 
+                status_code=404,
                 detail="Notification not found or user not authorized"
             )
 
@@ -279,7 +279,7 @@ async def mark_all_notifications_as_read(
     try:
         # Create enhanced notification service
         notification_service = EnhancedNotificationService(db)
-        
+
         # Mark all as read with real-time broadcasting
         updated_count = await notification_service.mark_all_as_read(current_user.id)
 
@@ -403,7 +403,7 @@ async def create_notification(
 def _map_domain_category_to_api_type(category) -> str:
     """Map domain notification category to API type"""
     from app.domain.entities.notification import NotificationCategory
-    
+
     category_to_type = {
         NotificationCategory.DEADLINE_REMINDER: "deadline",
         NotificationCategory.COMPLIANCE_ALERT: "compliance",
@@ -421,10 +421,10 @@ def _map_domain_category_to_api_type(category) -> str:
 
 def _get_related_contract_info(notification) -> Optional[dict]:
     """Get related contract information from notification"""
-    if (hasattr(notification, 'related_entity_id') and 
-        notification.related_entity_id and 
+    if (hasattr(notification, 'related_entity_id') and
+        notification.related_entity_id and
         hasattr(notification, 'related_entity_type') and
-        notification.related_entity_type == "contract"):
+            notification.related_entity_type == "contract"):
         return {
             "id": notification.related_entity_id,
             "name": f"Contract {notification.related_entity_id}"  # Could be enhanced with actual contract name

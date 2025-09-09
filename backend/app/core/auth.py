@@ -225,7 +225,7 @@ def authenticate_websocket_user(token: str, db: Session) -> Optional[User]:
             return None
 
         # Get user from database
-        user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
+        user = db.query(User).filter(User.id == user_id, User.is_active).first()
         return user
 
     except Exception:

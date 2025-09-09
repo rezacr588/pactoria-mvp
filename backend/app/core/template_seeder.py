@@ -12,13 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 # UK SME contract templates
-TEMPLATE_DATA = [
-    {
-        "name": "UK Employment Contract - Full-time",
-        "category": "Employment",
-        "contract_type": ContractType.EMPLOYMENT_CONTRACT,
-        "description": "Comprehensive full-time employment contract compliant with UK employment law",
-        "template_content": """EMPLOYMENT AGREEMENT
+TEMPLATE_DATA = [{"name": "UK Employment Contract - Full-time",
+                  "category": "Employment",
+                  "contract_type": ContractType.EMPLOYMENT_CONTRACT,
+                  "description": "Comprehensive full-time employment contract compliant with UK employment law",
+                  "template_content": """EMPLOYMENT AGREEMENT
 
 This Employment Agreement is made between:
 
@@ -59,22 +57,22 @@ This contract is governed by English law and subject to the jurisdiction of Engl
 
 Employer: _________________     Employee: _________________
 Date: ___________              Date: ___________""",
-        "compliance_features": [
-            "UK Employment Rights Act 1996",
-            "Working Time Regulations 1998",
-            "UK GDPR compliance",
-            "Equality Act 2010",
-            "Health and Safety at Work Act 1974",
-        ],
-        "legal_notes": "This template complies with UK employment law requirements. Ensure job description and company handbook are referenced appropriately.",
-        "suitable_for": ["SME", "Startup", "Traditional business"],
-    },
-    {
-        "name": "Service Agreement - Professional Services",
-        "category": "Professional Services",
-        "contract_type": ContractType.SERVICE_AGREEMENT,
-        "description": "Professional services agreement for UK businesses engaging consultants or service providers",
-        "template_content": """PROFESSIONAL SERVICES AGREEMENT
+                  "compliance_features": ["UK Employment Rights Act 1996",
+                                          "Working Time Regulations 1998",
+                                          "UK GDPR compliance",
+                                          "Equality Act 2010",
+                                          "Health and Safety at Work Act 1974",
+                                          ],
+                  "legal_notes": "This template complies with UK employment law requirements. Ensure job description and company handbook are referenced appropriately.",
+                  "suitable_for": ["SME",
+                                   "Startup",
+                                   "Traditional business"],
+                  },
+                 {"name": "Service Agreement - Professional Services",
+                  "category": "Professional Services",
+                  "contract_type": ContractType.SERVICE_AGREEMENT,
+                  "description": "Professional services agreement for UK businesses engaging consultants or service providers",
+                  "template_content": """PROFESSIONAL SERVICES AGREEMENT
 
 This Agreement is made between:
 
@@ -114,26 +112,23 @@ Personal data will be processed in compliance with UK GDPR.
 
 Client: _________________     Service Provider: _________________
 Date: ___________           Date: ___________""",
-        "compliance_features": [
-            "UK contract law compliance",
-            "UK GDPR data protection",
-            "Consumer Rights Act 2015",
-            "Late Payment Legislation",
-        ],
-        "legal_notes": "Suitable for consulting, design, development, and other professional services. Adjust liability clauses based on service risk level.",
-        "suitable_for": [
-            "Consultants",
-            "Freelancers",
-            "Professional services",
-            "Creative agencies",
-        ],
-    },
-    {
-        "name": "Non-Disclosure Agreement (NDA) - Mutual",
-        "category": "Confidentiality",
-        "contract_type": ContractType.NDA,
-        "description": "Mutual non-disclosure agreement for protecting confidential information",
-        "template_content": """MUTUAL NON-DISCLOSURE AGREEMENT
+                  "compliance_features": ["UK contract law compliance",
+                                          "UK GDPR data protection",
+                                          "Consumer Rights Act 2015",
+                                          "Late Payment Legislation",
+                                          ],
+                  "legal_notes": "Suitable for consulting, design, development, and other professional services. Adjust liability clauses based on service risk level.",
+                  "suitable_for": ["Consultants",
+                                   "Freelancers",
+                                   "Professional services",
+                                   "Creative agencies",
+                                   ],
+                  },
+                 {"name": "Non-Disclosure Agreement (NDA) - Mutual",
+                  "category": "Confidentiality",
+                  "contract_type": ContractType.NDA,
+                  "description": "Mutual non-disclosure agreement for protecting confidential information",
+                  "template_content": """MUTUAL NON-DISCLOSURE AGREEMENT
 
 This Agreement is made between:
 
@@ -174,21 +169,22 @@ This Agreement is governed by English law.
 
 Party A: _________________     Party B: _________________
 Date: ___________            Date: ___________""",
-        "compliance_features": [
-            "Trade secrets protection",
-            "UK contract law",
-            "Equitable remedies",
-            "Commercial confidentiality",
-        ],
-        "legal_notes": "Suitable for business discussions, partnerships, and due diligence. Consider specific carve-outs for particular industries.",
-        "suitable_for": ["Startups", "M&A", "Joint ventures", "Business partnerships"],
-    },
-    {
-        "name": "Supplier/Vendor Agreement",
-        "category": "Commercial",
-        "contract_type": ContractType.SUPPLIER_AGREEMENT,
-        "description": "Standard supplier agreement for goods and services procurement",
-        "template_content": """SUPPLIER AGREEMENT
+                  "compliance_features": ["Trade secrets protection",
+                                          "UK contract law",
+                                          "Equitable remedies",
+                                          "Commercial confidentiality",
+                                          ],
+                  "legal_notes": "Suitable for business discussions, partnerships, and due diligence. Consider specific carve-outs for particular industries.",
+                  "suitable_for": ["Startups",
+                                   "M&A",
+                                   "Joint ventures",
+                                   "Business partnerships"],
+                  },
+                 {"name": "Supplier/Vendor Agreement",
+                  "category": "Commercial",
+                  "contract_type": ContractType.SUPPLIER_AGREEMENT,
+                  "description": "Standard supplier agreement for goods and services procurement",
+                  "template_content": """SUPPLIER AGREEMENT
 
 This Agreement is made between:
 
@@ -230,22 +226,23 @@ Personal data processed in accordance with UK GDPR requirements.
 
 Buyer: _________________     Supplier: _________________
 Date: ___________          Date: ___________""",
-        "compliance_features": [
-            "Sale of Goods Act 1979",
-            "Supply of Goods and Services Act 1982",
-            "Consumer Rights Act 2015",
-            "UK GDPR compliance",
-            "Health and Safety regulations",
-        ],
-        "legal_notes": "Suitable for ongoing supplier relationships. Adjust terms based on goods/services complexity and value.",
-        "suitable_for": ["Manufacturing", "Retail", "Service businesses", "E-commerce"],
-    },
-    {
-        "name": "Website Terms and Conditions",
-        "category": "Digital",
-        "contract_type": ContractType.TERMS_CONDITIONS,
-        "description": "Standard terms and conditions for UK business websites",
-        "template_content": """WEBSITE TERMS AND CONDITIONS
+                  "compliance_features": ["Sale of Goods Act 1979",
+                                          "Supply of Goods and Services Act 1982",
+                                          "Consumer Rights Act 2015",
+                                          "UK GDPR compliance",
+                                          "Health and Safety regulations",
+                                          ],
+                  "legal_notes": "Suitable for ongoing supplier relationships. Adjust terms based on goods/services complexity and value.",
+                  "suitable_for": ["Manufacturing",
+                                   "Retail",
+                                   "Service businesses",
+                                   "E-commerce"],
+                  },
+                 {"name": "Website Terms and Conditions",
+                  "category": "Digital",
+                  "contract_type": ContractType.TERMS_CONDITIONS,
+                  "description": "Standard terms and conditions for UK business websites",
+                  "template_content": """WEBSITE TERMS AND CONDITIONS
 
 1. ABOUT THESE TERMS
 These terms govern your use of {{website_name}} (the "Website") operated by {{company_name}}.
@@ -288,22 +285,23 @@ These terms are governed by English law and subject to English courts.
 Questions about these terms: {{contact_email}}
 
 Last updated: {{last_updated}}""",
-        "compliance_features": [
-            "E-Commerce Regulations 2002",
-            "Consumer Rights Act 2015",
-            "UK GDPR compliance",
-            "Cookie Regulations",
-            "Distance Selling Regulations",
-        ],
-        "legal_notes": "Essential for any UK business website. Must be easily accessible and clearly presented to users.",
-        "suitable_for": ["E-commerce", "SaaS", "Digital services", "Online businesses"],
-    },
-    {
-        "name": "Consultancy Agreement - Fixed Term",
-        "category": "Professional Services",
-        "contract_type": ContractType.CONSULTANCY,
-        "description": "Fixed-term consultancy agreement for specialist advisory services",
-        "template_content": """CONSULTANCY AGREEMENT
+                  "compliance_features": ["E-Commerce Regulations 2002",
+                                          "Consumer Rights Act 2015",
+                                          "UK GDPR compliance",
+                                          "Cookie Regulations",
+                                          "Distance Selling Regulations",
+                                          ],
+                  "legal_notes": "Essential for any UK business website. Must be easily accessible and clearly presented to users.",
+                  "suitable_for": ["E-commerce",
+                                   "SaaS",
+                                   "Digital services",
+                                   "Online businesses"],
+                  },
+                 {"name": "Consultancy Agreement - Fixed Term",
+                  "category": "Professional Services",
+                  "contract_type": ContractType.CONSULTANCY,
+                  "description": "Fixed-term consultancy agreement for specialist advisory services",
+                  "template_content": """CONSULTANCY AGREEMENT
 
 This Agreement is made between:
 
@@ -350,21 +348,19 @@ This Agreement is governed by English law.
 
 Client: _________________     Consultant: _________________
 Date: ___________           Date: ___________""",
-        "compliance_features": [
-            "IR35 compliance considerations",
-            "Professional indemnity requirements",
-            "UK contract law",
-            "Self-employment regulations",
-        ],
-        "legal_notes": "Consider IR35 implications for tax status. Ensure clear independence indicators are included.",
-        "suitable_for": [
-            "Management consultants",
-            "Technical specialists",
-            "Interim managers",
-            "Project consultants",
-        ],
-    },
-]
+                  "compliance_features": ["IR35 compliance considerations",
+                                          "Professional indemnity requirements",
+                                          "UK contract law",
+                                          "Self-employment regulations",
+                                          ],
+                  "legal_notes": "Consider IR35 implications for tax status. Ensure clear independence indicators are included.",
+                  "suitable_for": ["Management consultants",
+                                   "Technical specialists",
+                                   "Interim managers",
+                                   "Project consultants",
+                                   ],
+                  },
+                 ]
 
 
 def seed_templates(db: Session):

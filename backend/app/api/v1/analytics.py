@@ -44,7 +44,7 @@ router = APIRouter(prefix="/analytics", tags=["Analytics"])
     summary="Get Dashboard Analytics",
     description="""
     Get comprehensive dashboard analytics for the company.
-    
+
     **Includes:**
     - Business metrics (contracts, values, growth)
     - User activity and engagement metrics
@@ -52,20 +52,20 @@ router = APIRouter(prefix="/analytics", tags=["Analytics"])
     - Compliance scores and risk analysis
     - Time series trends for contracts and values
     - Executive summary with key insights
-    
+
     **Features:**
     - Real-time data aggregation
     - Company-specific metrics
     - Trend analysis and insights
     - Performance indicators
     - Risk assessment summary
-    
+
     **Use Cases:**
     - Executive dashboard display
     - Business intelligence reporting
     - Performance monitoring
     - Compliance oversight
-    
+
     **Requires Authentication:** JWT Bearer token with company association
     """,
     responses={
@@ -135,9 +135,8 @@ async def get_dashboard_analytics(
         max(contract_types, key=lambda x: x.count) if contract_types else None
     )
     if top_contract_type:
-        insights.append(
-            f"{top_contract_type.contract_type.replace('_', ' ').title()} contracts dominate portfolio ({top_contract_type.percentage:.1f}%)"
-        )
+        insights.append(f"{top_contract_type.contract_type.replace('_', ' ').title()
+                           } contracts dominate portfolio ({top_contract_type.percentage:.1f}%)")
 
     summary = {
         "total_contracts": total_contracts,
@@ -202,7 +201,7 @@ async def get_business_metrics(
     # Contract counts
     total_contracts = (
         db.query(Contract)
-        .filter(Contract.company_id == company.id, Contract.is_current_version == True)
+        .filter(Contract.company_id == company.id, Contract.is_current_version)
         .count()
     )
 
@@ -210,7 +209,7 @@ async def get_business_metrics(
         db.query(Contract)
         .filter(
             Contract.company_id == company.id,
-            Contract.is_current_version == True,
+            Contract.is_current_version,
             Contract.status == ContractStatus.ACTIVE,
         )
         .count()
@@ -220,7 +219,7 @@ async def get_business_metrics(
         db.query(Contract)
         .filter(
             Contract.company_id == company.id,
-            Contract.is_current_version == True,
+            Contract.is_current_version,
             Contract.status == ContractStatus.DRAFT,
         )
         .count()
@@ -230,7 +229,7 @@ async def get_business_metrics(
         db.query(Contract)
         .filter(
             Contract.company_id == company.id,
-            Contract.is_current_version == True,
+            Contract.is_current_version,
             Contract.status == ContractStatus.COMPLETED,
         )
         .count()
@@ -240,7 +239,7 @@ async def get_business_metrics(
         db.query(Contract)
         .filter(
             Contract.company_id == company.id,
-            Contract.is_current_version == True,
+            Contract.is_current_version,
             Contract.status == ContractStatus.TERMINATED,
         )
         .count()
@@ -254,7 +253,7 @@ async def get_business_metrics(
         )
         .filter(
             Contract.company_id == company.id,
-            Contract.is_current_version == True,
+            Contract.is_current_version,
             Contract.contract_value.isnot(None),
         )
         .first()
@@ -357,7 +356,7 @@ async def get_user_metrics(
     # Contracts per user
     total_contracts = (
         db.query(Contract)
-        .filter(Contract.company_id == company.id, Contract.is_current_version == True)
+        .filter(Contract.company_id == company.id, Contract.is_current_version)
         .count()
     )
     contracts_per_user = total_contracts / total_users if total_users > 0 else 0
@@ -412,7 +411,7 @@ async def get_contract_type_metrics(
             func.sum(Contract.contract_value).label("total_value"),
             func.avg(Contract.contract_value).label("avg_value"),
         )
-        .filter(Contract.company_id == company.id, Contract.is_current_version == True)
+        .filter(Contract.company_id == company.id, Contract.is_current_version)
         .group_by(Contract.contract_type)
         .all()
     )

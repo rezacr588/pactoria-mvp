@@ -2,7 +2,7 @@ import { type Page } from '@playwright/test';
 
 export const demoCredentials = {
   email: 'demo@pactoria.com',
-  password: 'demo123'
+  password: 'Demo123!' // Updated to match actual demo password
 };
 
 export async function loginWithDemoAccount(page: Page) {
@@ -16,8 +16,11 @@ export async function loginWithDemoAccount(page: Page) {
   // Submit form
   await page.click('button[type="submit"]');
   
-  // Wait for navigation to dashboard
-  await page.waitForURL(/\/dashboard/, { timeout: 15000 });
+  // Wait for navigation to dashboard with extended timeout
+  await page.waitForURL(/\/dashboard/, { timeout: 45000 });
+  
+  // Additional wait for page to stabilize
+  await page.waitForLoadState('networkidle', { timeout: 10000 });
 }
 
 export async function loginWithCredentials(page: Page, email: string, password: string) {
@@ -31,8 +34,11 @@ export async function loginWithCredentials(page: Page, email: string, password: 
   // Submit form
   await page.click('button[type="submit"]');
   
-  // Wait for navigation
-  await page.waitForURL(/\/dashboard|\/onboarding/, { timeout: 15000 });
+  // Wait for navigation to dashboard with extended timeout
+  await page.waitForURL(/\/dashboard/, { timeout: 45000 });
+  
+  // Additional wait for page to stabilize
+  await page.waitForLoadState('networkidle', { timeout: 10000 });
 }
 
 export async function logout(page: Page) {

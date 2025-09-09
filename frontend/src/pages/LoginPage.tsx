@@ -50,13 +50,13 @@ export default function LoginPage() {
       // Use a demo account if available, or direct to registration
       setFormData({
         email: 'demo@pactoria.com',
-        password: 'demo123',
+        password: 'Demo123!',
         full_name: 'Demo User',
         company_name: 'Demo Company Ltd',
         timezone: 'Europe/London'
       });
       setIsLogin(true);
-      await login('demo@pactoria.com', 'demo123');
+      await login('demo@pactoria.com', 'Demo123!');
       navigate('/dashboard');
     } catch (error: unknown) {
       // If demo login fails, show registration form with pre-filled data
@@ -99,7 +99,7 @@ export default function LoginPage() {
               <strong>Demo Account:</strong> Use the button below or login with:
               <div className="mt-1 font-mono text-xs">
                 Email: demo@pactoria.com<br />
-                Password: demo123
+                Password: Demo123!
               </div>
             </div>
           </Card>

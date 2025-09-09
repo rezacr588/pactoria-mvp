@@ -758,7 +758,7 @@ class ClauseLibrary(AggregateRoot[str]):
             clause = self._clauses[clause_id]
 
             # Check compatibility with other clauses
-            for other_clause_id in clause_ids[i + 1 :]:
+            for other_clause_id in clause_ids[i + 1:]:
                 if not clause.is_compatible_with_clause(other_clause_id):
                     errors.append(
                         f"Clause '{clause.title}' conflicts with clause ID {other_clause_id}"

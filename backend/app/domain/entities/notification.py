@@ -81,7 +81,7 @@ class NotificationId:
 
     def __str__(self) -> str:
         return self.value
-    
+
     @classmethod
     def generate(cls) -> "NotificationId":
         """Generate a new unique notification ID"""

@@ -235,7 +235,7 @@ class AdvancedSearchService:
 
         try:
             # Build base query (all active templates)
-            query = self.db.query(Template).filter(Template.is_active == True)
+            query = self.db.query(Template).filter(Template.is_active)
 
             # Apply text search
             if request.query:
@@ -313,7 +313,7 @@ class AdvancedSearchService:
         return self.db.query(Contract).filter(
             and_(
                 Contract.company_id == user.company_id,
-                Contract.is_current_version == True,
+                Contract.is_current_version,
             )
         )
 

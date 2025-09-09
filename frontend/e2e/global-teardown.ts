@@ -16,8 +16,19 @@ async function globalTeardown(config: FullConfig) {
   const baseURL = config.projects[0]?.use?.baseURL || 'http://localhost:5173';
   const apiBaseUrl = process.env.VITE_API_URL || 'http://localhost:8000/api/v1';
   
-  // Launch browser for cleanup tasks
-  const browser = await chromium.launch();
+  // Launch browser for cleanup tasks (with error handling for browser availability)
+  const browser = await chromium.launch().catch(async (error) => {
+    console.log('⚠️ Could not launch chromium for teardown, trying alternative cleanup...');
+    console.log('ℹ️ Proceeding with file cleanup only');
+    return null;
+  });
+
+  if (!browser) {
+    // Skip browser-based cleanup if chromium is not available
+    console.log('ℹ️ Browser not available - performing file-based cleanup only');
+    return;
+  }
+
   const context = await browser.newContext();
   const page = await context.newPage();
 

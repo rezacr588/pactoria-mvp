@@ -33,7 +33,7 @@ class BulkContractOperation(BaseModel):
     operation_type: BulkOperationType
     contract_ids: List[str] = Field(..., min_length=1, max_length=100)
     update_data: Optional[Dict[str, Any]] = None
-    
+
     @field_validator('update_data')
     @classmethod
     def validate_update_data(cls, v, info):

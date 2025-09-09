@@ -104,7 +104,7 @@ class SQLAlchemyContractRepository(ContractRepository):
 
         query = self._db.query(ContractModel).filter(
             ContractModel.company_id == company_id,
-            ContractModel.is_current_version == True,
+            ContractModel.is_current_version,
         )
 
         total_items = query.count()
@@ -161,7 +161,7 @@ class SQLAlchemyContractRepository(ContractRepository):
             self._db.query(ContractModel)
             .filter(
                 ContractModel.company_id == company_id,
-                ContractModel.is_current_version == True,
+                ContractModel.is_current_version,
             )
             .count()
         )
@@ -208,7 +208,7 @@ class SQLAlchemyContractRepository(ContractRepository):
                     ContractModel.end_date.isnot(None),
                     ContractModel.end_date <= cutoff_date,
                     ContractModel.status == ContractStatus.ACTIVE.value,
-                    ContractModel.is_current_version == True,
+                    ContractModel.is_current_version,
                 )
             )
             .all()
@@ -229,10 +229,10 @@ class SQLAlchemyContractRepository(ContractRepository):
                     ContractModel.status.in_(
                         [ContractStatus.DRAFT.value, ContractStatus.ACTIVE.value]
                     ),
-                    ContractModel.is_current_version == True,
+                    ContractModel.is_current_version,
                     or_(
                         # No compliance analysis
-                        ContractModel.compliance_scores == None,
+                        ContractModel.compliance_scores is None,
                         # Or low compliance score (assuming we join with compliance table)
                         # This would need adjustment based on actual schema
                     ),
@@ -297,7 +297,7 @@ class SQLAlchemyContractRepository(ContractRepository):
             )
 
         # Always filter to current versions only
-        query = query.filter(ContractModel.is_current_version == True)
+        query = query.filter(ContractModel.is_current_version)
 
         return query
 

@@ -324,12 +324,12 @@ def add_cors_headers(response: JSONResponse, request: Request) -> JSONResponse:
             response.headers["Access-Control-Allow-Origin"] = origin
         elif origin in settings.CORS_ORIGINS:
             response.headers["Access-Control-Allow-Origin"] = origin
-        
+
         response.headers["Access-Control-Allow-Credentials"] = "true"
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
         response.headers["Access-Control-Expose-Headers"] = "*"
-    
+
     return response
 
 
@@ -338,7 +338,7 @@ def add_cors_headers(response: JSONResponse, request: Request) -> JSONResponse:
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Handle validation errors with proper CORS headers"""
     logger.warning(f"Validation error: {exc.errors()}")
-    
+
     response = JSONResponse(
         status_code=422,
         content={"detail": exc.errors()},
@@ -351,7 +351,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     """Handle HTTP exceptions with proper CORS headers"""
     logger.warning(f"HTTP exception: {exc.status_code} - {exc.detail}")
-    
+
     response = JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail},
@@ -374,7 +374,7 @@ async def global_exception_handler(request: Request, exc: Exception):
             "error": str(exc) if settings.DEBUG else "Internal server error",
         },
     )
-    
+
     return add_cors_headers(response, request)
 
 

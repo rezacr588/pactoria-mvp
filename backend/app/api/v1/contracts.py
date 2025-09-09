@@ -3,6 +3,11 @@ Contract management endpoints for Pactoria MVP
 CRUD operations, AI generation, and compliance analysis
 """
 
+from app.services.ai_service import (
+    ai_service,
+    ContractGenerationRequest,
+    ComplianceAnalysisRequest,
+)
 from app.core.datetime_utils import get_current_utc
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -47,11 +52,6 @@ from fastapi.security import HTTPBearer
 
 # Security scheme for OpenAPI documentation
 security = HTTPBearer()
-from app.services.ai_service import (
-    ai_service,
-    ContractGenerationRequest,
-    ComplianceAnalysisRequest,
-)
 
 router = APIRouter(prefix="/contracts", tags=["Contracts"])
 
@@ -63,7 +63,7 @@ router = APIRouter(prefix="/contracts", tags=["Contracts"])
     summary="Create New Contract",
     description="""
     Create a new contract for the authenticated user's company.
-    
+
     **Key Features:**
     - Creates contract in DRAFT status for editing
     - Associates contract with user's company
@@ -71,14 +71,14 @@ router = APIRouter(prefix="/contracts", tags=["Contracts"])
     - Comprehensive contract metadata tracking
     - Automatic version control (starts at version 1)
     - Full audit trail creation
-    
+
     **Business Rules:**
     - User must be associated with a company
     - Template (if specified) must exist and be active
     - Contract value and currency are optional but recommended
     - Start and end dates help with compliance tracking
     - All contracts start in DRAFT status
-    
+
     **Requires Authentication:** JWT Bearer token
     """,
     responses={
@@ -169,7 +169,7 @@ async def create_contract(
     summary="List Company Contracts",
     description="""
     Retrieve paginated list of contracts for the authenticated user's company.
-    
+
     **Key Features:**
     - Paginated results with configurable page size (1-100 contracts per page)
     - Filter by contract type (service_agreement, employment_contract, etc.)
@@ -177,20 +177,20 @@ async def create_contract(
     - Full-text search across title, client name, supplier name, and description
     - Results sorted by creation date (newest first)
     - Only returns current version of contracts
-    
+
     **Query Parameters:**
     - `page`: Page number (default: 1, minimum: 1)
     - `size`: Number of contracts per page (default: 10, range: 1-100)
     - `contract_type`: Filter by contract type (optional)
     - `status`: Filter by contract status (optional)
     - `search`: Search term to match against contract fields (optional)
-    
+
     **Example Queries:**
     - `GET /api/v1/contracts/` - Get first page of all contracts
     - `GET /api/v1/contracts/?page=2&size=25` - Get 25 contracts on page 2
     - `GET /api/v1/contracts/?contract_type=service_agreement&status=active` - Get active service agreements
     - `GET /api/v1/contracts/?search=consulting` - Search for contracts containing "consulting"
-    
+
     **Requires Authentication:** JWT Bearer token
     **Requires Company:** User must be associated with a company
     """,
@@ -258,7 +258,7 @@ async def list_contracts(
     # Build query
     query = db.query(Contract).filter(
         Contract.company_id == current_user.company_id,
-        Contract.is_current_version == True,
+        Contract.is_current_version,
     )
 
     # Apply filters
@@ -306,16 +306,16 @@ async def list_contracts(
     summary="Get Contract by ID",
     description="""
     Retrieve detailed information for a specific contract by its unique identifier.
-    
+
     **Key Features:**
     - Returns complete contract details including all metadata
     - Includes compliance scores and AI generation data if available
     - Shows contract versions and audit trail
     - Enforces company access control - users can only access their company's contracts
-    
+
     **Path Parameters:**
     - `contract_id`: Unique identifier of the contract (UUID format)
-    
+
     **Response Data Includes:**
     - Contract basic information (title, type, status, dates)
     - Client and supplier details
@@ -325,13 +325,13 @@ async def list_contracts(
     - Version control information
     - Creation and modification timestamps
     - Associated template information
-    
+
     **Use Cases:**
     - Display contract details in frontend
     - Download contract content for editing
     - Review compliance scores and recommendations
     - Track contract status and history
-    
+
     **Requires Authentication:** JWT Bearer token
     **Requires Company Access:** User must belong to the same company as the contract
     """,
@@ -743,7 +743,7 @@ async def list_templates(
 ):
     """List available contract templates"""
 
-    query = db.query(Template).filter(Template.is_active == True)
+    query = db.query(Template).filter(Template.is_active)
 
     if contract_type:
         query = query.filter(Template.contract_type == ContractType(contract_type))

@@ -39,7 +39,7 @@ router = APIRouter(prefix="/templates", tags=["Templates"])
     summary="List Contract Templates",
     description="""
     List all available contract templates for contract creation.
-    
+
     **Features:**
     - Filter by contract type (employment, service_agreement, etc.)
     - Filter by category (legal, business, etc.)
@@ -47,7 +47,7 @@ router = APIRouter(prefix="/templates", tags=["Templates"])
     - Only returns active templates
     - Pagination support
     - Suitable for template selection in contract creation
-    
+
     **Template Categories:**
     - Employment contracts
     - Service agreements
@@ -55,7 +55,7 @@ router = APIRouter(prefix="/templates", tags=["Templates"])
     - NDAs and confidentiality
     - Terms and conditions
     - Partnership agreements
-    
+
     **Authentication:** Optional (public templates available to all)
     """,
     responses={
@@ -76,7 +76,7 @@ async def list_templates(
     """List available contract templates"""
 
     # Build query for active templates
-    query = db.query(Template).filter(Template.is_active == True)
+    query = db.query(Template).filter(Template.is_active)
 
     # Apply filters
     if contract_type:
@@ -126,12 +126,12 @@ async def list_templates(
     summary="List Template Categories",
     description="""
     Get list of all available template categories.
-    
+
     **Use Cases:**
     - Populating filter dropdowns
     - Template organization
     - Category-based browsing
-    
+
     **Returns:** List of unique category names
     """,
 )
@@ -139,7 +139,7 @@ async def list_template_categories(db: Session = Depends(get_db)):
     """List all template categories"""
 
     categories = (
-        db.query(Template.category).filter(Template.is_active == True).distinct().all()
+        db.query(Template.category).filter(Template.is_active).distinct().all()
     )
 
     return [category[0] for category in categories if category[0]]
@@ -151,12 +151,12 @@ async def list_template_categories(db: Session = Depends(get_db)):
     summary="List Supported Contract Types",
     description="""
     Get list of all contract types that have templates available.
-    
+
     **Use Cases:**
     - Contract creation workflow
     - Template filtering
     - Type validation
-    
+
     **Returns:** List of contract type values
     """,
 )
@@ -165,7 +165,7 @@ async def list_template_contract_types(db: Session = Depends(get_db)):
 
     types = (
         db.query(Template.contract_type)
-        .filter(Template.is_active == True)
+        .filter(Template.is_active)
         .distinct()
         .all()
     )
@@ -179,13 +179,13 @@ async def list_template_contract_types(db: Session = Depends(get_db)):
     summary="Get Template Details",
     description="""
     Get detailed information about a specific contract template.
-    
+
     **Returns:**
     - Complete template content and metadata
     - Compliance features and legal notes
     - Suitable use cases
     - Version information
-    
+
     **Use Cases:**
     - Template preview before contract creation
     - Understanding compliance features
@@ -204,7 +204,7 @@ async def get_template(template_id: str, db: Session = Depends(get_db)):
 
     template = (
         db.query(Template)
-        .filter(Template.id == template_id, Template.is_active == True)
+        .filter(Template.id == template_id, Template.is_active)
         .first()
     )
 
@@ -221,18 +221,18 @@ async def get_template(template_id: str, db: Session = Depends(get_db)):
     summary="Create New Template",
     description="""
     Create a new contract template (Admin only).
-    
+
     **Features:**
     - Complete template content with variables
     - Compliance features tracking
     - Legal notes and recommendations
     - Version control support
     - Category and type classification
-    
+
     **Template Variables:**
     Templates can include variables like {{client_name}}, {{contract_value}}, etc.
     that will be replaced during contract generation.
-    
+
     **Requires Authentication:** Admin user only
     """,
     responses={
@@ -298,13 +298,13 @@ async def create_template(
     summary="Update Template",
     description="""
     Update an existing contract template (Admin only).
-    
+
     **Update Features:**
     - Partial updates supported
     - Version control tracking
     - Audit trail maintenance
     - Content and metadata updates
-    
+
     **Requires Authentication:** Admin user only
     """,
     responses={
@@ -391,13 +391,13 @@ async def update_template(
     summary="Delete Template",
     description="""
     Soft delete a contract template (Admin only).
-    
+
     **Deletion Process:**
     - Template is marked as inactive (soft delete)
     - Existing contracts using this template are unaffected
     - Template can be reactivated if needed
     - Full audit trail maintained
-    
+
     **Requires Authentication:** Admin user only
     """,
     responses={

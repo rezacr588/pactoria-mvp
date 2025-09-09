@@ -12,7 +12,7 @@ const testUser = {
 
 const demoUser = {
   email: 'demo@pactoria.com',
-  password: 'demo123'
+  password: 'Demo123!' // Updated to match actual demo password
 };
 
 // Helper functions

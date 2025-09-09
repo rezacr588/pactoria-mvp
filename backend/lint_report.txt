@@ -1,0 +1,645 @@
+app/api/v1/ai.py:61: [W293] blank line contains whitespace
+app/api/v1/ai.py:69: [W293] blank line contains whitespace
+app/api/v1/ai.py:76: [W293] blank line contains whitespace
+app/api/v1/ai.py:86: [W293] blank line contains whitespace
+app/api/v1/ai.py:93: [W293] blank line contains whitespace
+app/api/v1/ai.py:95: [W293] blank line contains whitespace
+app/api/v1/ai.py:122: [E501] line too long (139 > 120 characters)
+app/api/v1/analytics.py:47: [W293] blank line contains whitespace
+app/api/v1/analytics.py:55: [W293] blank line contains whitespace
+app/api/v1/analytics.py:62: [W293] blank line contains whitespace
+app/api/v1/analytics.py:68: [W293] blank line contains whitespace
+app/api/v1/analytics.py:139: [E501] line too long (141 > 120 characters)
+app/api/v1/analytics.py:205: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/analytics.py:213: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/analytics.py:223: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/analytics.py:233: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/analytics.py:243: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/analytics.py:257: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/analytics.py:360: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/analytics.py:415: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/audit.py:13: [F401] 'app.core.auth.get_user_company' imported but unused
+app/api/v1/audit.py:15: [F401] 'app.infrastructure.database.models.Company' imported but unused
+app/api/v1/audit.py:16: [W291] trailing whitespace
+app/api/v1/audit.py:17: [W291] trailing whitespace
+app/api/v1/audit.py:18: [W291] trailing whitespace
+app/api/v1/audit.py:19: [W291] trailing whitespace
+app/api/v1/audit.py:20: [W291] trailing whitespace
+app/api/v1/audit.py:23: [F401] 'app.services.audit_service.AuditService' imported but unused
+app/api/v1/audit.py:102: [E303] too many blank lines (4)
+app/api/v1/audit.py:130: [W293] blank line contains whitespace
+app/api/v1/audit.py:137: [W293] blank line contains whitespace
+app/api/v1/audit.py:141: [W293] blank line contains whitespace
+app/api/v1/audit.py:149: [W293] blank line contains whitespace
+app/api/v1/audit.py:157: [W293] blank line contains whitespace
+app/api/v1/audit.py:165: [W293] blank line contains whitespace
+app/api/v1/audit.py:168: [W293] blank line contains whitespace
+app/api/v1/audit.py:171: [W293] blank line contains whitespace
+app/api/v1/audit.py:174: [W293] blank line contains whitespace
+app/api/v1/audit.py:184: [W293] blank line contains whitespace
+app/api/v1/audit.py:187: [W293] blank line contains whitespace
+app/api/v1/audit.py:195: [W293] blank line contains whitespace
+app/api/v1/audit.py:235: [W291] trailing whitespace
+app/api/v1/audit.py:243: [W293] blank line contains whitespace
+app/api/v1/audit.py:250: [W293] blank line contains whitespace
+app/api/v1/audit.py:252: [W293] blank line contains whitespace
+app/api/v1/audit.py:255: [W293] blank line contains whitespace
+app/api/v1/audit.py:306: [W293] blank line contains whitespace
+app/api/v1/audit.py:311: [W293] blank line contains whitespace
+app/api/v1/audit.py:314: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/audit.py:316: [W293] blank line contains whitespace
+app/api/v1/audit.py:321: [W293] blank line contains whitespace
+app/api/v1/audit.py:325: [W293] blank line contains whitespace
+app/api/v1/audit.py:329: [W293] blank line contains whitespace
+app/api/v1/audit.py:344: [W293] blank line contains whitespace
+app/api/v1/audit.py:358: [W293] blank line contains whitespace
+app/api/v1/audit.py:370: [W293] blank line contains whitespace
+app/api/v1/audit.py:396: [W291] trailing whitespace
+app/api/v1/audit.py:408: [W293] blank line contains whitespace
+app/api/v1/audit.py:414: [W293] blank line contains whitespace
+app/api/v1/audit.py:418: [W293] blank line contains whitespace
+app/api/v1/audit.py:421: [W293] blank line contains whitespace
+app/api/v1/audit.py:428: [W293] blank line contains whitespace
+app/api/v1/audit.py:435: [W293] blank line contains whitespace
+app/api/v1/audit.py:442: [W293] blank line contains whitespace
+app/api/v1/audit.py:445: [W293] blank line contains whitespace
+app/api/v1/audit.py:448: [W293] blank line contains whitespace
+app/api/v1/audit.py:451: [W293] blank line contains whitespace
+app/api/v1/audit.py:461: [W293] blank line contains whitespace
+app/api/v1/audit.py:464: [W293] blank line contains whitespace
+app/api/v1/audit.py:467: [W293] blank line contains whitespace
+app/api/v1/audit.py:470: [W293] blank line contains whitespace
+app/api/v1/audit.py:473: [W293] blank line contains whitespace
+app/api/v1/auth.py:14: [E402] module level import not at top of file
+app/api/v1/auth.py:15: [E402] module level import not at top of file
+app/api/v1/auth.py:22: [E402] module level import not at top of file
+app/api/v1/auth.py:23: [E402] module level import not at top of file
+app/api/v1/auth.py:24: [E402] module level import not at top of file
+app/api/v1/auth.py:25: [E402] module level import not at top of file
+app/api/v1/auth.py:38: [E402] module level import not at top of file
+app/api/v1/auth.py:39: [E402] module level import not at top of file
+app/api/v1/auth.py:51: [W293] blank line contains whitespace
+app/api/v1/auth.py:57: [W293] blank line contains whitespace
+app/api/v1/auth.py:135: [W293] blank line contains whitespace
+app/api/v1/auth.py:142: [W293] blank line contains whitespace
+app/api/v1/auth.py:161: [W291] trailing whitespace
+app/api/v1/auth.py:169: [W293] blank line contains whitespace
+app/api/v1/auth.py:252: [W293] blank line contains whitespace
+app/api/v1/auth.py:254: [W293] blank line contains whitespace
+app/api/v1/contracts.py:50: [E402] module level import not at top of file
+app/api/v1/contracts.py:66: [W293] blank line contains whitespace
+app/api/v1/contracts.py:74: [W293] blank line contains whitespace
+app/api/v1/contracts.py:81: [W293] blank line contains whitespace
+app/api/v1/contracts.py:172: [W293] blank line contains whitespace
+app/api/v1/contracts.py:180: [W293] blank line contains whitespace
+app/api/v1/contracts.py:187: [W293] blank line contains whitespace
+app/api/v1/contracts.py:193: [W293] blank line contains whitespace
+app/api/v1/contracts.py:261: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/contracts.py:309: [W293] blank line contains whitespace
+app/api/v1/contracts.py:315: [W293] blank line contains whitespace
+app/api/v1/contracts.py:318: [W293] blank line contains whitespace
+app/api/v1/contracts.py:328: [W293] blank line contains whitespace
+app/api/v1/contracts.py:334: [W293] blank line contains whitespace
+app/api/v1/contracts.py:746: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/files.py:140: [W293] blank line contains whitespace
+app/api/v1/files.py:144: [W293] blank line contains whitespace
+app/api/v1/files.py:149: [W293] blank line contains whitespace
+app/api/v1/files.py:154: [W293] blank line contains whitespace
+app/api/v1/files.py:159: [W293] blank line contains whitespace
+app/api/v1/files.py:255: [F821] undefined name 'logger'
+app/api/v1/files.py:268: [W293] blank line contains whitespace
+app/api/v1/files.py:272: [W293] blank line contains whitespace
+app/api/v1/files.py:277: [W293] blank line contains whitespace
+app/api/v1/files.py:356: [W293] blank line contains whitespace
+app/api/v1/files.py:362: [W293] blank line contains whitespace
+app/api/v1/files.py:430: [W293] blank line contains whitespace
+app/api/v1/files.py:435: [W293] blank line contains whitespace
+app/api/v1/health.py:70: [F821] undefined name 'logger'
+app/api/v1/integrations.py:7: [F401] 'fastapi.status' imported but unused
+app/api/v1/integrations.py:16: [F401] 'app.domain.exceptions.NotFoundError' imported but unused
+app/api/v1/integrations.py:27: [E302] expected 2 blank lines, found 1
+app/api/v1/integrations.py:31: [E302] expected 2 blank lines, found 1
+app/api/v1/integrations.py:54: [W293] blank line contains whitespace
+app/api/v1/integrations.py:55: [W293] blank line contains whitespace
+app/api/v1/integrations.py:67: [W293] blank line contains whitespace
+app/api/v1/integrations.py:80: [F811] redefinition of unused 'status' from line 7
+app/api/v1/integrations.py:91: [W293] blank line contains whitespace
+app/api/v1/integrations.py:101: [W293] blank line contains whitespace
+app/api/v1/integrations.py:111: [W293] blank line contains whitespace
+app/api/v1/integrations.py:122: [W293] blank line contains whitespace
+app/api/v1/integrations.py:142: [W293] blank line contains whitespace
+app/api/v1/integrations.py:160: [W293] blank line contains whitespace
+app/api/v1/integrations.py:166: [W293] blank line contains whitespace
+app/api/v1/integrations.py:182: [W293] blank line contains whitespace
+app/api/v1/integrations.py:209: [W293] blank line contains whitespace
+app/api/v1/integrations.py:217: [W293] blank line contains whitespace
+app/api/v1/integrations.py:222: [W293] blank line contains whitespace
+app/api/v1/integrations.py:248: [W293] blank line contains whitespace
+app/api/v1/integrations.py:253: [W293] blank line contains whitespace
+app/api/v1/integrations.py:280: [W293] blank line contains whitespace
+app/api/v1/integrations.py:287: [W293] blank line contains whitespace
+app/api/v1/integrations.py:292: [W293] blank line contains whitespace
+app/api/v1/integrations.py:322: [W293] blank line contains whitespace
+app/api/v1/integrations.py:327: [W293] blank line contains whitespace
+app/api/v1/integrations.py:353: [W293] blank line contains whitespace
+app/api/v1/integrations.py:358: [W293] blank line contains whitespace
+app/api/v1/integrations.py:380: [W293] blank line contains whitespace
+app/api/v1/integrations.py:400: [W293] blank line contains whitespace
+app/api/v1/integrations.py:405: [W292] no newline at end of file
+app/api/v1/notifications.py:15: [F401] 'app.infrastructure.repositories.sqlalchemy_notification_repository.SQLAlchemyNotificationRepository' imported but unused
+app/api/v1/notifications.py:16: [F401] 'app.domain.repositories.notification_repository.NotificationFilter' imported but unused
+app/api/v1/notifications.py:16: [F401] 'app.domain.repositories.notification_repository.NotificationSortCriteria' imported but unused
+app/api/v1/notifications.py:237: [W291] trailing whitespace
+app/api/v1/notifications.py:245: [W293] blank line contains whitespace
+app/api/v1/notifications.py:248: [W293] blank line contains whitespace
+app/api/v1/notifications.py:251: [W291] trailing whitespace
+app/api/v1/notifications.py:282: [W293] blank line contains whitespace
+app/api/v1/notifications.py:406: [W293] blank line contains whitespace
+app/api/v1/notifications.py:424: [W291] trailing whitespace
+app/api/v1/notifications.py:425: [W291] trailing whitespace
+app/api/v1/notifications.py:427: [E129] visually indented line with same indent as next logical line
+app/api/v1/search.py:44: [W293] blank line contains whitespace
+app/api/v1/search.py:52: [W293] blank line contains whitespace
+app/api/v1/search.py:57: [W293] blank line contains whitespace
+app/api/v1/search.py:64: [W293] blank line contains whitespace
+app/api/v1/search.py:68: [W293] blank line contains whitespace
+app/api/v1/search.py:73: [W293] blank line contains whitespace
+app/api/v1/search.py:111: [W293] blank line contains whitespace
+app/api/v1/search.py:119: [W293] blank line contains whitespace
+app/api/v1/search.py:124: [W293] blank line contains whitespace
+app/api/v1/search.py:130: [W293] blank line contains whitespace
+app/api/v1/search.py:135: [W293] blank line contains whitespace
+app/api/v1/search.py:141: [W293] blank line contains whitespace
+app/api/v1/search.py:177: [W293] blank line contains whitespace
+app/api/v1/search.py:184: [W293] blank line contains whitespace
+app/api/v1/search.py:190: [W293] blank line contains whitespace
+app/api/v1/search.py:197: [W293] blank line contains whitespace
+app/api/v1/search.py:204: [W293] blank line contains whitespace
+app/api/v1/search.py:210: [W293] blank line contains whitespace
+app/api/v1/search.py:246: [W293] blank line contains whitespace
+app/api/v1/search.py:254: [W293] blank line contains whitespace
+app/api/v1/search.py:257: [W293] blank line contains whitespace
+app/api/v1/search.py:262: [W293] blank line contains whitespace
+app/api/v1/search.py:321: [W293] blank line contains whitespace
+app/api/v1/search.py:324: [W291] trailing whitespace
+app/api/v1/search.py:327: [W293] blank line contains whitespace
+app/api/v1/search.py:332: [W293] blank line contains whitespace
+app/api/v1/search.py:337: [W293] blank line contains whitespace
+app/api/v1/search.py:380: [W293] blank line contains whitespace
+app/api/v1/search.py:383: [W291] trailing whitespace
+app/api/v1/search.py:387: [W293] blank line contains whitespace
+app/api/v1/search.py:392: [W293] blank line contains whitespace
+app/api/v1/security.py:332: [E501] line too long (126 > 120 characters)
+app/api/v1/team.py:145: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/team.py:295: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/team.py:315: [E501] line too long (133 > 120 characters)
+app/api/v1/team.py:412: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/team.py:515: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/team.py:654: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/templates.py:42: [W293] blank line contains whitespace
+app/api/v1/templates.py:50: [W293] blank line contains whitespace
+app/api/v1/templates.py:58: [W293] blank line contains whitespace
+app/api/v1/templates.py:79: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/templates.py:129: [W293] blank line contains whitespace
+app/api/v1/templates.py:134: [W293] blank line contains whitespace
+app/api/v1/templates.py:142: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/templates.py:154: [W293] blank line contains whitespace
+app/api/v1/templates.py:159: [W293] blank line contains whitespace
+app/api/v1/templates.py:168: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/templates.py:182: [W293] blank line contains whitespace
+app/api/v1/templates.py:188: [W293] blank line contains whitespace
+app/api/v1/templates.py:207: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/api/v1/templates.py:224: [W293] blank line contains whitespace
+app/api/v1/templates.py:231: [W293] blank line contains whitespace
+app/api/v1/templates.py:235: [W293] blank line contains whitespace
+app/api/v1/templates.py:301: [W293] blank line contains whitespace
+app/api/v1/templates.py:307: [W293] blank line contains whitespace
+app/api/v1/templates.py:394: [W293] blank line contains whitespace
+app/api/v1/templates.py:400: [W293] blank line contains whitespace
+app/application/services/enhanced_notification_service.py:6: [F401] 'asyncio' imported but unused
+app/application/services/enhanced_notification_service.py:24: [F401] 'app.domain.exceptions.ValidationError' imported but unused
+app/application/services/enhanced_notification_service.py:66: [E722] do not use bare 'except'
+app/application/services/enhanced_notification_service.py:177: [W291] trailing whitespace
+app/application/services/enhanced_notification_service.py:232: [W291] trailing whitespace
+app/application/services/enhanced_notification_service.py:326: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/application/services/enhanced_notification_service.py:360: [W291] trailing whitespace
+app/application/services/enhanced_notification_service.py:361: [W291] trailing whitespace
+app/application/services/enhanced_notification_service.py:449: [W293] blank line contains whitespace
+app/application/services/enhanced_notification_service.py:452: [W293] blank line contains whitespace
+app/application/services/enhanced_notification_service.py:459: [W293] blank line contains whitespace
+app/application/services/enhanced_notification_service.py:521: [W291] trailing whitespace
+app/application/services/enhanced_notification_service.py:522: [W291] trailing whitespace
+app/application/services/enhanced_notification_service.py:524: [E129] visually indented line with same indent as next logical line
+app/application/services/enhanced_notification_service.py:538: [W292] no newline at end of file
+app/application/services/notification_service.py:710: [W293] blank line contains whitespace
+app/application/services/notification_service.py:712: [W293] blank line contains whitespace
+app/application/services/notification_service.py:714: [W293] blank line contains whitespace
+app/application/services/notification_service.py:736: [W293] blank line contains whitespace
+app/application/services/notification_service.py:738: [W293] blank line contains whitespace
+app/application/services/notification_service.py:740: [W293] blank line contains whitespace
+app/application/services/notification_service.py:742: [W293] blank line contains whitespace
+app/core/auth.py:228: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/core/config.py:73: [W291] trailing whitespace
+app/core/config.py:87: [W293] blank line contains whitespace
+app/core/config.py:91: [W293] blank line contains whitespace
+app/core/config.py:100: [W293] blank line contains whitespace
+app/core/config.py:150: [E501] line too long (121 > 120 characters)
+app/core/database.py:21: [E402] module level import not at top of file
+app/core/template_seeder.py:69: [E501] line too long (159 > 120 characters)
+app/core/template_seeder.py:123: [E501] line too long (158 > 120 characters)
+app/core/template_seeder.py:150: [E501] line too long (122 > 120 characters)
+app/core/template_seeder.py:183: [E501] line too long (149 > 120 characters)
+app/core/template_seeder.py:240: [E501] line too long (129 > 120 characters)
+app/core/template_seeder.py:298: [E501] line too long (122 > 120 characters)
+app/domain/__init__.py:6: [F403] 'from .value_objects import *' used; unable to detect undefined names
+app/domain/__init__.py:6: [F401] '.value_objects.*' imported but unused
+app/domain/__init__.py:7: [F403] 'from .exceptions import *' used; unable to detect undefined names
+app/domain/__init__.py:7: [F401] '.exceptions.*' imported but unused
+app/domain/entities/company.py:172: [F841] local variable 'clean_postcode' is assigned to but never used
+app/domain/entities/integration.py:13: [F401] 'app.domain.value_objects.Email' imported but unused
+app/domain/entities/integration.py:19: [W291] trailing whitespace
+app/domain/entities/integration.py:57: [W291] trailing whitespace
+app/domain/entities/integration.py:69: [W293] blank line contains whitespace
+app/domain/entities/integration.py:80: [W293] blank line contains whitespace
+app/domain/entities/integration.py:139: [W293] blank line contains whitespace
+app/domain/entities/integration.py:178: [W293] blank line contains whitespace
+app/domain/entities/integration.py:183: [W293] blank line contains whitespace
+app/domain/entities/integration.py:187: [W293] blank line contains whitespace
+app/domain/entities/integration.py:191: [W293] blank line contains whitespace
+app/domain/entities/integration.py:195: [W293] blank line contains whitespace
+app/domain/entities/integration.py:199: [W293] blank line contains whitespace
+app/domain/entities/integration.py:203: [W293] blank line contains whitespace
+app/domain/entities/integration.py:207: [W293] blank line contains whitespace
+app/domain/entities/integration.py:211: [W293] blank line contains whitespace
+app/domain/entities/integration.py:215: [W293] blank line contains whitespace
+app/domain/entities/integration.py:219: [W293] blank line contains whitespace
+app/domain/entities/integration.py:223: [W293] blank line contains whitespace
+app/domain/entities/integration.py:227: [W293] blank line contains whitespace
+app/domain/entities/integration.py:231: [W293] blank line contains whitespace
+app/domain/entities/integration.py:235: [W293] blank line contains whitespace
+app/domain/entities/integration.py:239: [W293] blank line contains whitespace
+app/domain/entities/integration.py:243: [W293] blank line contains whitespace
+app/domain/entities/integration.py:247: [W293] blank line contains whitespace
+app/domain/entities/integration.py:252: [W293] blank line contains whitespace
+app/domain/entities/integration.py:255: [W291] trailing whitespace
+app/domain/entities/integration.py:256: [W291] trailing whitespace
+app/domain/entities/integration.py:257: [W291] trailing whitespace
+app/domain/entities/integration.py:263: [W293] blank line contains whitespace
+app/domain/entities/integration.py:266: [W293] blank line contains whitespace
+app/domain/entities/integration.py:273: [W293] blank line contains whitespace
+app/domain/entities/integration.py:276: [W293] blank line contains whitespace
+app/domain/entities/integration.py:278: [W293] blank line contains whitespace
+app/domain/entities/integration.py:290: [W293] blank line contains whitespace
+app/domain/entities/integration.py:295: [W293] blank line contains whitespace
+app/domain/entities/integration.py:303: [W293] blank line contains whitespace
+app/domain/entities/integration.py:305: [W293] blank line contains whitespace
+app/domain/entities/integration.py:316: [W293] blank line contains whitespace
+app/domain/entities/integration.py:318: [W291] trailing whitespace
+app/domain/entities/integration.py:319: [W291] trailing whitespace
+app/domain/entities/integration.py:325: [W293] blank line contains whitespace
+app/domain/entities/integration.py:328: [W293] blank line contains whitespace
+app/domain/entities/integration.py:332: [W291] trailing whitespace
+app/domain/entities/integration.py:340: [W293] blank line contains whitespace
+app/domain/entities/integration.py:345: [W293] blank line contains whitespace
+app/domain/entities/integration.py:347: [W293] blank line contains whitespace
+app/domain/entities/integration.py:355: [W293] blank line contains whitespace
+app/domain/entities/integration.py:357: [W293] blank line contains whitespace
+app/domain/entities/integration.py:368: [W293] blank line contains whitespace
+app/domain/entities/integration.py:370: [W293] blank line contains whitespace
+app/domain/entities/integration.py:375: [W293] blank line contains whitespace
+app/domain/entities/integration.py:378: [W293] blank line contains whitespace
+app/domain/entities/integration.py:393: [W293] blank line contains whitespace
+app/domain/entities/integration.py:399: [W293] blank line contains whitespace
+app/domain/entities/integration.py:402: [W293] blank line contains whitespace
+app/domain/entities/integration.py:404: [W293] blank line contains whitespace
+app/domain/entities/integration.py:408: [W293] blank line contains whitespace
+app/domain/entities/integration.py:422: [W291] trailing whitespace
+app/domain/entities/integration.py:428: [W293] blank line contains whitespace
+app/domain/entities/integration.py:448: [W293] blank line contains whitespace
+app/domain/entities/integration.py:453: [W291] trailing whitespace
+app/domain/entities/integration.py:462: [W291] trailing whitespace
+app/domain/entities/integration.py:467: [W292] no newline at end of file
+app/domain/entities/notification.py:84: [W293] blank line contains whitespace
+app/domain/entities/team.py:180: [F841] local variable 'old_role' is assigned to but never used
+app/domain/repositories/integration.py:12: [W293] blank line contains whitespace
+app/domain/repositories/integration.py:17: [W293] blank line contains whitespace
+app/domain/repositories/integration.py:22: [W293] blank line contains whitespace
+app/domain/repositories/integration.py:27: [W293] blank line contains whitespace
+app/domain/repositories/integration.py:40: [W293] blank line contains whitespace
+app/domain/repositories/integration.py:45: [W293] blank line contains whitespace
+app/domain/repositories/integration.py:50: [W293] blank line contains whitespace
+app/domain/repositories/integration.py:55: [W293] blank line contains whitespace
+app/domain/repositories/integration.py:60: [W293] blank line contains whitespace
+app/domain/repositories/integration.py:64: [W292] no newline at end of file
+app/domain/repositories/notification_repository.py:11: [F401] 'app.domain.entities.notification.NotificationType as DomainNotificationType' imported but unused
+app/domain/repositories/notification_repository.py:76: [W293] blank line contains whitespace
+app/domain/repositories/notification_repository.py:79: [W293] blank line contains whitespace
+app/domain/repositories/notification_repository.py:95: [W293] blank line contains whitespace
+app/domain/repositories/notification_repository.py:126: [W291] trailing whitespace
+app/domain/repositories/notification_repository.py:127: [W291] trailing whitespace
+app/domain/repositories/notification_repository.py:130: [W291] trailing whitespace
+app/domain/repositories/notification_repository.py:138: [W291] trailing whitespace
+app/domain/repositories/notification_repository.py:139: [W291] trailing whitespace
+app/domain/repositories/notification_repository.py:141: [W291] trailing whitespace
+app/domain/repositories/notification_repository.py:190: [W291] trailing whitespace
+app/domain/repositories/notification_repository.py:191: [W291] trailing whitespace
+app/domain/repositories/notification_repository.py:192: [W291] trailing whitespace
+app/domain/repositories/notification_repository.py:210: [W291] trailing whitespace
+app/domain/repositories/notification_repository.py:211: [W291] trailing whitespace
+app/domain/repositories/notification_repository.py:225: [W291] trailing whitespace
+app/domain/repositories/notification_repository.py:226: [W291] trailing whitespace
+app/domain/repositories/notification_repository.py:230: [W292] no newline at end of file
+app/domain/services/ai_risk_assessment_service.py:251: [E501] line too long (126 > 120 characters)
+app/domain/services/ai_risk_assessment_service.py:943: [E501] line too long (125 > 120 characters)
+app/domain/services/email_notification_service.py:314: [F841] local variable 'html_body' is assigned to but never used
+app/domain/services/email_notification_service.py:315: [F841] local variable 'text_body' is assigned to but never used
+app/domain/services/email_notification_service.py:447: [E501] line too long (164 > 120 characters)
+app/domain/services/email_notification_service.py:448: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:455: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:456: [E501] line too long (177 > 120 characters)
+app/domain/services/email_notification_service.py:457: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:459: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:466: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:468: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:469: [E501] line too long (121 > 120 characters)
+app/domain/services/email_notification_service.py:470: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:475: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:477: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:479: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:496: [E501] line too long (128 > 120 characters)
+app/domain/services/email_notification_service.py:497: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:498: [E501] line too long (134 > 120 characters)
+app/domain/services/email_notification_service.py:506: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:508: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:509: [E501] line too long (179 > 120 characters)
+app/domain/services/email_notification_service.py:510: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:512: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:519: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:521: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:523: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:528: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:530: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:532: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:534: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:550: [E501] line too long (136 > 120 characters)
+app/domain/services/email_notification_service.py:551: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:552: [E501] line too long (134 > 120 characters)
+app/domain/services/email_notification_service.py:555: [E501] line too long (163 > 120 characters)
+app/domain/services/email_notification_service.py:557: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:558: [E501] line too long (179 > 120 characters)
+app/domain/services/email_notification_service.py:559: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:561: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:568: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:570: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:572: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:575: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:576: [E501] line too long (148 > 120 characters)
+app/domain/services/email_notification_service.py:577: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:579: [W293] blank line contains whitespace
+app/domain/services/email_notification_service.py:581: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:7: [F401] 'app.domain.entities.integration.IntegrationFeatures' imported but unused
+app/domain/services/integration_service.py:7: [F401] 'app.domain.entities.integration.SyncStatus' imported but unused
+app/domain/services/integration_service.py:8: [W291] trailing whitespace
+app/domain/services/integration_service.py:9: [W291] trailing whitespace
+app/domain/services/integration_service.py:20: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:23: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:27: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:34: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:41: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:48: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:58: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:62: [W291] trailing whitespace
+app/domain/services/integration_service.py:69: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:79: [W291] trailing whitespace
+app/domain/services/integration_service.py:90: [W291] trailing whitespace
+app/domain/services/integration_service.py:129: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:131: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:133: [W291] trailing whitespace
+app/domain/services/integration_service.py:134: [W291] trailing whitespace
+app/domain/services/integration_service.py:143: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:145: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:149: [W291] trailing whitespace
+app/domain/services/integration_service.py:157: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:163: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:166: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:169: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:176: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:187: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:195: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:199: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:202: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:203: [W291] trailing whitespace
+app/domain/services/integration_service.py:205: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:210: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:215: [W291] trailing whitespace
+app/domain/services/integration_service.py:222: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:226: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:229: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:232: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:237: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:248: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:252: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:255: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:258: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:266: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:276: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:279: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:283: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:294: [W293] blank line contains whitespace
+app/domain/services/integration_service.py:299: [W291] trailing whitespace
+app/domain/services/integration_service.py:301: [W292] no newline at end of file
+app/infrastructure/external_services/ai_service.py:166: [W293] blank line contains whitespace
+app/infrastructure/external_services/ai_service.py:198: [W293] blank line contains whitespace
+app/infrastructure/external_services/ai_service.py:255: [E501] line too long (121 > 120 characters)
+app/infrastructure/external_services/ai_service.py:256: [W293] blank line contains whitespace
+app/infrastructure/external_services/ai_service.py:263: [W293] blank line contains whitespace
+app/infrastructure/external_services/ai_service.py:275: [W293] blank line contains whitespace
+app/infrastructure/external_services/ai_service.py:548: [E501] line too long (122 > 120 characters)
+app/infrastructure/external_services/ai_service.py:549: [W293] blank line contains whitespace
+app/infrastructure/external_services/ai_service.py:552: [W293] blank line contains whitespace
+app/infrastructure/external_services/ai_service.py:559: [W293] blank line contains whitespace
+app/infrastructure/external_services/companies_house_service.py:117: [E722] do not use bare 'except'
+app/infrastructure/repositories/in_memory_integration_repository.py:12: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:16: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:24: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:43: [W291] trailing whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:99: [W291] trailing whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:107: [W291] trailing whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:113: [W291] trailing whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:120: [W291] trailing whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:147: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:149: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:152: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:156: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:165: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:166: [W291] trailing whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:175: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:179: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:183: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:190: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:202: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:206: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:210: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:214: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:218: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:224: [W291] trailing whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:227: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:232: [W291] trailing whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:235: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:237: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:241: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:246: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:256: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:266: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:274: [W293] blank line contains whitespace
+app/infrastructure/repositories/in_memory_integration_repository.py:283: [W292] no newline at end of file
+app/infrastructure/repositories/sqlalchemy_contract_repository.py:107: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/infrastructure/repositories/sqlalchemy_contract_repository.py:164: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/infrastructure/repositories/sqlalchemy_contract_repository.py:211: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/infrastructure/repositories/sqlalchemy_contract_repository.py:232: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/infrastructure/repositories/sqlalchemy_contract_repository.py:235: [E711] comparison to None should be 'if cond is None:'
+app/infrastructure/repositories/sqlalchemy_contract_repository.py:300: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:9: [F401] 'sqlalchemy.text' imported but unused
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:28: [F401] 'app.infrastructure.database.models.Contract as ContractModel' imported but unused
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:108: [W291] trailing whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:109: [W291] trailing whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:112: [W291] trailing whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:127: [E712] comparison to False should be 'if cond is False:' or 'if not cond:'
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:161: [W291] trailing whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:162: [W291] trailing whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:164: [W291] trailing whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:208: [E712] comparison to False should be 'if cond is False:' or 'if not cond:'
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:278: [E712] comparison to False should be 'if cond is False:' or 'if not cond:'
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:304: [E712] comparison to False should be 'if cond is False:' or 'if not cond:'
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:317: [W291] trailing whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:322: [E712] comparison to False should be 'if cond is False:' or 'if not cond:'
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:343: [E712] comparison to False should be 'if cond is False:' or 'if not cond:'
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:378: [W291] trailing whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:379: [W291] trailing whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:380: [W291] trailing whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:397: [E712] comparison to False should be 'if cond is False:' or 'if not cond:'
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:457: [W293] blank line contains whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:461: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:468: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:495: [W291] trailing whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:496: [W291] trailing whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:550: [W291] trailing whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:551: [W291] trailing whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:648: [W293] blank line contains whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:669: [E722] do not use bare 'except'
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:698: [W293] blank line contains whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:707: [W293] blank line contains whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:714: [W291] trailing whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:730: [W293] blank line contains whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:757: [W293] blank line contains whitespace
+app/infrastructure/repositories/sqlalchemy_notification_repository.py:799: [W292] no newline at end of file
+app/main.py:6: [F401] 'fastapi.HTTPException' imported but unused
+app/main.py:327: [W293] blank line contains whitespace
+app/main.py:332: [W293] blank line contains whitespace
+app/main.py:341: [W293] blank line contains whitespace
+app/main.py:354: [W293] blank line contains whitespace
+app/main.py:377: [W293] blank line contains whitespace
+app/schemas/auth.py:92: [E501] line too long (121 > 120 characters)
+app/schemas/auth.py:198: [W293] blank line contains whitespace
+app/schemas/auth.py:204: [W293] blank line contains whitespace
+app/schemas/bulk.py:6: [F401] 'typing.Union' imported but unused
+app/schemas/bulk.py:8: [F401] 'uuid.UUID' imported but unused
+app/schemas/bulk.py:10: [F401] 'app.schemas.common.SuccessResponse' imported but unused
+app/schemas/bulk.py:36: [W293] blank line contains whitespace
+app/schemas/bulk.py:136: [W292] no newline at end of file
+app/schemas/contracts.py:37: [E501] line too long (351 > 120 characters)
+app/schemas/contracts.py:82: [E501] line too long (357 > 120 characters)
+app/services/ai_service.py:100: [E501] line too long (217 > 120 characters)
+app/services/ai_service.py:240: [W291] trailing whitespace
+app/services/audit_service.py:6: [F401] 'datetime.datetime' imported but unused
+app/services/audit_service.py:11: [F401] 'app.core.database.get_db' imported but unused
+app/services/audit_service.py:13: [W291] trailing whitespace
+app/services/audit_service.py:14: [W291] trailing whitespace
+app/services/audit_service.py:15: [W291] trailing whitespace
+app/services/audit_service.py:23: [W293] blank line contains whitespace
+app/services/audit_service.py:45: [W293] blank line contains whitespace
+app/services/audit_service.py:63: [W293] blank line contains whitespace
+app/services/audit_service.py:67: [W293] blank line contains whitespace
+app/services/audit_service.py:74: [W293] blank line contains whitespace
+app/services/audit_service.py:92: [W293] blank line contains whitespace
+app/services/audit_service.py:96: [W293] blank line contains whitespace
+app/services/audit_service.py:98: [W293] blank line contains whitespace
+app/services/audit_service.py:115: [W293] blank line contains whitespace
+app/services/audit_service.py:128: [W293] blank line contains whitespace
+app/services/audit_service.py:147: [W293] blank line contains whitespace
+app/services/audit_service.py:177: [W293] blank line contains whitespace
+app/services/audit_service.py:204: [W293] blank line contains whitespace
+app/services/audit_service.py:215: [W293] blank line contains whitespace
+app/services/audit_service.py:219: [W293] blank line contains whitespace
+app/services/audit_service.py:223: [W293] blank line contains whitespace
+app/services/audit_service.py:228: [E501] line too long (126 > 120 characters)
+app/services/audit_service.py:243: [E501] line too long (151 > 120 characters)
+app/services/audit_service.py:259: [E501] line too long (126 > 120 characters)
+app/services/audit_service.py:274: [E501] line too long (121 > 120 characters)
+app/services/audit_service.py:297: [W292] no newline at end of file
+app/services/bulk_operations_service.py:6: [F401] 'asyncio' imported but unused
+app/services/bulk_operations_service.py:7: [F401] 'datetime.datetime' imported but unused
+app/services/bulk_operations_service.py:8: [F401] 'typing.Any' imported but unused
+app/services/bulk_operations_service.py:11: [F401] 'sqlalchemy.or_' imported but unused
+app/services/bulk_operations_service.py:15: [F401] 'app.infrastructure.database.models.Company' imported but unused
+app/services/bulk_operations_service.py:35: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:39: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:48: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:50: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:58: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:63: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:71: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:73: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:84: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:90: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:105: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:114: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:117: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:120: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:128: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:135: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:150: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:165: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:169: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:176: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:196: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:208: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:214: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:220: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:228: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:230: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:234: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:238: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:246: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:252: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:258: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:260: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:263: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:266: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:268: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:277: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:288: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:297: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:301: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:306: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:310: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:317: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:321: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:329: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:331: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:333: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:344: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:357: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:371: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:376: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:379: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:385: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:392: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:394: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:398: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:402: [W293] blank line contains whitespace
+app/services/bulk_operations_service.py:406: [F821] undefined name 'Depends'
+app/services/bulk_operations_service.py:408: [W292] no newline at end of file
+app/services/search_service.py:238: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/services/search_service.py:316: [E712] comparison to True should be 'if cond is True:' or 'if cond:'
+app/services/security_service.py:302: [F841] local variable 'security_event' is assigned to but never used

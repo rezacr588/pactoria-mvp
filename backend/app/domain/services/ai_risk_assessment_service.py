@@ -940,7 +940,8 @@ class AIRiskAssessmentService:
         elif high_risk_count <= 2:
             summary += f"{high_risk_count} significant risk area(s) identified requiring attention."
         else:
-            summary += f"Multiple significant risks identified ({high_risk_count} areas). Legal review strongly recommended."
+            summary += f"Multiple significant risks identified ({
+                high_risk_count} areas). Legal review strongly recommended."
 
         # Add SME-specific context
         if company.company_size in [CompanySize.MICRO, CompanySize.SMALL]:

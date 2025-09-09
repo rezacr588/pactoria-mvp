@@ -2,6 +2,7 @@
 Database configuration and session management for Pactoria MVP
 """
 
+import os
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -18,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 # Create SQLite engine - using environment variable for production
 # This allows Azure Files persistence mount
-import os
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./pactoria_mvp.db")
 

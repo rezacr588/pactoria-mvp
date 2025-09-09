@@ -97,7 +97,7 @@ def validate_file(file: UploadFile) -> None:
     if file.size and file.size > MAX_FILE_SIZE:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB",
+            detail=f"File too large. Maximum size is {MAX_FILE_SIZE // (1024 * 1024)}MB",
         )
 
     # Check file extension
@@ -137,26 +137,26 @@ def get_safe_filename(filename: str) -> str:
     summary="Upload File",
     description="""
     Upload a file (document or image) to the system.
-    
+
     **Supported File Types:**
     - Documents: PDF, DOC, DOCX, TXT, RTF, ODT
     - Images: PNG, JPG, JPEG, GIF, BMP, SVG
-    
+
     **File Constraints:**
     - Maximum file size: 10MB
     - Filename must be safe (no path traversal)
     - MIME type validation performed
-    
+
     **Security Features:**
     - Virus scanning (if configured)
     - Safe file storage with UUID names
     - Audit trail for all uploads
-    
+
     **Use Cases:**
     - Contract document attachments
     - Company logo uploads
     - Supporting documentation
-    
+
     **Requires Authentication:** JWT Bearer token
     """,
     responses={
@@ -265,16 +265,16 @@ async def upload_file(
     summary="Download File",
     description="""
     Download a file by its ID.
-    
+
     **Access Control:**
     - Users can only download files from their company
     - File access is logged for audit purposes
-    
+
     **Security:**
     - File path validation to prevent directory traversal
     - Company isolation for file access
     - Download audit trail
-    
+
     **Requires Authentication:** JWT Bearer token
     """,
     responses={
@@ -353,13 +353,13 @@ async def download_file(
     summary="List Files",
     description="""
     List all files uploaded by the current user's company.
-    
+
     **Features:**
     - Pagination support
     - Filter by contract association
     - File metadata included
     - Company isolation
-    
+
     **Requires Authentication:** JWT Bearer token
     """,
     responses={
@@ -427,12 +427,12 @@ async def list_files(
     summary="Delete File",
     description="""
     Delete a file by its ID.
-    
+
     **Security:**
     - Users can only delete files from their company
     - File is removed from disk and database
     - Deletion is logged for audit purposes
-    
+
     **Requires Authentication:** JWT Bearer token
     """,
     responses={

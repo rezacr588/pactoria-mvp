@@ -707,11 +707,11 @@ class NotificationApplicationService:
             subject_template="Contract Status Updated - {{COMPANY_NAME}}",
             body_template="""
             Hi {{RECIPIENT_NAME}},
-            
+
             The status of contract {{CONTRACT_ID}} has been updated from {{OLD_STATUS}} to {{NEW_STATUS}}.
-            
+
             You can view the contract details in your dashboard.
-            
+
             Best regards,
             Pactoria Team
             """,
@@ -733,13 +733,13 @@ class NotificationApplicationService:
             subject_template="Compliance Alert - {{SEVERITY}} - {{COMPANY_NAME}}",
             body_template="""
             Hi {{RECIPIENT_NAME}},
-            
+
             A {{SEVERITY}} compliance issue has been detected:
-            
+
             {{COMPLIANCE_ISSUE}}
-            
+
             Please review and take appropriate action immediately.
-            
+
             Best regards,
             Pactoria Compliance Team
             """,

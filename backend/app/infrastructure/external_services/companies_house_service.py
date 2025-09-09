@@ -114,7 +114,7 @@ class CompanyHouseData:
             try:
                 next_due_date = datetime.fromisoformat(next_due.replace("Z", "+00:00"))
                 return next_due_date >= datetime.now()
-            except:
+            except BaseException:
                 pass
 
         return True

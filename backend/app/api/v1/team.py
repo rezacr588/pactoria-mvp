@@ -142,7 +142,7 @@ async def get_team_members(
 
         # Apply filters
         if not include_inactive:
-            query = query.filter(User.is_active == True)
+            query = query.filter(User.is_active)
 
         if role:
             try:
@@ -292,7 +292,7 @@ async def invite_team_member(
         # Check company user limit based on subscription tier
         current_user_count = (
             db.query(User)
-            .filter(User.company_id == company.id, User.is_active == True)
+            .filter(User.company_id == company.id, User.is_active)
             .count()
         )
 
@@ -311,9 +311,9 @@ async def invite_team_member(
 
         if total_projected_users > company.max_users:
             raise HTTPException(
-                status_code=400,
-                detail=f"Company user limit exceeded. Your {company.subscription_tier.value} plan allows {company.max_users} users.",
-            )
+                status_code=400, detail=f"Company user limit exceeded. Your {
+                    company.subscription_tier.value} plan allows {
+                    company.max_users} users.", )
 
         # Validate role
         try:
@@ -409,7 +409,7 @@ async def update_member_role(
                 .filter(
                     User.company_id == company.id,
                     User.role == UserRole.ADMIN,
-                    User.is_active == True,
+                    User.is_active,
                 )
                 .count()
             )
@@ -512,7 +512,7 @@ async def remove_team_member(
                 .filter(
                     User.company_id == company.id,
                     User.role == UserRole.ADMIN,
-                    User.is_active == True,
+                    User.is_active,
                 )
                 .count()
             )
@@ -651,7 +651,7 @@ async def get_team_stats(
         # Get active users
         active_users = (
             db.query(User)
-            .filter(User.company_id == company.id, User.is_active == True)
+            .filter(User.company_id == company.id, User.is_active)
             .all()
         )
 

@@ -10,9 +10,9 @@ from fastapi import Request
 
 from app.core.database import get_db
 from app.infrastructure.database.models import (
-    AuditLog, 
-    AuditAction, 
-    AuditResourceType, 
+    AuditLog,
+    AuditAction,
+    AuditResourceType,
     AuditRiskLevel,
     User
 )
@@ -20,7 +20,7 @@ from app.infrastructure.database.models import (
 
 class AuditService:
     """Central audit logging service for tracking user actions"""
-    
+
     @staticmethod
     def create_audit_log(
         db: Session,
@@ -42,7 +42,7 @@ class AuditService:
     ) -> AuditLog:
         """
         Create a new audit log entry
-        
+
         Args:
             db: Database session
             action: The action performed
@@ -60,18 +60,18 @@ class AuditService:
             compliance_flag: Whether this action has compliance implications
             metadata: Additional structured data
             request: FastAPI request object (for auto-extracting IP/agent)
-            
+
         Returns:
             Created AuditLog instance
         """
-        
+
         # Auto-extract request information if request provided
         if request:
             if not ip_address:
                 ip_address = AuditService._extract_ip_address(request)
             if not user_agent:
                 user_agent = request.headers.get("user-agent", "Unknown")
-        
+
         # Create the audit log entry
         audit_log = AuditLog(
             action=action,
@@ -89,13 +89,13 @@ class AuditService:
             compliance_flag=compliance_flag,
             additional_metadata=metadata or {}
         )
-        
+
         db.add(audit_log)
         db.commit()
         db.refresh(audit_log)
-        
+
         return audit_log
-    
+
     @staticmethod
     def log_user_action(
         db: Session,
@@ -112,7 +112,7 @@ class AuditService:
     ) -> AuditLog:
         """
         Convenience method to log user actions with user context
-        
+
         Args:
             db: Database session
             user: User performing the action
@@ -125,7 +125,7 @@ class AuditService:
             compliance_flag: Compliance relevance
             metadata: Additional data
             request: HTTP request for context
-            
+
         Returns:
             Created AuditLog instance
         """
@@ -144,7 +144,7 @@ class AuditService:
             metadata=metadata,
             request=request
         )
-    
+
     @staticmethod
     def log_contract_action(
         db: Session,
@@ -174,7 +174,7 @@ class AuditService:
             metadata=metadata,
             request=request
         )
-    
+
     @staticmethod
     def log_auth_action(
         db: Session,
@@ -201,7 +201,7 @@ class AuditService:
             compliance_flag=True,  # Auth actions are always compliance-relevant
             request=request
         )
-    
+
     @staticmethod
     def _extract_ip_address(request: Request) -> str:
         """
@@ -212,20 +212,25 @@ class AuditService:
         if forwarded_for:
             # Take the first IP in the chain (original client)
             return forwarded_for.split(",")[0].strip()
-        
+
         real_ip = request.headers.get("x-real-ip")
         if real_ip:
             return real_ip
-        
+
         # Fallback to direct client IP
         if hasattr(request, "client") and request.client:
             return request.client.host
-        
+
         return "unknown"
 
 
 # Convenience functions for common audit patterns
-def audit_contract_created(db: Session, user: User, contract_id: str, contract_title: str, request: Optional[Request] = None):
+def audit_contract_created(
+        db: Session,
+        user: User,
+        contract_id: str,
+        contract_title: str,
+        request: Optional[Request] = None):
     """Audit log for contract creation"""
     return AuditService.log_contract_action(
         db=db,
@@ -240,7 +245,8 @@ def audit_contract_created(db: Session, user: User, contract_id: str, contract_t
     )
 
 
-def audit_contract_updated(db: Session, user: User, contract_id: str, contract_title: str, changes: Dict[str, Any], request: Optional[Request] = None):
+def audit_contract_updated(db: Session, user: User, contract_id: str, contract_title: str,
+                           changes: Dict[str, Any], request: Optional[Request] = None):
     """Audit log for contract updates"""
     return AuditService.log_contract_action(
         db=db,
@@ -256,7 +262,12 @@ def audit_contract_updated(db: Session, user: User, contract_id: str, contract_t
     )
 
 
-def audit_contract_deleted(db: Session, user: User, contract_id: str, contract_title: str, request: Optional[Request] = None):
+def audit_contract_deleted(
+        db: Session,
+        user: User,
+        contract_id: str,
+        contract_title: str,
+        request: Optional[Request] = None):
     """Audit log for contract deletion"""
     return AuditService.log_contract_action(
         db=db,
@@ -271,7 +282,12 @@ def audit_contract_deleted(db: Session, user: User, contract_id: str, contract_t
     )
 
 
-def audit_user_login(db: Session, user_id: str, user_name: str, success: bool = True, request: Optional[Request] = None):
+def audit_user_login(
+        db: Session,
+        user_id: str,
+        user_name: str,
+        success: bool = True,
+        request: Optional[Request] = None):
     """Audit log for user login attempts"""
     return AuditService.log_auth_action(
         db=db,

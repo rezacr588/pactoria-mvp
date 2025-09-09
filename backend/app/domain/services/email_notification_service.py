@@ -445,38 +445,38 @@ class EmailNotificationService:
                 <h2>Contract Expiring Soon</h2>
                 <p>Dear {recipient_name},</p>
                 <p>This is a reminder that your contract <strong>{contract_title}</strong> will expire in <strong>{days_until} days</strong> on {deadline_date}.</p>
-                
+
                 <h3>What you need to do:</h3>
                 <ul>
                     <li>Review if the contract needs to be renewed</li>
                     <li>Contact the other party if renewal is required</li>
                     <li>Prepare any necessary documentation</li>
                 </ul>
-                
+
                 <p><a href="{contract_url}" style="background-color: #007cba; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Contract</a></p>
-                
+
                 <p>If you need assistance, please contact our support team at {support_email}</p>
-                
+
                 <p>Best regards,<br>The Pactoria Team</p>
             </body>
             </html>
             """,
             text_template="""
             Contract Expiring Soon
-            
+
             Dear {recipient_name},
-            
+
             This is a reminder that your contract "{contract_title}" will expire in {days_until} days on {deadline_date}.
-            
+
             What you need to do:
             - Review if the contract needs to be renewed
             - Contact the other party if renewal is required
             - Prepare any necessary documentation
-            
+
             View contract: {contract_url}
-            
+
             If you need assistance, please contact our support team at {support_email}
-            
+
             Best regards,
             The Pactoria Team
             """,
@@ -494,7 +494,7 @@ class EmailNotificationService:
                 <h2 style="color: #d32f2f;">High Risk Contract Alert</h2>
                 <p>Dear {recipient_name},</p>
                 <p>Our AI risk assessment has identified potential concerns with contract <strong>{contract_title}</strong>.</p>
-                
+
                 <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; margin: 15px 0; border-radius: 5px;">
                     <h4>Risk Assessment Summary:</h4>
                     <ul>
@@ -503,35 +503,35 @@ class EmailNotificationService:
                         <li><strong>Recommended Actions:</strong> {priority_actions}</li>
                     </ul>
                 </div>
-                
+
                 <p><strong>We recommend legal review before proceeding with this contract.</strong></p>
-                
+
                 <p><a href="{contract_url}" style="background-color: #d32f2f; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Review Contract</a></p>
-                
+
                 <p>If you need assistance, please contact our support team at {support_email}</p>
-                
+
                 <p>Best regards,<br>The Pactoria Team</p>
             </body>
             </html>
             """,
             text_template="""
             High Risk Contract Alert
-            
+
             Dear {recipient_name},
-            
+
             Our AI risk assessment has identified potential concerns with contract "{contract_title}".
-            
+
             Risk Assessment Summary:
             - Risk Score: {risk_score}/10 ({risk_level})
             - Key Concerns: {key_concerns}
             - Recommended Actions: {priority_actions}
-            
+
             We recommend legal review before proceeding with this contract.
-            
+
             Review contract: {contract_url}
-            
+
             If you need assistance, please contact our support team at {support_email}
-            
+
             Best regards,
             The Pactoria Team
             """,
@@ -548,37 +548,37 @@ class EmailNotificationService:
                 <h2>Compliance Review Required</h2>
                 <p>Dear {recipient_name},</p>
                 <p>Contract <strong>{contract_title}</strong> requires a compliance review to ensure it meets UK legal requirements.</p>
-                
+
                 <div style="background-color: #e3f2fd; border: 1px solid #64b5f6; padding: 15px; margin: 15px 0; border-radius: 5px;">
                     <h4>Current Compliance Status:</h4>
                     <p>Compliance Score: <strong>{compliance_score}</strong></p>
                     <p>This contract needs review to ensure it complies with current UK legislation including GDPR, employment law, and commercial regulations.</p>
                 </div>
-                
+
                 <p><a href="{contract_url}" style="background-color: #1976d2; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Review Contract</a></p>
-                
+
                 <p>If you need assistance, please contact our support team at {support_email}</p>
-                
+
                 <p>Best regards,<br>The Pactoria Team</p>
             </body>
             </html>
             """,
             text_template="""
             Compliance Review Required
-            
+
             Dear {recipient_name},
-            
+
             Contract "{contract_title}" requires a compliance review to ensure it meets UK legal requirements.
-            
+
             Current Compliance Status:
             Compliance Score: {compliance_score}
-            
+
             This contract needs review to ensure it complies with current UK legislation including GDPR, employment law, and commercial regulations.
-            
+
             Review contract: {contract_url}
-            
+
             If you need assistance, please contact our support team at {support_email}
-            
+
             Best regards,
             The Pactoria Team
             """,

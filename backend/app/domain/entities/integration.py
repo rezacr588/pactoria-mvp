@@ -16,7 +16,7 @@ from app.domain.value_objects import Email
 class IntegrationCategory(str, Enum):
     """Categories of integrations"""
     EMAIL = "email"
-    CALENDAR = "calendar" 
+    CALENDAR = "calendar"
     EXPORT = "export"
     CRM = "crm"
     ACCOUNTING = "accounting"
@@ -54,7 +54,7 @@ class IntegrationProvider(str, Enum):
 class PriceTier(str, Enum):
     """Integration pricing tiers"""
     FREE = "free"
-    BASIC = "basic" 
+    BASIC = "basic"
     PREMIUM = "premium"
     ENTERPRISE = "enterprise"
 
@@ -66,7 +66,7 @@ class IntegrationConfiguration:
     api_key: Optional[str] = None
     webhook_url: Optional[str] = None
     credentials: Optional[Dict[str, str]] = field(default_factory=dict)
-    
+
     def __post_init__(self):
         # Ensure sensitive data is handled properly
         if self.api_key and len(self.api_key) < 8:
@@ -77,7 +77,7 @@ class IntegrationConfiguration:
 class IntegrationFeatures:
     """Value object for integration features"""
     features: List[str] = field(default_factory=list)
-    
+
     def has_feature(self, feature: str) -> bool:
         """Check if integration has specific feature"""
         return feature.lower() in [f.lower() for f in self.features]
@@ -136,7 +136,7 @@ class IntegrationSyncTriggeredEvent(DomainEvent):
 
 class Integration(AggregateRoot[str]):
     """Integration aggregate root"""
-    
+
     def __init__(
         self,
         integration_id: str,
@@ -175,107 +175,107 @@ class Integration(AggregateRoot[str]):
         self._connected_by_user_id = connected_by_user_id
         self._connected_at = connected_at
         self._sync_status: Optional[SyncStatus] = None
-        
+
     # Properties
     @property
     def name(self) -> str:
         return self._name
-        
+
     @property
     def description(self) -> str:
         return self._description
-        
+
     @property
     def category(self) -> IntegrationCategory:
         return self._category
-        
+
     @property
     def provider(self) -> IntegrationProvider:
         return self._provider
-        
+
     @property
     def status(self) -> IntegrationStatus:
         return self._status
-        
+
     @property
     def price_tier(self) -> PriceTier:
         return self._price_tier
-        
+
     @property
     def features(self) -> IntegrationFeatures:
         return self._features
-        
+
     @property
     def configuration(self) -> IntegrationConfiguration:
         return self._configuration
-        
+
     @property
     def is_popular(self) -> bool:
         return self._is_popular
-        
+
     @property
     def is_premium(self) -> bool:
         return self._is_premium
-        
+
     @property
     def setup_time_minutes(self) -> int:
         return self._setup_time_minutes
-        
+
     @property
     def connections_count(self) -> int:
         return self._connections_count
-        
+
     @property
     def rating(self) -> float:
         return self._rating
-        
+
     @property
     def company_id(self) -> Optional[str]:
         return self._company_id
-        
+
     @property
     def connected_by_user_id(self) -> Optional[str]:
         return self._connected_by_user_id
-        
+
     @property
     def connected_at(self) -> Optional[datetime]:
         return self._connected_at
-        
+
     @property
     def sync_status(self) -> Optional[SyncStatus]:
         return self._sync_status
-        
+
     @property
     def is_connected(self) -> bool:
         """Check if integration is connected"""
         return self._status == IntegrationStatus.CONNECTED
-        
+
     # Business Methods
     def connect(
-        self, 
-        user_id: str, 
-        company_id: str, 
+        self,
+        user_id: str,
+        company_id: str,
         configuration: Optional[IntegrationConfiguration] = None
     ) -> None:
         """Connect the integration"""
         if self._status == IntegrationStatus.CONNECTED:
             raise ValueError(f"Integration {self._name} is already connected")
-            
+
         if self._status == IntegrationStatus.ERROR:
             raise ValueError(f"Integration {self._name} has errors, cannot connect")
-            
+
         # Update state
         self._status = IntegrationStatus.CONNECTED
         self._company_id = company_id
         self._connected_by_user_id = user_id
         self._connected_at = datetime.now(timezone.utc)
         self._connections_count += 1
-        
+
         if configuration:
             self._configuration = configuration
-            
+
         self._increment_version()
-        
+
         # Emit domain event
         event = IntegrationConnectedEvent.create(
             aggregate_id=self.id,
@@ -287,12 +287,12 @@ class Integration(AggregateRoot[str]):
             company_id=company_id
         )
         self.add_domain_event(event)
-        
+
     def disconnect(self, user_id: str) -> None:
         """Disconnect the integration"""
         if not self.is_connected:
             raise ValueError(f"Integration {self._name} is not connected")
-            
+
         # Update state
         old_company_id = self._company_id
         self._status = IntegrationStatus.AVAILABLE
@@ -300,9 +300,9 @@ class Integration(AggregateRoot[str]):
         self._connected_by_user_id = None
         self._connected_at = None
         self._sync_status = None
-        
+
         self._increment_version()
-        
+
         # Emit domain event
         event = IntegrationDisconnectedEvent.create(
             aggregate_id=self.id,
@@ -313,23 +313,23 @@ class Integration(AggregateRoot[str]):
             company_id=old_company_id or ""
         )
         self.add_domain_event(event)
-        
+
     def update_configuration(
-        self, 
-        user_id: str, 
+        self,
+        user_id: str,
         configuration: IntegrationConfiguration
     ) -> None:
         """Update integration configuration"""
         if not self.is_connected:
             raise ValueError(f"Integration {self._name} must be connected to configure")
-            
+
         self._configuration = configuration
         self._increment_version()
-        
+
         # Emit domain event
         event = IntegrationConfiguredEvent.create(
             aggregate_id=self.id,
-            event_type="integration.configured", 
+            event_type="integration.configured",
             integration_id=self.id,
             provider=self._provider.value,
             user_id=user_id,
@@ -337,14 +337,14 @@ class Integration(AggregateRoot[str]):
             configuration_keys=list(configuration.settings.keys())
         )
         self.add_domain_event(event)
-        
+
     def trigger_sync(self, user_id: str) -> str:
         """Trigger data synchronization"""
         if not self.is_connected:
             raise ValueError(f"Integration {self._name} must be connected to sync")
-            
+
         sync_job_id = str(uuid4())
-        
+
         # Update sync status
         self._sync_status = SyncStatus(
             status="running",
@@ -352,9 +352,9 @@ class Integration(AggregateRoot[str]):
             sync_job_id=sync_job_id,
             sync_frequency=self._sync_status.sync_frequency if self._sync_status else "manual"
         )
-        
+
         self._increment_version()
-        
+
         # Emit domain event
         event = IntegrationSyncTriggeredEvent.create(
             aggregate_id=self.id,
@@ -365,17 +365,17 @@ class Integration(AggregateRoot[str]):
             user_id=user_id
         )
         self.add_domain_event(event)
-        
+
         return sync_job_id
-        
+
     def update_sync_status(self, sync_status: SyncStatus) -> None:
         """Update sync status information"""
         if not self.is_connected:
             raise ValueError(f"Integration {self._name} must be connected to have sync status")
-            
+
         self._sync_status = sync_status
         self._increment_version()
-        
+
     def mark_error(self, error_message: str) -> None:
         """Mark integration as having an error"""
         self._status = IntegrationStatus.ERROR
@@ -390,22 +390,22 @@ class Integration(AggregateRoot[str]):
                 sync_job_id=self._sync_status.sync_job_id
             )
         self._increment_version()
-        
+
     def can_be_connected_by_user(self, user_id: str, company_id: str) -> bool:
         """Check if integration can be connected by specific user"""
         # Integration is available or belongs to same company
         if self._status == IntegrationStatus.AVAILABLE:
             return True
-            
+
         if self._status == IntegrationStatus.CONNECTED:
             return self._company_id == company_id
-            
+
         return False
-        
+
     def has_feature(self, feature: str) -> bool:
         """Check if integration has specific feature"""
         return self._features.has_feature(feature)
-        
+
     @staticmethod
     def create_email_notifications() -> "Integration":
         """Factory method for email notifications integration"""
@@ -419,13 +419,13 @@ class Integration(AggregateRoot[str]):
             price_tier=PriceTier.FREE,
             features=IntegrationFeatures([
                 "Deadline reminders",
-                "Status updates", 
+                "Status updates",
                 "UK business hours"
             ]),
             setup_time_minutes=2,
             is_popular=True
         )
-        
+
     @staticmethod
     def create_calendar_sync() -> "Integration":
         """Factory method for calendar sync integration"""
@@ -445,12 +445,12 @@ class Integration(AggregateRoot[str]):
             setup_time_minutes=3,
             is_popular=True
         )
-        
+
     @staticmethod
     def create_csv_export() -> "Integration":
         """Factory method for CSV export integration"""
         return Integration(
-            integration_id="csv-export", 
+            integration_id="csv-export",
             name="CSV Export",
             description="Export contract data for record keeping and reporting",
             category=IntegrationCategory.EXPORT,
@@ -459,7 +459,7 @@ class Integration(AggregateRoot[str]):
             price_tier=PriceTier.FREE,
             features=IntegrationFeatures([
                 "Contract summaries",
-                "Compliance reports", 
+                "Compliance reports",
                 "UK date formats"
             ]),
             setup_time_minutes=1,

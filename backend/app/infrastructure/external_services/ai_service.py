@@ -163,7 +163,7 @@ class OpenAIContractService(BaseAIService):
         - Employment law (if applicable)
         - Consumer Rights Act 2015 (if applicable)
         - Unfair Contract Terms Act 1977
-        
+
         Provide a detailed analysis with compliance score (0-100) and specific recommendations.
         """
 
@@ -195,7 +195,7 @@ class OpenAIContractService(BaseAIService):
         - Risk mitigation
         - UK legal compliance
         - Commercial protection
-        
+
         Provide numbered, actionable suggestions.
         """
 
@@ -252,15 +252,16 @@ class OpenAIContractService(BaseAIService):
     def _build_system_prompt(self, request: ContractGenerationRequest) -> str:
         """Build system prompt for UK contract generation"""
         return f"""
-        You are an expert UK commercial lawyer specializing in contract drafting for {request.industry.value} businesses.
-        
+        You are an expert UK commercial lawyer specializing in contract drafting for {
+            request.industry.value} businesses.
+
         Generate a professional, legally sound contract that:
         - Complies with UK law and jurisdiction
         - Follows standard UK commercial contract structure
         - Includes appropriate UK legal clauses and terminology
         - Is tailored for {request.company_size.value} businesses
         - Considers {request.complexity.value} complexity level
-        
+
         Contract Structure:
         1. Title and Parties
         2. Recitals/Background
@@ -272,7 +273,7 @@ class OpenAIContractService(BaseAIService):
         8. Data Protection (GDPR compliance)
         9. General Provisions
         10. Governing Law and Jurisdiction (UK)
-        
+
         Important: Use clear, professional language appropriate for UK commercial contracts.
         Include specific UK legal references where relevant.
         Ensure GDPR compliance clauses if personal data is involved.
@@ -545,18 +546,19 @@ class AnthropicContractService(BaseAIService):
     def _build_system_prompt(self, request: ContractGenerationRequest) -> str:
         """Build system prompt for UK contract generation"""
         return f"""
-        You are an expert UK commercial lawyer specializing in drafting contracts for {request.industry.value} businesses.
-        
+        You are an expert UK commercial lawyer specializing in drafting contracts for {
+            request.industry.value} businesses.
+
         Create a comprehensive, legally sound contract that complies with UK commercial law.
         The contract should be professional, clear, and enforceable under UK jurisdiction.
-        
+
         Key requirements:
         - UK law and jurisdiction
         - GDPR compliance where applicable
         - Industry-specific considerations for {request.industry.value}
         - Appropriate for {request.company_size.value} business
         - {request.complexity.value} complexity level
-        
+
         Use standard UK commercial contract structure and terminology.
         """
 

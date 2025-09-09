@@ -329,8 +329,7 @@ async def create_gdpr_data_request(
         # Right to be forgotten - would need careful implementation
         status_value = "processing"
         data_package = {
-            "message": "Data erasure request is being processed. Note: some data may need to be retained for legal compliance"
-        }
+            "message": "Data erasure request is being processed. Note: some data may need to be retained for legal compliance"}
 
     elif gdpr_request.request_type == "rectification":
         # Data rectification - would need additional data
