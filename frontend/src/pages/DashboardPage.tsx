@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { useContractStore } from '../store/contractStore';
 import OnboardingChecklist from '../components/OnboardingChecklist';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '../components/ui';
 import { SkeletonDashboard } from '../components/ui/Skeleton';

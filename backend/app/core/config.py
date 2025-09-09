@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     # Groq API for AI features (Ultra-fast inference as per MVP plan)
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
     # CORS - Dynamic for Azure Static Web Apps
     CORS_ORIGINS: List[str] = []

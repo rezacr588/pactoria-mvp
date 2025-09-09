@@ -701,16 +701,19 @@ class SQLAlchemyNotificationRepository(NotificationRepository):
             notification._created_at = model.created_at
 
         # Set proper notification status based on model state
+        # First set to DELIVERED (required for proper domain state)
+        notification._status = NotificationStatus.DELIVERED
+        notification._delivered_at = model.created_at
+        
+        # For read notifications, set the appropriate status
         if model.read:
-            # For read notifications, set to DELIVERED first, then mark as read
-            notification._status = NotificationStatus.DELIVERED
-            notification._delivered_at = model.read_at or model.created_at
-            # Now we can safely mark as read
-            notification.mark_as_read(model.user_id)
-        else:
-            # For unread notifications, set appropriate status (DELIVERED for display)
-            notification._status = NotificationStatus.DELIVERED
-            notification._delivered_at = model.created_at
+            # Use the domain method properly - first ensure it's delivered, then mark as read
+            try:
+                notification.mark_as_read(model.user_id)
+            except Exception:
+                # If domain validation fails, set the status directly 
+                notification._status = NotificationStatus.READ
+                notification._read_at = model.read_at or model.created_at
 
         if model.related_contract_id:
             notification.set_related_entity(model.related_contract_id, "contract")

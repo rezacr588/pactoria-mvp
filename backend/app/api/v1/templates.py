@@ -121,6 +121,59 @@ async def list_templates(
 
 
 @router.get(
+    "/categories/",
+    response_model=List[str],
+    summary="List Template Categories",
+    description="""
+    Get list of all available template categories.
+    
+    **Use Cases:**
+    - Populating filter dropdowns
+    - Template organization
+    - Category-based browsing
+    
+    **Returns:** List of unique category names
+    """,
+)
+async def list_template_categories(db: Session = Depends(get_db)):
+    """List all template categories"""
+
+    categories = (
+        db.query(Template.category).filter(Template.is_active == True).distinct().all()
+    )
+
+    return [category[0] for category in categories if category[0]]
+
+
+@router.get(
+    "/contract-types/",
+    response_model=List[str],
+    summary="List Supported Contract Types",
+    description="""
+    Get list of all contract types that have templates available.
+    
+    **Use Cases:**
+    - Contract creation workflow
+    - Template filtering
+    - Type validation
+    
+    **Returns:** List of contract type values
+    """,
+)
+async def list_template_contract_types(db: Session = Depends(get_db)):
+    """List contract types that have templates"""
+
+    types = (
+        db.query(Template.contract_type)
+        .filter(Template.is_active == True)
+        .distinct()
+        .all()
+    )
+
+    return [type_enum.value for type_enum, in types if type_enum]
+
+
+@router.get(
     "/{template_id}",
     response_model=TemplateResponse,
     summary="Get Template Details",
@@ -383,56 +436,3 @@ async def delete_template(
     )
     db.add(audit_log)
     db.commit()
-
-
-@router.get(
-    "/categories/",
-    response_model=List[str],
-    summary="List Template Categories",
-    description="""
-    Get list of all available template categories.
-    
-    **Use Cases:**
-    - Populating filter dropdowns
-    - Template organization
-    - Category-based browsing
-    
-    **Returns:** List of unique category names
-    """,
-)
-async def list_template_categories(db: Session = Depends(get_db)):
-    """List all template categories"""
-
-    categories = (
-        db.query(Template.category).filter(Template.is_active == True).distinct().all()
-    )
-
-    return [category[0] for category in categories if category[0]]
-
-
-@router.get(
-    "/contract-types/",
-    response_model=List[str],
-    summary="List Supported Contract Types",
-    description="""
-    Get list of all contract types that have templates available.
-    
-    **Use Cases:**
-    - Contract creation workflow
-    - Template filtering
-    - Type validation
-    
-    **Returns:** List of contract type values
-    """,
-)
-async def list_template_contract_types(db: Session = Depends(get_db)):
-    """List contract types that have templates"""
-
-    types = (
-        db.query(Template.contract_type)
-        .filter(Template.is_active == True)
-        .distinct()
-        .all()
-    )
-
-    return [type_enum.value for type_enum, in types if type_enum]

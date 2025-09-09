@@ -1679,5 +1679,227 @@ export class IntegrationsService {
   }
 }
 
+// User Management Service
+export class UserService {
+  static async getProfile() {
+    return api.get<{
+      id: string;
+      email: string;
+      full_name: string;
+      phone?: string;
+      job_title?: string;
+      bio?: string;
+      avatar_url?: string;
+      is_active: boolean;
+      timezone: string;
+      date_format: string;
+      currency: string;
+      language: string;
+      company_id: string | null;
+      created_at: string;
+      last_login_at: string | null;
+      notification_preferences?: {
+        email_notifications: boolean;
+        contract_deadlines: boolean;
+        compliance_alerts: boolean;
+        team_updates: boolean;
+        marketing_emails: boolean;
+        weekly_digest: boolean;
+      };
+    }>('/auth/me');
+  }
+
+  static async updateProfile(data: {
+    full_name?: string;
+    phone?: string;
+    job_title?: string;
+    bio?: string;
+    timezone?: string;
+    date_format?: string;
+    currency?: string;
+    language?: string;
+  }) {
+    return api.put<{
+      id: string;
+      email: string;
+      full_name: string;
+      phone?: string;
+      job_title?: string;
+      bio?: string;
+      avatar_url?: string;
+      is_active: boolean;
+      timezone: string;
+      date_format: string;
+      currency: string;
+      language: string;
+      company_id: string | null;
+      created_at: string;
+      last_login_at: string | null;
+    }>('/auth/me', data);
+  }
+
+  static async updateNotificationPreferences(preferences: {
+    email_notifications?: boolean;
+    contract_deadlines?: boolean;
+    compliance_alerts?: boolean;
+    team_updates?: boolean;
+    marketing_emails?: boolean;
+    weekly_digest?: boolean;
+  }) {
+    return api.put<{
+      message: string;
+      preferences: Record<string, boolean>;
+    }>('/auth/notifications', { notification_preferences: preferences });
+  }
+
+  static async changePassword(data: {
+    current_password: string;
+    new_password: string;
+  }) {
+    return api.post<{
+      message: string;
+      updated_at: string;
+    }>('/auth/change-password', data);
+  }
+
+  static async enable2FA() {
+    return api.post<{
+      secret: string;
+      qr_code: string;
+      backup_codes: string[];
+    }>('/auth/2fa/enable');
+  }
+
+  static async disable2FA(data: {
+    password: string;
+    code?: string;
+  }) {
+    return api.post<{
+      message: string;
+      disabled_at: string;
+    }>('/auth/2fa/disable', data);
+  }
+
+  static async uploadAvatar(file: File) {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    return api.upload<{
+      avatar_url: string;
+      message: string;
+    }>('/auth/avatar', formData);
+  }
+}
+
+// Company Management Service
+export class CompanyService {
+  static async getCompany() {
+    return api.get<{
+      id: string;
+      name: string;
+      address?: string;
+      city?: string;
+      postcode?: string;
+      country?: string;
+      website?: string;
+      vat_number?: string;
+      company_number?: string;
+      subscription_tier: string;
+      max_users: number;
+      max_contracts?: number;
+      storage_limit_gb?: number;
+      ai_credits_monthly?: number;
+      created_at: string;
+      updated_at?: string;
+      owner_id: string;
+      contract_defaults?: {
+        payment_terms: string;
+        jurisdiction: string;
+        governing_law: string;
+        currency: string;
+      };
+    }>('/company');
+  }
+
+  static async updateCompany(data: {
+    name?: string;
+    address?: string;
+    city?: string;
+    postcode?: string;
+    country?: string;
+    website?: string;
+    vat_number?: string;
+    company_number?: string;
+    contract_defaults?: {
+      payment_terms: string;
+      jurisdiction: string;
+      governing_law: string;
+      currency: string;
+    };
+  }) {
+    return api.put<{
+      id: string;
+      name: string;
+      address?: string;
+      city?: string;
+      postcode?: string;
+      country?: string;
+      website?: string;
+      vat_number?: string;
+      company_number?: string;
+      subscription_tier: string;
+      max_users: number;
+      max_contracts?: number;
+      storage_limit_gb?: number;
+      ai_credits_monthly?: number;
+      created_at: string;
+      updated_at?: string;
+      owner_id: string;
+      contract_defaults?: {
+        payment_terms: string;
+        jurisdiction: string;
+        governing_law: string;
+        currency: string;
+      };
+    }>('/company', data);
+  }
+
+  static async getUsageStats() {
+    return api.get<{
+      users_count: number;
+      users_limit: number;
+      contracts_count: number;
+      contracts_limit?: number;
+      storage_used_gb: number;
+      storage_limit_gb?: number;
+      ai_credits_used: number;
+      ai_credits_limit?: number;
+      period_start: string;
+      period_end: string;
+    }>('/company/usage');
+  }
+
+  static async getSubscription() {
+    return api.get<{
+      tier: string;
+      status: string;
+      price_monthly: number;
+      currency: string;
+      features: string[];
+      next_billing_date?: string;
+      payment_method?: string;
+      auto_renew: boolean;
+    }>('/company/subscription');
+  }
+
+  static async upgradeSubscription(tier: string) {
+    return api.post<{
+      message: string;
+      new_tier: string;
+      effective_date: string;
+      price_monthly: number;
+    }>('/company/subscription/upgrade', { tier });
+  }
+}
+
 // Export types
 export type { ApiResponse, ApiError };

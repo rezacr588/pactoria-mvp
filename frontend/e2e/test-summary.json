@@ -1,0 +1,19 @@
+{
+  "testRunId": "test-1757334872479",
+  "startTime": "2025-09-08T12:34:32.479Z",
+  "endTime": "2025-09-08T13:22:50.180Z",
+  "environment": {
+    "baseURL": "http://localhost:5173",
+    "apiBaseUrl": "http://localhost:8000/api/v1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "cleanup": {
+    "browserDataCleared": true,
+    "testUserCleaned": false,
+    "backendDataCleaned": false
+  }
+}

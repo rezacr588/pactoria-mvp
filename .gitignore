@@ -1,0 +1,78 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+venv/
+ENV/
+env/
+.venv
+
+# Environment files - NEVER commit these!
+.env
+.env.*
+*.env
+!.env.example
+!.env.template
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+pactoria_mvp.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+playwright-report/
+test-results/
+coverage/
+
+# Logs
+logs/
+*.log
+
+# Deployment
+deployment/
+azure-deployment/
+
+# Build artifacts
+frontend/dist/
+frontend/build/
+
+# Temporary files
+tmp/
+temp/
+uploads/

@@ -226,6 +226,110 @@
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-secondary-900;
   }
   
+  /* Button Component Styles */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ease-out transform-gpu focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+    @apply hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary-600 hover:bg-primary-700 text-white shadow-sm hover:shadow-md;
+    @apply focus-visible:ring-primary-500 dark:bg-primary-600 dark:hover:bg-primary-500 dark:focus-visible:ring-primary-400;
+    @apply disabled:bg-primary-300 dark:disabled:bg-primary-800 disabled:shadow-none;
+  }
+
+  .btn-secondary {
+    @apply btn bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-300 shadow-sm hover:shadow-md;
+    @apply focus-visible:ring-neutral-500 dark:bg-secondary-800 dark:hover:bg-secondary-700 dark:text-secondary-200 dark:border-secondary-600;
+    @apply disabled:bg-neutral-100 dark:disabled:bg-secondary-900 disabled:shadow-none;
+  }
+
+  .btn-success {
+    @apply btn bg-success-600 hover:bg-success-700 text-white shadow-sm hover:shadow-md;
+    @apply focus-visible:ring-success-500 dark:bg-success-600 dark:hover:bg-success-500;
+    @apply disabled:bg-success-300 dark:disabled:bg-success-800 disabled:shadow-none;
+  }
+
+  .btn-warning {
+    @apply btn bg-warning-600 hover:bg-warning-700 text-white shadow-sm hover:shadow-md;
+    @apply focus-visible:ring-warning-500 dark:bg-warning-600 dark:hover:bg-warning-500;
+    @apply disabled:bg-warning-300 dark:disabled:bg-warning-800 disabled:shadow-none;
+  }
+
+  .btn-danger {
+    @apply btn bg-danger-600 hover:bg-danger-700 text-white shadow-sm hover:shadow-md;
+    @apply focus-visible:ring-danger-500 dark:bg-danger-600 dark:hover:bg-danger-500;
+    @apply disabled:bg-danger-300 dark:disabled:bg-danger-800 disabled:shadow-none;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent hover:bg-neutral-100 text-neutral-700 border-0;
+    @apply focus-visible:ring-neutral-500 dark:hover:bg-secondary-800 dark:text-secondary-200;
+    @apply disabled:bg-transparent disabled:hover:bg-transparent;
+  }
+
+  .btn-lg {
+    @apply px-6 py-3 text-base;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+
+  /* Card component styles */
+  .card {
+    @apply bg-white dark:bg-secondary-900 rounded-xl shadow-sm border border-neutral-200 dark:border-secondary-700 p-6 transition-all duration-200;
+    @apply hover:shadow-md hover:border-neutral-300 dark:hover:border-secondary-600;
+  }
+
+  .card-elevated {
+    @apply card shadow-md hover:shadow-lg;
+  }
+
+  .card-interactive {
+    @apply card cursor-pointer hover:scale-[1.005] active:scale-[0.995];
+  }
+
+  /* Form input enhancements */
+  .form-input {
+    @apply w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg shadow-sm placeholder-neutral-400;
+    @apply focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none;
+    @apply dark:bg-secondary-800 dark:border-secondary-600 dark:text-secondary-100 dark:placeholder-secondary-400;
+    @apply dark:focus:ring-primary-400 dark:focus:border-primary-400;
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .form-input-lg {
+    @apply form-input px-4 py-3 text-base min-h-[44px];
+  }
+
+  .form-textarea {
+    @apply form-input resize-none;
+  }
+
+  .form-select {
+    @apply form-input bg-white dark:bg-secondary-800 cursor-pointer;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-neutral-700 dark:text-secondary-200 mb-1;
+  }
+
+  .form-error {
+    @apply text-danger-600 dark:text-danger-400 text-xs mt-1;
+  }
+
+  .form-help {
+    @apply text-neutral-500 dark:text-secondary-400 text-xs mt-1;
+  }
+
+  /* Loading states */
+  .loading-shimmer {
+    @apply animate-pulse bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 dark:from-secondary-800 dark:via-secondary-700 dark:to-secondary-800;
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
   /* Better motion support for users who prefer motion */
   @media (prefers-reduced-motion: no-preference) {
     .smooth-transitions {
