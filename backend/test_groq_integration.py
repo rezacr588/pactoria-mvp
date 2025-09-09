@@ -192,7 +192,7 @@ class GroqIntegrationTester:
         print("=" * 60)
         print("🚀 Starting Groq AI Integration Tests")
         print("=" * 60)
-        print(f"📍 API Key: gsk_...{self.api_key[-10:]}")
+        print(f"📍 API Key: [CONFIGURED]")
         print(f"🤖 Model: {self.model}")
         print(f"🌡️  Temperature: {self.temperature}")
         print(f"📝 Max Tokens: {self.max_tokens}")

@@ -147,10 +147,8 @@ def setup_azure_environment():
     # Validate Groq API key
     if not os.getenv('GROQ_API_KEY'):
         logger.warning("GROQ_API_KEY not set - AI features will not work")
-    elif os.getenv('GROQ_API_KEY').startswith('gsk_'):
-        logger.info("Groq API key configured")
     else:
-        logger.warning("GROQ_API_KEY format may be incorrect")
+        logger.info("Groq API key configured")
     
     # Azure App Service specific settings
     if WEBSITE_HOSTNAME:
