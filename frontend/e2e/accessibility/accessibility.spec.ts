@@ -1,11 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { 
-  LandingPage, 
-  LoginPage, 
-  DashboardPage, 
-  ContractsPage, 
-  ContractCreatePage
-} from '../utils/page-objects';
+import { DashboardPage, ContractCreatePage } from '../utils/page-objects';
+import { loginWithDemoAccount } from '../helpers/auth';
+import { LandingPage, LoginPage, ContractsPage } from '../utils/page-objects';
 // import { TestUser } from '../utils/test-data';
 import { APIMocker } from '../utils/api-mock';
 
@@ -137,7 +133,7 @@ test.describe('Accessibility Tests', () => {
       // Test help shortcut
       await page.keyboard.press('Shift+?');
       
-      const helpModal = page.getByText(/keyboard shortcuts/i);
+      const helpModal = page.getByRole('heading', { name: /keyboard shortcuts/i });
       if (await helpModal.isVisible({ timeout: 2000 })) {
         await expect(helpModal).toBeVisible();
         
@@ -171,8 +167,9 @@ test.describe('Accessibility Tests', () => {
         const focusedElement = page.locator(':focus');
         const isInsideModal = await focusedElement.locator('..').locator('[role="dialog"]').count() > 0;
         
-        // Focus should remain within modal bounds
-        expect(isInsideModal || await commandPaletteInput.isFocused()).toBeTruthy();
+        // Focus should remain within modal bounds  
+        const isFocused = await commandPaletteInput.evaluate(el => document.activeElement === el);
+        expect(isInsideModal || isFocused).toBeTruthy();
       }
     });
   });
@@ -252,17 +249,19 @@ test.describe('Accessibility Tests', () => {
     });
 
     test('should have proper landmark regions', async ({ page }) => {
-      await dashboardPage.goto('/dashboard');
+      await loginWithDemoAccount(page);
+      await page.goto('/dashboard');
       
       // Wait for page to load
       await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(1000); // Allow time for layout to render
       
-      // Check for main landmarks with more flexible selectors
+      // Check for main landmarks with specific selectors
       const landmarks = {
-        banner: page.locator('[role="banner"], header, .header'),
-        main: page.locator('[role="main"], main, .main, .content'),
-        navigation: page.locator('[role="navigation"], nav, .nav, .sidebar'),
-        contentinfo: page.locator('[role="contentinfo"], footer, .footer')
+        banner: page.locator('header'),
+        main: page.locator('main'),
+        navigation: page.locator('nav'),
+        contentinfo: page.locator('footer')
       };
       
       // Main and navigation should always be present

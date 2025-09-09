@@ -51,20 +51,22 @@ export default function AppLayout() {
       )}
 
       {/* Sidebar */}
-      <div
+      <nav
+        id="navigation"
         className={`
           fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out
           lg:static lg:inset-auto lg:translate-x-0 lg:transform-none
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
+        aria-label="Main navigation"
       >
         <Sidebar />
-      </div>
+      </nav>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
         <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-        <main className="flex-1 overflow-y-auto">
+        <main id="main-content" className="flex-1 overflow-y-auto">
           <Outlet />
         </main>
       </div>

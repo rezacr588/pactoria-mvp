@@ -1,14 +1,14 @@
 {
-  "testRunId": "unknown",
-  "startTime": "unknown",
-  "endTime": "2025-09-09T14:06:31.139Z",
+  "testRunId": "test-1757429248971",
+  "startTime": "2025-09-09T14:47:28.971Z",
+  "endTime": "2025-09-09T14:48:57.621Z",
   "environment": {
     "baseURL": "http://localhost:5173",
     "apiBaseUrl": "http://localhost:8000/api/v1",
-    "userAgent": "unknown",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36",
     "viewport": {
-      "width": 0,
-      "height": 0
+      "width": 1280,
+      "height": 720
     }
   },
   "cleanup": {

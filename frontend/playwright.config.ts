@@ -114,10 +114,12 @@ export default defineConfig({
     /* Maximum time expect() should wait for the condition to be met. */
     timeout: 10000,
     
-    /* Threshold for pixel differences in screenshots */
-    threshold: 0.2,
+    /* Screenshot comparison settings */
+    toHaveScreenshot: {
+      threshold: 0.2,
+    },
   },
   
-  /* Only run smoke tests to reduce CPU load and heating */
-  grep: /@smoke/,
+  /* Run all tests for comprehensive testing */
+  // grep: /@smoke/,
 });

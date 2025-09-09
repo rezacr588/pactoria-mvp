@@ -172,7 +172,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
         </button>
 
         {/* Search */}
-        <div className="flex-1 max-w-lg ml-4 lg:ml-0">
+        <div id="search" className="flex-1 max-w-lg ml-4 lg:ml-0">
           <form onSubmit={handleSearchSubmit} className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <MagnifyingGlassIcon className={`h-5 w-5 ${textColors.subtle}`} />
