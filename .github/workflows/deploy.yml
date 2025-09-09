@@ -57,13 +57,14 @@ jobs:
           --image ${{ env.ACR_NAME }}.azurecr.io/pactoria-backend:${{ github.sha }} \
           --set-env-vars \
             GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}" \
+            GROQ_MODEL="${{ secrets.GROQ_MODEL }}" \
             SECRET_KEY="${{ secrets.SECRET_KEY }}" \
             JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
             DATABASE_URL="sqlite:///./data/pactoria_mvp.db" \
             ENVIRONMENT="production" \
             DEBUG="false" \
             BIND_HOST="0.0.0.0" \
-            PORT="8000" 2>/dev/null || \
+            PORT="8000"
         az containerapp create \
           --name ${{ env.CONTAINER_APP }} \
           --resource-group ${{ env.RESOURCE_GROUP }} \
@@ -80,6 +81,7 @@ jobs:
           --registry-password "${{ secrets.ACR_PASSWORD }}" \
           --env-vars \
             GROQ_API_KEY="${{ secrets.GROQ_API_KEY }}" \
+            GROQ_MODEL="${{ secrets.GROQ_MODEL }}" \
             SECRET_KEY="${{ secrets.SECRET_KEY }}" \
             JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
             DATABASE_URL="sqlite:///./data/pactoria_mvp.db" \
