@@ -311,3 +311,25 @@ def audit_user_logout(db: Session, user_id: str, user_name: str, request: Option
         risk_level=AuditRiskLevel.LOW,
         request=request
     )
+
+
+# Add missing log_audit_event function for backward compatibility
+def log_audit_event(
+    db: Session,
+    action: AuditAction,
+    resource_type: AuditResourceType,
+    resource_id: Optional[str] = None,
+    user_id: Optional[str] = None,
+    details: Optional[str] = None,
+    request: Optional[Request] = None
+):
+    """Legacy function for audit logging - delegates to AuditService"""
+    return AuditService.create_audit_log(
+        db=db,
+        action=action,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        user_id=user_id,
+        details=details,
+        request=request
+    )

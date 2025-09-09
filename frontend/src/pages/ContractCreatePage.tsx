@@ -1,79 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useContractStore } from '../store/contractStore';
+import { useContracts } from '../hooks';
+import { TemplateService } from '../services/api';
 import { ContractType } from '../types';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  DocumentTextIcon,
-  UsersIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  ClockIcon,
-  InformationCircleIcon,
   SparklesIcon,
   BookmarkIcon,
   ArrowPathIcon,
+  InformationCircleIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  ClockIcon,
+  DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 import { textColors, textStyles } from '../utils/typography';
-
-const UK_CONTRACT_TEMPLATES = [
-  {
-    id: '1',
-    name: 'Professional Services Agreement',
-    description: 'For consultancy, marketing, and professional services',
-    category: 'service-agreement',
-    contract_type: 'service_agreement' as ContractType,
-    estimatedTime: '15 minutes',
-    complexity: 'Standard',
-    icon: DocumentTextIcon,
-    fields: ['Client details', 'Service scope', 'Payment terms', 'Deliverables'],
-  },
-  {
-    id: '2',
-    name: 'Employment Contract - Full Time',
-    description: 'UK employment law compliant full-time contracts',
-    category: 'employment',
-    contract_type: 'employment_contract' as ContractType,
-    estimatedTime: '20 minutes',
-    complexity: 'Standard',
-    icon: UsersIcon,
-    fields: ['Employee details', 'Job description', 'Salary & benefits', 'Terms & conditions'],
-  },
-  {
-    id: '3',
-    name: 'Supplier/Vendor Agreement',
-    description: 'Contracts with suppliers and service providers',
-    category: 'supplier',
-    contract_type: 'supplier_agreement' as ContractType,
-    estimatedTime: '18 minutes',
-    complexity: 'Standard',
-    icon: DocumentTextIcon,
-    fields: ['Supplier details', 'Products/services', 'Payment terms', 'Quality standards'],
-  },
-  {
-    id: '4',
-    name: 'Non-Disclosure Agreement (NDA)',
-    description: 'Protect confidential information and trade secrets',
-    category: 'nda',
-    contract_type: 'nda' as ContractType,
-    estimatedTime: '10 minutes',
-    complexity: 'Simple',
-    icon: DocumentTextIcon,
-    fields: ['Parties', 'Confidential information', 'Duration', 'Exceptions'],
-  },
-  {
-    id: '5',
-    name: 'Partnership Agreement',
-    description: 'Business partnerships and joint ventures',
-    category: 'partnership',
-    contract_type: 'partnership' as ContractType,
-    estimatedTime: '25 minutes',
-    complexity: 'Complex',
-    icon: UsersIcon,
-    fields: ['Partners', 'Contributions', 'Profit sharing', 'Governance'],
-  },
-];
+import { TemplateGrid } from '../components/templates';
+import { mapBackendTemplatesToDisplay, TemplateDisplayInfo } from '../utils/templateMapping';
 
 const steps = [
   { id: 1, name: 'Choose Template', description: 'Select the right UK legal template' },
@@ -131,11 +75,14 @@ export default function ContractCreatePage() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
   const [stepAnimation, setStepAnimation] = useState<'slide-in' | 'slide-out' | null>(null);
+  const [templates, setTemplates] = useState<TemplateDisplayInfo[]>([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(true);
+  const [templateError, setTemplateError] = useState<string | null>(null);
   
   const navigate = useNavigate();
-  const { createContract } = useContractStore();
+  const { createContract } = useContracts();
 
-  const selectedTemplate = UK_CONTRACT_TEMPLATES.find(t => t.id === formData.templateId);
+  const selectedTemplate = templates.find(t => t.id === formData.templateId);
 
   // Auto-save functionality
   const autoSave = useCallback(async () => {
@@ -156,11 +103,29 @@ export default function ContractCreatePage() {
     }
   }, [formData]);
 
-  // Auto-save on form data changes
   useEffect(() => {
     const timer = setTimeout(autoSave, 2000);
     return () => clearTimeout(timer);
   }, [autoSave]);
+
+  // Fetch templates on component mount
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        setIsLoadingTemplates(true);
+        const response = await TemplateService.getTemplates();
+        const mappedTemplates = mapBackendTemplatesToDisplay(response.templates);
+        setTemplates(mappedTemplates);
+      } catch (error) {
+        console.error('Failed to fetch templates:', error);
+        setTemplateError('Failed to load templates. Please try again.');
+      } finally {
+        setIsLoadingTemplates(false);
+      }
+    };
+
+    fetchTemplates();
+  }, []);
 
   // Load draft on mount
   useEffect(() => {
@@ -247,7 +212,7 @@ export default function ContractCreatePage() {
   const handleTemplateSelect = (templateId: string) => {
     setFormData(prev => ({ ...prev, templateId }));
     // Auto-populate some fields based on template
-    const template = UK_CONTRACT_TEMPLATES.find(t => t.id === templateId);
+    const template = templates.find(t => t.id === templateId);
     if (template && !formData.name) {
       setFormData(prev => ({ 
         ...prev, 
@@ -426,87 +391,13 @@ export default function ContractCreatePage() {
               )}
             </div>
             
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {UK_CONTRACT_TEMPLATES.map((template) => {
-                const isSelected = formData.templateId === template.id;
-                return (
-                  <div
-                    key={template.id}
-                    className={`group relative rounded-xl border-2 p-6 cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${
-                      isSelected
-                        ? 'border-primary-500 bg-gradient-to-br from-primary-50 to-primary-100/50 dark:from-primary-900/30 dark:to-primary-800/20 shadow-lg shadow-primary-200/30 dark:shadow-primary-900/20 scale-[1.02]'
-                        : 'border-neutral-200 dark:border-secondary-700 bg-white dark:bg-secondary-900 hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-md'
-                    }`}
-                    onClick={() => handleTemplateSelect(template.id)}
-                  >
-                    {/* Selection indicator */}
-                    {isSelected && (
-                      <div className="absolute -top-2 -right-2 z-10">
-                        <div className="bg-primary-600 text-white rounded-full p-1 shadow-lg">
-                          <CheckCircleIcon className="h-5 w-5" />
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Header */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div className={`p-2 rounded-lg transition-colors ${
-                        isSelected ? 'bg-primary-100 dark:bg-primary-800/30' : 'bg-neutral-100 dark:bg-secondary-800'
-                      }`}>
-                        <template.icon className={`h-6 w-6 transition-colors ${
-                          isSelected ? 'text-primary-600 dark:text-primary-400' : textColors.subtle
-                        }`} />
-                      </div>
-                      
-                      <div className="flex flex-col items-end space-y-1">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${
-                          template.complexity === 'Simple' 
-                            ? 'bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400' :
-                          template.complexity === 'Complex' 
-                            ? 'bg-danger-100 dark:bg-danger-900/30 text-danger-700 dark:text-danger-400' :
-                          'bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-400'
-                        }`}>
-                          {template.complexity}
-                        </span>
-                        <div className="text-xs text-neutral-500 dark:text-secondary-400">
-                          {template.fields.length} fields
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Content */}
-                    <div className="mb-4">
-                      <h3 className={`text-lg font-semibold mb-2 transition-colors ${
-                        isSelected ? 'text-primary-700 dark:text-primary-300' : textColors.primary
-                      }`}>
-                        {template.name}
-                      </h3>
-                      <p className={`text-sm leading-relaxed ${textColors.secondary}`}>
-                        {template.description}
-                      </p>
-                    </div>
-                    
-                    {/* Footer */}
-                    <div className="flex items-center justify-between pt-3 border-t border-neutral-200 dark:border-secondary-700">
-                      <div className="flex items-center text-sm text-neutral-500 dark:text-secondary-400">
-                        <ClockIcon className="h-4 w-4 mr-1" />
-                        {template.estimatedTime}
-                      </div>
-                      <div className={`text-sm font-medium transition-colors ${
-                        isSelected ? 'text-primary-600 dark:text-primary-400' : 'text-neutral-600 dark:text-secondary-300'
-                      }`}>
-                        {isSelected ? 'Selected' : 'Select'}
-                      </div>
-                    </div>
-                    
-                    {/* Hover effect */}
-                    <div className={`absolute inset-0 rounded-xl bg-gradient-to-r from-primary-500/0 via-primary-500/5 to-primary-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none ${
-                      isSelected ? 'opacity-100' : ''
-                    }`} />
-                  </div>
-                );
-              })}
-            </div>
+            <TemplateGrid
+              templates={templates}
+              selectedTemplateId={formData.templateId}
+              onTemplateSelect={handleTemplateSelect}
+              isLoading={isLoadingTemplates}
+              error={templateError}
+            />
             
             {/* Help text */}
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">

@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import { useContractStore } from '../../store/contractStore';
+import { useContracts } from '../../hooks';
+import { useTemplates } from '../../hooks/useTemplates';
 
 export default function AppLayout() {
-  const { fetchContracts, fetchTemplates } = useContractStore();
+  const { fetchContracts } = useContracts();
+  const { fetchTemplates } = useTemplates();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Initialize data when layout mounts
@@ -14,11 +16,11 @@ export default function AppLayout() {
       try {
         // Fetch contracts and templates separately to handle failures independently
         const results = await Promise.allSettled([
-          fetchContracts().catch(err => {
+          fetchContracts().catch((err: Error) => {
             console.warn('Failed to load contracts:', err);
             return null;
           }),
-          fetchTemplates().catch(err => {
+          fetchTemplates().catch((err: Error) => {
             console.warn('Failed to load templates (non-critical):', err);
             return null;
           })

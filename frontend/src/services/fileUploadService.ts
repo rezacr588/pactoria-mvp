@@ -25,10 +25,17 @@ export interface FileUploadResult {
   created_at: string;
 }
 
-export interface FileUploadError {
+export interface FileUploadErrorDetails {
   code: string;
   message: string;
   details?: any;
+}
+
+export class FileUploadError extends Error {
+  constructor(public details: FileUploadErrorDetails) {
+    super(details.message);
+    this.name = 'FileUploadError';
+  }
 }
 
 export interface FileValidation {

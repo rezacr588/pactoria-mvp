@@ -5,7 +5,7 @@ Defines request/response models for search operations
 
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Union
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 
 # from app.schemas.auth import UserResponse  # Not used in search results
@@ -33,11 +33,12 @@ class DateRangeFilter(BaseModel):
     lte: Optional[datetime] = Field(None, description="Less than or equal to date")
     eq: Optional[datetime] = Field(None, description="Exact date match")
 
-    @validator("lte")
-    def validate_date_range(cls, v, values):
+    @field_validator("lte")
+    @classmethod
+    def validate_date_range(cls, v, info):
         """Ensure end date is after start date"""
-        if v is not None and "gte" in values and values["gte"] is not None:
-            if v < values["gte"]:
+        if v is not None and info.data.get("gte") is not None:
+            if v < info.data["gte"]:
                 raise ValueError("End date must be after start date")
         return v
 
@@ -52,11 +53,12 @@ class NumericRangeFilter(BaseModel):
     lte: Optional[float] = Field(None, description="Less than or equal to value")
     eq: Optional[float] = Field(None, description="Exact value match")
 
-    @validator("lte")
-    def validate_numeric_range(cls, v, values):
-        """Ensure max value is greater than min value"""
-        if v is not None and "gte" in values and values["gte"] is not None:
-            if v < values["gte"]:
+    @field_validator("lte")
+    @classmethod
+    def validate_lte(cls, v, info):
+        """Validate lte is greater than gte if both are present"""
+        if v is not None and info.data.get("gte") is not None:
+            if v <= info.data["gte"]:
                 raise ValueError("Maximum value must be greater than minimum value")
         return v
 
@@ -67,7 +69,8 @@ class SortCriteria(BaseModel):
     field: str = Field(..., description="Field to sort by")
     direction: SortDirection = Field(SortDirection.ASC, description="Sort direction")
 
-    @validator("field")
+    @field_validator("field")
+    @classmethod
     def validate_sort_field(cls, v):
         """Validate sort field is allowed"""
         allowed_fields = {
@@ -127,7 +130,8 @@ class ContractSearchFilters(BaseModel):
     )
     created_by: Optional[List[str]] = Field(None, description="Created by user IDs")
 
-    @validator("status")
+    @field_validator("status")
+    @classmethod
     def validate_status_values(cls, v):
         """Validate status values"""
         if v is not None:
@@ -137,7 +141,8 @@ class ContractSearchFilters(BaseModel):
                 raise ValueError(f"Invalid status values: {invalid_statuses}")
         return v
 
-    @validator("contract_type")
+    @field_validator("contract_type")
+    @classmethod
     def validate_contract_type_values(cls, v):
         """Validate contract type values"""
         if v is not None:
@@ -172,7 +177,8 @@ class UserSearchFilters(BaseModel):
         None, description="Last login date range"
     )
 
-    @validator("role")
+    @field_validator("role")
+    @classmethod
     def validate_role_values(cls, v):
         """Validate role values"""
         if v is not None:
@@ -198,7 +204,8 @@ class TemplateSearchFilters(BaseModel):
     )
     version: Optional[str] = Field(None, description="Template version")
 
-    @validator("contract_type")
+    @field_validator("contract_type")
+    @classmethod
     def validate_contract_type_values(cls, v):
         """Validate contract type values"""
         if v is not None:
@@ -238,14 +245,16 @@ class AdvancedSearchRequest(BaseModel):
     include_total: bool = Field(True, description="Include total count in results")
     highlight: bool = Field(False, description="Highlight matching terms in results")
 
-    @validator("query")
+    @field_validator("query")
+    @classmethod
     def validate_query(cls, v):
         """Validate search query"""
         if v and len(v.strip()) < 2:
             raise ValueError("Search query must be at least 2 characters long")
         return v.strip()
 
-    @validator("fields")
+    @field_validator("fields")
+    @classmethod
     def validate_search_fields(cls, v):
         """Validate searchable fields"""
         if v is not None:

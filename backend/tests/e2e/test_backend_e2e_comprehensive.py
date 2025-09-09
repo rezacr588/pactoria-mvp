@@ -28,7 +28,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 
-class TestDatabaseManager:
+class DatabaseManager:
     """Manages test database setup and cleanup"""
 
     def __init__(self):
@@ -60,7 +60,7 @@ class TestDatabaseManager:
 @pytest.fixture(scope="class")
 def test_db_manager():
     """Provide test database manager"""
-    manager = TestDatabaseManager()
+    manager = DatabaseManager()
     manager.setup_database()
 
     # Override database dependency
@@ -129,7 +129,7 @@ class TestDataFactory:
 class E2ETestBase:
     """Base class for E2E tests with common utilities"""
 
-    def __init__(self, client: TestClient, db_manager: TestDatabaseManager):
+    def __init__(self, client: TestClient, db_manager: DatabaseManager):
         self.client = client
         self.db_manager = db_manager
         self.created_entities = []

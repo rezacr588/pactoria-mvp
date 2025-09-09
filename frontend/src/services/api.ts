@@ -2,14 +2,12 @@
 // Centralized API configuration and error handling
 
 import type { 
-  Notification,
-  PaginatedNotificationResponse 
+  Notification
 } from '../types';
 import { env } from '../config/env';
 
 // Use centralized environment configuration
 const API_BASE_URL = env.get('API_URL');
-const DEBUG_API_CALLS = env.get('DEBUG_API_CALLS');
 
 // Connection status tracking
 let connectionStatus: 'connected' | 'disconnected' | 'error' = 'disconnected';
@@ -104,9 +102,13 @@ async function apiRequest<T>(
   endpoint: string,
   config: RequestConfig = {}
 ): Promise<T> {
-  const { params, ...fetchConfig } = config;
-  const maxRetries = env.get('ERROR_RETRY_ATTEMPTS');
-  const retryDelay = env.get('ERROR_RETRY_DELAY');
+  const ERROR_RETRY_ATTEMPTS = env.get('ERROR_RETRY_ATTEMPTS');
+  const ERROR_RETRY_DELAY = env.get('ERROR_RETRY_DELAY');
+  
+  // Extract config properties
+  const { method = 'GET', headers = {}, body, params, ...restConfig } = config;
+  const maxRetries = ERROR_RETRY_ATTEMPTS;
+  const retryDelay = ERROR_RETRY_DELAY;
   
   // Ensure connection before making request
   await ensureConnection();
@@ -129,12 +131,14 @@ async function apiRequest<T>(
     ...(token && { Authorization: `Bearer ${token}` }),
   };
 
-  const finalConfig: RequestInit = {
-    ...fetchConfig,
+  const fetchConfig: RequestInit = {
+    method,
     headers: {
       ...defaultHeaders,
-      ...fetchConfig.headers,
+      ...headers,
     },
+    ...(body && { body: typeof body === 'string' ? body : JSON.stringify(body) }),
+    ...restConfig,
   };
 
   let lastError: Error | null = null;
@@ -144,15 +148,9 @@ async function apiRequest<T>(
     try {
       const url = buildUrl(endpoint, params);
       
-      // Debug logging
-      if (DEBUG_API_CALLS) {
-        console.log(`🌐 API Request (Attempt ${attempt + 1}/${maxRetries + 1}): ${finalConfig.method || 'GET'} ${url}`, {
-          headers: finalConfig.headers,
-          body: finalConfig.body
-        });
-      }
+      // Debug logging (removed for production)
       
-      const response = await fetch(url, finalConfig);
+      const response = await fetch(url, fetchConfig);
 
       // Handle non-2xx responses
       if (!response.ok) {
@@ -189,10 +187,7 @@ async function apiRequest<T>(
 
       const data = await response.json();
       
-      // Debug logging
-      if (DEBUG_API_CALLS) {
-        console.log(`✅ API Response: ${finalConfig.method || 'GET'} ${url}`, data);
-      }
+      // Debug logging (removed for production)
       
       connectionStatus = 'connected';
       return data as T;
@@ -1129,14 +1124,11 @@ export class WebSocketService {
     try {
       const wsUrl = `${env.get('WS_URL')}/connect?token=${encodeURIComponent(token)}`;
       
-      if (DEBUG_API_CALLS) {
-        console.log('🔌 Connecting to WebSocket:', wsUrl);
-      }
+      // Debug logging (removed for production)
       
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
-        console.log('WebSocket connected');
         this.reconnectAttempts = 0;
         this.connectionHandlers.forEach(handler => handler(true));
       };
@@ -1154,12 +1146,11 @@ export class WebSocketService {
             genericHandler(message);
           }
         } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+          // Silently handle parsing errors in production
         }
       };
 
       this.ws.onclose = (event) => {
-        console.log('WebSocket disconnected:', event.code, event.reason);
         this.connectionHandlers.forEach(handler => handler(false));
         
         // Attempt reconnection
@@ -1172,10 +1163,10 @@ export class WebSocketService {
       };
 
       this.ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        // Handle WebSocket errors silently in production
       };
     } catch (error) {
-      console.error('Error connecting to WebSocket:', error);
+      // Handle WebSocket connection errors silently
     }
   }
 
@@ -1190,7 +1181,7 @@ export class WebSocketService {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message));
     } else {
-      console.warn('WebSocket not connected, message not sent:', message);
+      // WebSocket not connected, message not sent
     }
   }
 

@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { useContractStore } from '../store/contractStore';
+import { useContracts } from '../hooks';
 import OnboardingChecklist from '../components/OnboardingChecklist';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '../components/ui';
 import { SkeletonDashboard } from '../components/ui/Skeleton';
@@ -35,7 +35,7 @@ function getComplianceColor(score: number) {
 export default function DashboardPage() {
   const { showToast } = useToast();
   const { user } = useAuthStore();
-  const { contracts: storeContracts } = useContractStore();
+  const { contracts: storeContracts } = useContracts();
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [contracts, setContracts] = useState<any[]>([]);

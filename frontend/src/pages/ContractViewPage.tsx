@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useContractStore } from '../store/contractStore';
+import { useContracts } from '../hooks';
 import {
   ArrowLeftIcon,
   PencilIcon,
@@ -53,7 +53,7 @@ function classNames(...classes: string[]) {
 
 export default function ContractViewPage() {
   const { id } = useParams<{ id: string }>();
-  const { contracts, fetchContracts } = useContractStore();
+  const { contracts, fetchContracts } = useContracts();
   const [activeTab, setActiveTab] = useState('overview');
 
   const handleExport = (format: 'pdf' | 'docx' | 'txt') => {

@@ -12,24 +12,20 @@ from sqlalchemy.orm import Session
 
 from app.services.bulk_operations_service import (
     BulkOperationsService,
-    BulkOperationResult,
 )
 from app.infrastructure.database.models import (
     User,
     Contract,
-    ContractStatus,
-    ContractType,
     AuditLog,
     Company,
 )
+from app.domain.value_objects import ContractStatus, ContractType
 from app.schemas.bulk import (
-    BulkContractUpdateRequest,
-    BulkContractDeleteRequest,
-    BulkUserInviteRequest,
-    BulkUserRoleChangeRequest,
-    BulkOperationError,
-    UserInvitation,
-    ContractBulkUpdateFields,
+    BulkContractOperation,
+    BulkOperationResponse,
+    BulkOperationItem,
+    BulkOperationType,
+    BulkOperationStatus,
 )
 from app.domain.exceptions import (
     DomainValidationError,

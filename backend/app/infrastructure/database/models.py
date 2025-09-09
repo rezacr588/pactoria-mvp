@@ -27,6 +27,8 @@ from app.domain.entities.company import (
     CompanyStatus,
     IndustryType,
 )
+from app.domain.entities.integration import IntegrationStatus
+from app.domain.entities.team import InvitationStatus
 
 
 class SubscriptionTier(str, enum.Enum):
@@ -56,12 +58,13 @@ class NotificationType(str, enum.Enum):
     SYSTEM = "system"
 
 
-class IntegrationStatus(str, enum.Enum):
-    AVAILABLE = "available"
-    CONNECTED = "connected"
-    PENDING = "pending"
-    ERROR = "error"
-    DISCONNECTED = "disconnected"
+# Remove duplicate - use domain version
+# class IntegrationStatus(str, enum.Enum):
+#     AVAILABLE = "available"
+#     CONNECTED = "connected"
+#     PENDING = "pending"
+#     ERROR = "error"
+#     DISCONNECTED = "disconnected"
 
 
 class IntegrationCategory(str, enum.Enum):
@@ -88,17 +91,27 @@ class SyncStatus(str, enum.Enum):
     PENDING = "pending"
 
 
-class InvitationStatus(str, enum.Enum):
-    PENDING = "pending"
-    ACCEPTED = "accepted"
-    EXPIRED = "expired"
-    REVOKED = "revoked"
+# Remove duplicate - use domain version
+# class InvitationStatus(str, enum.Enum):
+#     PENDING = "pending"
+#     ACCEPTED = "accepted"
+#     EXPIRED = "expired"
+#     REVOKED = "revoked"
 
 
 class AuditRiskLevel(str, enum.Enum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
+
+
+class NotificationStatus(str, enum.Enum):
+    PENDING = "pending"
+    SENT = "sent"
+    DELIVERED = "delivered"
+    READ = "read"
+    FAILED = "failed"
+    EXPIRED = "expired"
 
 
 class AuditAction(str, enum.Enum):
@@ -141,9 +154,9 @@ class User(Base):
     # Invitation fields for bulk user invitations
     invitation_token = Column(String, nullable=True, unique=True)
     invited_at = Column(DateTime(timezone=True), nullable=True)
-    invited_by = Column(String, ForeignKey("users.id"), nullable=True)
+    invited_by = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
-    company_id = Column(String, ForeignKey("companies.id"), nullable=True)
+    company_id = Column(String, ForeignKey("companies.id", ondelete="CASCADE"), nullable=True)
     company = relationship("Company", back_populates="users", foreign_keys=[company_id])
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())

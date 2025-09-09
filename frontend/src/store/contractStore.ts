@@ -7,6 +7,7 @@ import {
   ComplianceScoreResponse
 } from '../types';
 import { ContractService } from '../services/api';
+import { DEFAULT_CONTRACT_TYPE_OPTIONS, CONTRACT_STATUS_OPTIONS } from '../utils/contractTypes';
 
 interface ContractState {
   contracts: Contract[];
@@ -68,26 +69,9 @@ interface ContractState {
   clearSelectedContract: () => void;
 }
 
-// Contract type options for UI
-export const CONTRACT_TYPE_OPTIONS = [
-  { value: 'service_agreement', label: 'Service Agreement' },
-  { value: 'employment_contract', label: 'Employment Contract' },
-  { value: 'supplier_agreement', label: 'Supplier Agreement' },
-  { value: 'nda', label: 'Non-Disclosure Agreement' },
-  { value: 'terms_conditions', label: 'Terms & Conditions' },
-  { value: 'consultancy', label: 'Consultancy Agreement' },
-  { value: 'partnership', label: 'Partnership Agreement' },
-  { value: 'lease', label: 'Lease Agreement' }
-];
-
-// Contract status options for UI
-export const CONTRACT_STATUS_OPTIONS = [
-  { value: 'draft', label: 'Draft' },
-  { value: 'active', label: 'Active' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'expired', label: 'Expired' },
-  { value: 'terminated', label: 'Terminated' }
-];
+// Re-export for backward compatibility
+export const CONTRACT_TYPE_OPTIONS = DEFAULT_CONTRACT_TYPE_OPTIONS;
+export { CONTRACT_STATUS_OPTIONS };
 
 export const useContractStore = create<ContractState>((set, get) => ({
   contracts: [],

@@ -17,7 +17,7 @@ from app.infrastructure.database.models import (
 )
 
 
-class TestDataFactories:
+class DataFactories:
     """Comprehensive test data factories for realistic E2E testing"""
 
     def __init__(self, locale="en_GB"):
@@ -732,7 +732,7 @@ Date: ___________________        Date: ___________________
 
 
 # Global instance for use in tests
-test_data_factories = TestDataFactories()
+test_data_factories = DataFactories()
 
 
 # Pytest fixtures for common test data patterns

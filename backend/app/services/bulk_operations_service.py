@@ -25,14 +25,16 @@ from app.schemas.bulk import (
     BulkImportResponse
 )
 from app.services.audit_service import log_audit_event
+from app.infrastructure.database.models import AuditAction, AuditResourceType
+from fastapi import Depends
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 class BulkOperationsService:
-    """Service for handling bulk operations on contracts"""
-
+    """Service for handling bulk operations on contracts and other entities"""
+    
     def __init__(self, db: Session):
         self.db = db
         self._operation_store: Dict[str, Dict] = {}  # In-memory store for demo
@@ -134,18 +136,13 @@ class BulkOperationsService:
             })
 
             # Log audit event
-            await log_audit_event(
+            log_audit_event(
                 db=self.db,
+                action=AuditAction.CREATE,
+                resource_type=AuditResourceType.CONTRACT,
                 user_id=user.id,
-                company_id=user.company_id,
-                action=f"bulk_{operation.operation_type.value}",
-                resource_type="contract",
                 resource_id=operation_id,
-                details={
-                    "total_items": len(operation.contract_ids),
-                    "successful_items": successful_items,
-                    "failed_items": failed_items
-                }
+                details=f"Bulk {operation.operation_type.value}: {successful_items} successful, {failed_items} failed"
             )
 
             return BulkOperationResponse(
@@ -232,7 +229,7 @@ class BulkOperationsService:
             logger.error(f"Error processing single contract operation: {e}")
             return False
 
-    async def get_operation_status(self, operation_id: str) -> Optional[Dict]:
+    def get_operation_status(self, operation_id: str) -> Optional[Dict[str, Any]]:
         """Get status of bulk operation"""
         return self._operation_store.get(operation_id)
 

@@ -9,7 +9,7 @@ import {
   BookOpenIcon,
   ChevronRightIcon,
 } from '@heroicons/react/24/outline';
-import { useContractStore } from '../store/contractStore';
+import { useContracts } from '../hooks';
 import { useAuthStore } from '../store/authStore';
 import { textStyles, textColors } from '../utils/typography';
 
@@ -31,7 +31,7 @@ interface OnboardingChecklistProps {
 }
 
 export default function OnboardingChecklist({ onDismiss, showDismiss = true }: OnboardingChecklistProps) {
-  const { contracts, fetchContracts } = useContractStore();
+  const { contracts, fetchContracts } = useContracts();
   const { user } = useAuthStore();
   const [steps, setSteps] = useState<OnboardingStep[]>([]);
 

@@ -1,0 +1,31 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.production.environment]
+  VITE_API_URL = "https://pactoria-backend.herokuapp.com/api/v1"
+  VITE_NODE_ENV = "production"
+  VITE_ENABLE_DEBUG = "false"
+  VITE_DEBUG_API_CALLS = "false"
+  VITE_DEBUG_ERRORS = "false"
+  VITE_BUILD_SOURCEMAP = "false"
+  VITE_BUILD_MINIFY = "true"
+  VITE_DEPLOYMENT_TARGET = "production"
+
+[context.deploy-preview.environment]
+  VITE_API_URL = "https://pactoria-backend-staging.herokuapp.com/api/v1"
+  VITE_NODE_ENV = "staging"
+  VITE_ENABLE_DEBUG = "true"
+  VITE_DEBUG_API_CALLS = "true"
+  VITE_DEBUG_ERRORS = "true"
+  VITE_BUILD_SOURCEMAP = "true"
+  VITE_BUILD_MINIFY = "false"
+  VITE_DEPLOYMENT_TARGET = "staging"

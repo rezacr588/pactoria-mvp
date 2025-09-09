@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { classNames } from '../../utils/classNames';
 import { textStyles, textColors } from '../../utils/typography';
 import Button from './Button';
@@ -9,7 +10,8 @@ interface EmptyStateProps {
   description?: string;
   action?: {
     label: string;
-    onClick: () => void;
+    onClick?: () => void;
+    href?: string;
     icon?: React.ComponentType<{ className?: string }>;
   };
   secondaryAction?: {
@@ -56,13 +58,24 @@ export default function EmptyState({
       {(action || secondaryAction) && (
         <div className="flex items-center justify-center space-x-3 flex-wrap gap-3">
           {action && (
-            <Button
-              onClick={action.onClick}
-              icon={action.icon && <action.icon className="h-4 w-4" />}
-              size="md"
-            >
-              {action.label}
-            </Button>
+            action.href ? (
+              <Link to={action.href}>
+                <Button
+                  icon={action.icon && <action.icon className="h-4 w-4" />}
+                  size="md"
+                >
+                  {action.label}
+                </Button>
+              </Link>
+            ) : (
+              <Button
+                onClick={action.onClick}
+                icon={action.icon && <action.icon className="h-4 w-4" />}
+                size="md"
+              >
+                {action.label}
+              </Button>
+            )
           )}
           
           {secondaryAction && (
