@@ -19,11 +19,22 @@ from app.schemas.ai import (
     TemplateListResponse,
 )
 from app.core.auth import get_current_user
+from app.core.config import settings
 
 router = APIRouter(prefix="/ai", tags=["AI Services"])
 logger = logging.getLogger(__name__)
 
-ai_service = GroqAIService()
+# Initialize AI service only if API key is available
+ai_service = None
+if settings.GROQ_API_KEY:
+    try:
+        ai_service = GroqAIService()
+        logger.info("AI service initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize AI service: {e}")
+        ai_service = None
+else:
+    logger.warning("GROQ_API_KEY not configured - AI features disabled")
 
 
 @router.get("/health", response_model=AIHealthCheck)
@@ -32,6 +43,14 @@ async def ai_health_check():
     Check AI service health and capabilities
     """
     try:
+        if ai_service is None:
+            return AIHealthCheck(
+                status="unavailable",
+                model="none",
+                features=[],
+                response_time_ms=0,
+            )
+        
         # Simple health check - could expand to test actual Groq connectivity
         return AIHealthCheck(
             status="healthy",
@@ -133,6 +152,12 @@ async def analyze_contract(
     try:
         logger.info(f"Analyzing contract for user {current_user.id}")
 
+        if ai_service is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="AI service is not available. Please configure GROQ_API_KEY to enable AI features.",
+            )
+
         # Validate contract compliance
         compliance_data = await ai_service.validate_contract_compliance(
             request.contract_content, request.contract_type
@@ -154,6 +179,8 @@ async def analyze_contract(
             processing_time_ms=500,  # Mock processing time
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Contract analysis failed: {str(e)}")
         raise HTTPException(

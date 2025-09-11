@@ -3,7 +3,7 @@ Analytics and monitoring endpoints for Pactoria MVP
 Business metrics, performance monitoring, and system health
 """
 
-from datetime import timedelta
+from datetime import timedelta, datetime, date as dt_date
 from app.core.datetime_utils import get_current_utc
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -516,11 +516,44 @@ async def get_time_series_metrics(
     # Convert to data points
     data_points = []
     for result in results:
+        # Handle different date formats from SQLite strftime
+        if isinstance(result.date, str):
+            if period == MetricPeriod.WEEKLY:
+                # Convert "2025-36" format to first day of that week
+                try:
+                    year, week = result.date.split('-')
+                    # Calculate first day of the week (Monday)
+                    jan_1 = datetime(int(year), 1, 1).date()
+                    # Find the first Monday of the year
+                    days_to_monday = (7 - jan_1.weekday()) % 7
+                    first_monday = jan_1 + timedelta(days=days_to_monday)
+                    # Add weeks to get to the target week
+                    target_date = first_monday + timedelta(weeks=int(week)-1)
+                    date_value = target_date
+                except (ValueError, IndexError):
+                    # Fallback to start_date if parsing fails
+                    date_value = start_date
+            elif period == MetricPeriod.MONTHLY:
+                # Convert "2025-09" format to first day of month
+                try:
+                    year, month = result.date.split('-')
+                    date_value = dt_date(int(year), int(month), 1)
+                except (ValueError, IndexError):
+                    # Fallback to start_date if parsing fails
+                    date_value = start_date
+            else:
+                # Should be daily format, try to parse as date
+                try:
+                    date_value = datetime.strptime(result.date, '%Y-%m-%d').date()
+                except ValueError:
+                    date_value = start_date
+        else:
+            # Handle datetime objects
+            date_value = result.date.date() if hasattr(result.date, "date") else result.date
+        
         data_points.append(
             TimeSeriesDataPoint(
-                date=(
-                    result.date.date() if hasattr(result.date, "date") else result.date
-                ),
+                date=date_value,
                 value=float(result.value if hasattr(result, "value") else result.count),
                 count=getattr(result, "count", None),
             )

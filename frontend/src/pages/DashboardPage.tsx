@@ -48,24 +48,11 @@ export default function DashboardPage() {
       setIsLoading(true);
       setError(null);
       
-      // Use existing contracts if available to avoid duplicate API calls
-      const useExistingContracts = storeContracts.length > 0;
-      
-      if (useExistingContracts) {
-        // Only fetch analytics data, use existing contracts
-        const analyticsData = await AnalyticsService.getDashboard();
-        setDashboardData(analyticsData);
-        setContracts(storeContracts);
-      } else {
-        // Fetch both analytics dashboard and recent contracts
-        const [analyticsData, contractsData] = await Promise.all([
-          AnalyticsService.getDashboard(),
-          ContractService.getContracts({ page: 1, size: 10 })
-        ]);
-        
-        setDashboardData(analyticsData);
-        setContracts(contractsData?.contracts || contractsData || []);
-      }
+      // Always use existing contracts to avoid duplicate API calls
+      // The contracts should already be loaded by the ContractsPage or other components
+      const analyticsData = await AnalyticsService.getDashboard();
+      setDashboardData(analyticsData);
+      setContracts(storeContracts);
     } catch (err) {
       const errorMessage = getErrorMessage(err);
       setError(errorMessage);

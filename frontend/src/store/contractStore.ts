@@ -9,6 +9,14 @@ import {
 import { ContractService } from '../services/api';
 import { DEFAULT_CONTRACT_TYPE_OPTIONS, CONTRACT_STATUS_OPTIONS } from '../utils/contractTypes';
 
+interface ContractsResponse {
+  contracts: Contract[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}
+
 interface ContractState {
   contracts: Contract[];
   selectedContract: Contract | null;
@@ -31,12 +39,12 @@ interface ContractState {
     contract_type?: string;
     status?: string;
     search?: string;
-  }) => Promise<void>;
-  fetchContract: (id: string) => Promise<void>;
+  }) => Promise<ContractsResponse | undefined>;
+  fetchContract: (id: string) => Promise<Contract | undefined>;
   fetchTemplates: (params?: {
     contract_type?: string;
     category?: string;
-  }) => Promise<void>;
+  }) => Promise<ContractTemplate[]>;
   createContract: (contractData: {
     title: string;
     contract_type: ContractType;
@@ -61,7 +69,7 @@ interface ContractState {
     start_date?: string;
     end_date?: string;
     final_content?: string;
-  }) => Promise<void>;
+  }) => Promise<Contract>;
   deleteContract: (id: string) => Promise<void>;
   generateContent: (id: string, regenerate?: boolean) => Promise<AIGenerationResponse>;
   analyzeCompliance: (id: string, force_reanalysis?: boolean) => Promise<ComplianceScoreResponse>;
@@ -87,33 +95,60 @@ export const useContractStore = create<ContractState>((set, get) => ({
     total: 0,
     pages: 0
   },
+  // Request deduplication
+  _pendingRequests: new Set(),
 
-  fetchContracts: async (params = {}) => {
+  fetchContracts: async (params: {
+    page?: number;
+    size?: number;
+    contract_type?: string;
+    status?: string;
+    search?: string;
+  } = {}) => {
     const now = Date.now();
     const state = get();
     
-    // Skip if already loading or fetched recently (within 30 seconds)
-    if (state.isLoading || (now - state.lastFetchTime < 30000 && state.contracts.length > 0)) {
+    // Create request key for deduplication
+    const requestKey = `contracts_${JSON.stringify(params)}`;
+    
+    // Skip if already loading or request is pending
+    if (state.isLoading || state._pendingRequests.has(requestKey)) {
       return;
     }
     
+    // Add to pending requests
+    state._pendingRequests.add(requestKey);
     set({ isLoading: true, error: null });
+    
     try {
-      const response = await ContractService.getContracts(params);
+      const response = await ContractService.getContracts({
+        page: params.page || 1,
+        size: params.size || 100,
+        contract_type: params.contract_type,
+        status: params.status,
+        search: params.search
+      }) as ContractsResponse;
+      
       set({ 
-        contracts: response.contracts,
+        contracts: response.contracts || [],
         pagination: {
-          page: response.page,
-          size: response.size,
-          total: response.total,
-          pages: response.pages
+          page: response.page || 1,
+          size: response.size || 100,
+          total: response.total || 0,
+          pages: response.pages || 1
         },
         isLoading: false,
         error: null,
         lastFetchTime: now
       });
-    } catch (error: any) {
-      const errorMessage = error.data?.detail || error.message || 'Failed to load contracts';
+      
+      return response;
+    } catch (error: unknown) {
+      console.error('Error fetching contracts:', error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to load contracts';
+      
       set({ 
         error: errorMessage,
         isLoading: false,
@@ -121,71 +156,93 @@ export const useContractStore = create<ContractState>((set, get) => ({
         pagination: { page: 1, size: 10, total: 0, pages: 0 },
         lastFetchTime: now
       });
-      throw error;
+      
+      // Re-throw the error to be handled by the component
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to load contracts');
+    } finally {
+      // Remove from pending requests
+      state._pendingRequests.delete(requestKey);
     }
   },
 
   fetchContract: async (id: string) => {
     set({ isLoading: true, error: null });
     try {
-      const contract = await ContractService.getContract(id);
+      const contract = await ContractService.getContract(id) as Contract;
       set({ 
         selectedContract: contract,
         isLoading: false,
         error: null
       });
-    } catch (error: any) {
-      const errorMessage = error.data?.detail || error.message || 'Failed to load contract';
+      return contract;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to load contract';
       set({ 
         error: errorMessage,
         isLoading: false,
         selectedContract: null
       });
+      console.error('Error fetching contract:', error);
       throw error;
     }
   },
 
   fetchTemplates: async (params = {}) => {
     const state = get();
+    const requestKey = `templates_${JSON.stringify(params)}`;
     
-    // Skip if already loading templates or have templates
-    if (state.isLoadingTemplates || state.templates.length > 0) {
-      return;
-    }
+    if (state.isLoadingTemplates || state._pendingRequests.has(requestKey)) return [];
     
+    state._pendingRequests.add(requestKey);
     set({ isLoadingTemplates: true, error: null });
+    
     try {
       const templates = await ContractService.getTemplates(params);
+      const templatesList = templates || [];
       set({ 
-        templates,
+        templates: templatesList,
         isLoadingTemplates: false,
         error: null
       });
-    } catch (error: any) {
-      // Handle templates not found as non-critical error
-      const isNotFoundError = error.status === 404 || error.message?.includes('not found');
-      const errorMessage = isNotFoundError 
-        ? 'No templates available' 
-        : error.data?.detail || error.message || 'Failed to load templates';
-        
+      return templatesList;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to load templates';
       set({ 
-        error: isNotFoundError ? null : errorMessage, // Don't show error for missing templates
+        error: errorMessage,
         isLoadingTemplates: false,
         templates: []
       });
-      
-      // Only re-throw non-404 errors to prevent blocking app initialization
-      if (!isNotFoundError) {
-        throw error;
-      }
+      console.error('Error fetching templates:', error);
+      return [];
+    } finally {
+      // Remove from pending requests
+      state._pendingRequests.delete(requestKey);
     }
   },
 
-
-  createContract: async (contractData) => {
+  createContract: async (contractData: {
+    title: string;
+    contract_type: ContractType;
+    plain_english_input: string;
+    client_name?: string;
+    client_email?: string;
+    supplier_name?: string;
+    contract_value?: number;
+    currency?: string;
+    start_date?: string;
+    end_date?: string;
+    template_id?: string;
+  }) => {
     set({ isLoading: true, error: null });
     try {
-      const newContract = await ContractService.createContract(contractData);
+      const newContract = await ContractService.createContract(contractData) as Contract;
       
       // Add to the existing contracts list
       const contracts = [newContract, ...get().contracts];
@@ -197,8 +254,10 @@ export const useContractStore = create<ContractState>((set, get) => ({
       });
       
       return newContract;
-    } catch (error: any) {
-      const errorMessage = error.data?.detail || error.message || 'Failed to create contract';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to create contract';
       set({ 
         error: errorMessage,
         isLoading: false
@@ -207,31 +266,41 @@ export const useContractStore = create<ContractState>((set, get) => ({
     }
   },
 
-  updateContract: async (id: string, updates) => {
+  updateContract: async (id: string, updates: {
+    title?: string;
+    status?: string;
+    client_name?: string;
+    client_email?: string;
+    supplier_name?: string;
+    contract_value?: number;
+    currency?: string;
+    start_date?: string;
+    end_date?: string;
+    final_content?: string;
+  }) => {
     set({ isLoading: true, error: null });
     try {
-      const updatedContract = await ContractService.updateContract(id, updates);
-      
-      // Update in contracts list
-      const contracts = get().contracts.map(contract => 
-        contract.id === id ? updatedContract : contract
-      );
-      
-      // Update selected contract if it's the one being updated
-      const selectedContract = get().selectedContract?.id === id ? updatedContract : get().selectedContract;
-      
-      set({ 
-        contracts,
-        selectedContract,
+      const updatedContract = await ContractService.updateContract(id, updates) as Contract;
+      set(state => ({
+        contracts: state.contracts.map(contract => 
+          contract.id === id ? { ...contract, ...updatedContract } : contract
+        ),
+        selectedContract: state.selectedContract?.id === id 
+          ? { ...state.selectedContract, ...updatedContract }
+          : state.selectedContract,
         isLoading: false,
         error: null
-      });
-    } catch (error: any) {
-      const errorMessage = error.data?.detail || error.message || 'Failed to update contract';
+      }));
+      return updatedContract;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to update contract';
       set({ 
         error: errorMessage,
         isLoading: false
       });
+      console.error('Error updating contract:', error);
       throw error;
     }
   },
@@ -253,8 +322,10 @@ export const useContractStore = create<ContractState>((set, get) => ({
         isLoading: false,
         error: null
       });
-    } catch (error: any) {
-      const errorMessage = error.data?.detail || error.message || 'Failed to delete contract';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to delete contract';
       set({ 
         error: errorMessage,
         isLoading: false
@@ -286,8 +357,10 @@ export const useContractStore = create<ContractState>((set, get) => ({
       });
       
       return response;
-    } catch (error: any) {
-      const errorMessage = error.data?.detail || error.message || 'Failed to generate contract content';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to generate content';
       set({ 
         error: errorMessage,
         isLoading: false
@@ -310,8 +383,10 @@ export const useContractStore = create<ContractState>((set, get) => ({
       });
       
       return response;
-    } catch (error: any) {
-      const errorMessage = error.data?.detail || error.message || 'Failed to analyze contract compliance';
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to analyze compliance';
       set({ 
         error: errorMessage,
         isLoading: false

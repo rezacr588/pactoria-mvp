@@ -121,11 +121,14 @@ export function useContracts(options: UseContractsOptions = {}): UseContractsRet
     try {
       await storeFetchContracts(mergedParams);
       setUIError('contracts-fetch', null);
-      addNotification({
-        type: 'success',
-        message: 'Contracts loaded successfully',
-        duration: 2000
-      });
+      // Only show success notification in development
+      if (process.env.NODE_ENV === 'development') {
+        addNotification({
+          type: 'success',
+          message: 'Contracts loaded successfully',
+          duration: 2000
+        });
+      }
     } catch (error: any) {
       const errorMessage = error.data?.detail || error.message || 'Failed to load contracts';
       setUIError('contracts-fetch', errorMessage);

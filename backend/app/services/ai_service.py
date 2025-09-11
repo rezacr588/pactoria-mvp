@@ -383,4 +383,9 @@ After the JSON, provide a detailed analysis explaining your assessment.
 
 
 # Global AI service instance
-ai_service = GroqAIService()
+try:
+    ai_service = GroqAIService()
+    logger.info("AI service initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize AI service: {e}")
+    ai_service = None

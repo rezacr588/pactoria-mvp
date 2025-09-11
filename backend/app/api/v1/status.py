@@ -23,7 +23,7 @@ async def get_api_status():
             "uk_legal_compliance": True,
             "document_management": True,
             "user_authentication": True,
-            "ai_integration": True,
+            "ai_integration": bool(settings.GROQ_API_KEY),
             "analytics": True,
             "security": True,
             "compliance": True,
@@ -41,12 +41,13 @@ async def get_api_status():
         "ai_service": {
             "model": settings.GROQ_MODEL,
             "provider": "groq",
+            "available": bool(settings.GROQ_API_KEY),
             "capabilities": [
                 "contract_generation",
                 "compliance_analysis",
                 "risk_assessment",
                 "legal_review",
-            ],
+            ] if settings.GROQ_API_KEY else [],
         },
         "compliance": {
             "gdpr": True,

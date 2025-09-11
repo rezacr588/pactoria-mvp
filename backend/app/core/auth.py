@@ -7,12 +7,27 @@ from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+import time
 
 from app.core.database import get_db
 from app.core.security import verify_token
 from app.infrastructure.database.models import User, Company, UserRole
 
 security = HTTPBearer(auto_error=False)
+
+# Simple in-memory cache for user data (expires after 30 seconds)
+_user_cache = {}
+CACHE_EXPIRY_SECONDS = 30
+
+def _cleanup_expired_cache():
+    """Clean up expired cache entries"""
+    current_time = time.time()
+    expired_keys = [
+        key for key, data in _user_cache.items()
+        if current_time - data['timestamp'] >= CACHE_EXPIRY_SECONDS
+    ]
+    for key in expired_keys:
+        _user_cache.pop(key, None)
 
 
 class AuthenticationError(HTTPException):
@@ -30,7 +45,7 @@ async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db),
 ) -> User:
-    """Get current authenticated user"""
+    """Get current authenticated user with caching"""
     if not credentials:
         raise AuthenticationError("No authorization header provided")
 
@@ -41,6 +56,19 @@ async def get_current_user(
     if not user_id:
         raise AuthenticationError("Invalid authentication token")
 
+    # Clean up expired cache entries periodically
+    if len(_user_cache) > 100:  # Only cleanup when cache gets large
+        _cleanup_expired_cache()
+    
+    # Check cache first
+    current_time = time.time()
+    cache_key = f"user_{user_id}"
+    
+    if cache_key in _user_cache:
+        cached_data = _user_cache[cache_key]
+        if current_time - cached_data['timestamp'] < CACHE_EXPIRY_SECONDS:
+            return cached_data['user']
+
     # Get user from database
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -49,6 +77,12 @@ async def get_current_user(
     # Check if user is active
     if not user.is_active:
         raise AuthenticationError("Inactive user")
+
+    # Cache the user
+    _user_cache[cache_key] = {
+        'user': user,
+        'timestamp': current_time
+    }
 
     return user
 

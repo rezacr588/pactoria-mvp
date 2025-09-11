@@ -13,6 +13,8 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+import asyncio
+from functools import lru_cache
 
 from app.core.database import get_db
 from app.core.auth import get_current_user, require_company_access
@@ -54,6 +56,69 @@ from fastapi.security import HTTPBearer
 security = HTTPBearer()
 
 router = APIRouter(prefix="/contracts", tags=["Contracts"])
+
+# Request deduplication cache
+_request_cache = {}
+_cache_lock = asyncio.Lock()
+
+# Rate limiting for repeated requests
+_request_counts = {}
+RATE_LIMIT_WINDOW = 5  # seconds
+MAX_REQUESTS_PER_WINDOW = 10
+
+async def get_cached_templates(db: Session):
+    """Get templates with caching to prevent repeated queries"""
+    cache_key = "templates_active"
+    
+    async with _cache_lock:
+        if cache_key in _request_cache:
+            return _request_cache[cache_key]
+        
+        # Query templates
+        templates = db.query(Template).filter(Template.is_active == True).order_by(Template.name).all()
+        
+        # Cache for 30 seconds
+        _request_cache[cache_key] = templates
+        asyncio.create_task(_clear_cache_after_delay(cache_key, 30))
+        
+        return templates
+
+async def _clear_cache_after_delay(key: str, delay: int):
+    """Clear cache entry after delay"""
+    await asyncio.sleep(delay)
+    async with _cache_lock:
+        _request_cache.pop(key, None)
+
+def _cleanup_rate_limit_cache():
+    """Clean up expired rate limit entries"""
+    import time
+    current_time = time.time()
+    expired_keys = [
+        key for key, (requests, last_request_time) in _request_counts.items()
+        if current_time - last_request_time > RATE_LIMIT_WINDOW * 2
+    ]
+    for key in expired_keys:
+        _request_counts.pop(key, None)
+
+async def get_cached_contracts_count(db: Session, company_id: str):
+    """Get contracts count with caching"""
+    cache_key = f"contracts_count_{company_id}"
+    
+    async with _cache_lock:
+        if cache_key in _request_cache:
+            return _request_cache[cache_key]
+        
+        # Query count
+        count = db.query(Contract).filter(
+            Contract.company_id == company_id,
+            Contract.is_current_version == True
+        ).count()
+        
+        # Cache for 10 seconds
+        _request_cache[cache_key] = count
+        asyncio.create_task(_clear_cache_after_delay(cache_key, 10))
+        
+        return count
 
 
 @router.post(
@@ -145,9 +210,10 @@ async def create_contract(
     db.refresh(contract)
 
     # Create audit log
+    from app.infrastructure.database.models import AuditAction, AuditResourceType
     audit_log = AuditLog(
-        event_type="contract_created",
-        resource_type="contract",
+        action=AuditAction.CREATE,
+        resource_type=AuditResourceType.CONTRACT,
         resource_id=contract.id,
         user_id=current_user.id,
         new_values={
@@ -279,8 +345,11 @@ async def list_contracts(
             )
         )
 
-    # Count total
-    total = query.count()
+    # Count total with caching (only if no filters applied)
+    if not contract_type and not status and not search:
+        total = await get_cached_contracts_count(db, current_user.company_id)
+    else:
+        total = query.count()
 
     # Apply pagination
     offset = (page - 1) * size
@@ -298,6 +367,52 @@ async def list_contracts(
         size=size,
         pages=pages,
     )
+
+
+@router.get("/templates", response_model=List[TemplateResponse])
+async def list_templates(
+    contract_type: Optional[str] = None,
+    category: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """List available contract templates with caching and rate limiting"""
+
+    # Simple rate limiting check
+    import time
+    current_time = time.time()
+    user_key = f"templates_{current_user.id}"
+    
+    # Clean up expired entries periodically
+    if len(_request_counts) > 100:
+        _cleanup_rate_limit_cache()
+    
+    if user_key in _request_counts:
+        requests, last_request_time = _request_counts[user_key]
+        if current_time - last_request_time < RATE_LIMIT_WINDOW:
+            if requests >= MAX_REQUESTS_PER_WINDOW:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Too many requests. Please wait a moment."
+                )
+            _request_counts[user_key] = (requests + 1, last_request_time)
+        else:
+            _request_counts[user_key] = (1, current_time)
+    else:
+        _request_counts[user_key] = (1, current_time)
+
+    # Get cached templates
+    templates = await get_cached_templates(db)
+
+    # Apply filters
+    filtered_templates = templates
+    if contract_type:
+        filtered_templates = [t for t in filtered_templates if t.contract_type == ContractType(contract_type)]
+    
+    if category:
+        filtered_templates = [t for t in filtered_templates if t.category == category]
+
+    return [TemplateResponse.model_validate(t) for t in filtered_templates]
 
 
 @router.get(
@@ -458,8 +573,8 @@ async def update_contract(
     }
 
     audit_log = AuditLog(
-        event_type="contract_updated",
-        resource_type="contract",
+        action=AuditAction.EDIT,
+        resource_type=AuditResourceType.CONTRACT,
         resource_id=contract.id,
         user_id=current_user.id,
         old_values=old_values,
@@ -497,8 +612,8 @@ async def delete_contract(
 
     # Create audit log
     audit_log = AuditLog(
-        event_type="contract_deleted",
-        resource_type="contract",
+        action=AuditAction.DELETE,
+        resource_type=AuditResourceType.CONTRACT,
         resource_id=contract.id,
         user_id=current_user.id,
         old_values={"status": "active"},
@@ -550,6 +665,13 @@ async def generate_contract_content(
     )
 
     try:
+        # Check if AI service is available
+        if ai_service is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="AI service is not available. Please configure GROQ_API_KEY to enable AI features.",
+            )
+        
         # Generate content using AI service
         ai_response = await ai_service.generate_contract(ai_request)
 
@@ -577,8 +699,8 @@ async def generate_contract_content(
 
         # Create audit log
         audit_log = AuditLog(
-            event_type="contract_generated",
-            resource_type="contract",
+            action=AuditAction.EDIT,
+            resource_type=AuditResourceType.CONTRACT,
             resource_id=contract.id,
             user_id=current_user.id,
             new_values={
@@ -661,6 +783,13 @@ async def analyze_contract_compliance(
     )
 
     try:
+        # Check if AI service is available
+        if ai_service is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="AI service is not available. Please configure GROQ_API_KEY to enable AI features.",
+            )
+        
         # Analyze using AI service
         compliance_response = await ai_service.analyze_compliance(compliance_request)
 
@@ -685,8 +814,8 @@ async def analyze_contract_compliance(
 
         # Create audit log
         audit_log = AuditLog(
-            event_type="compliance_analyzed",
-            resource_type="contract",
+            action=AuditAction.EDIT,
+            resource_type=AuditResourceType.CONTRACT,
             resource_id=contract.id,
             user_id=current_user.id,
             new_values={
@@ -733,24 +862,3 @@ async def get_contract_versions(
     )
 
     return [ContractVersionResponse.model_validate(v) for v in versions]
-
-
-@router.get("/templates/", response_model=List[TemplateResponse])
-async def list_templates(
-    contract_type: Optional[str] = None,
-    category: Optional[str] = None,
-    db: Session = Depends(get_db),
-):
-    """List available contract templates"""
-
-    query = db.query(Template).filter(Template.is_active)
-
-    if contract_type:
-        query = query.filter(Template.contract_type == ContractType(contract_type))
-
-    if category:
-        query = query.filter(Template.category == category)
-
-    templates = query.order_by(Template.name).all()
-
-    return [TemplateResponse.model_validate(t) for t in templates]

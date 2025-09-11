@@ -30,8 +30,19 @@ import ErrorBoundary from './components/ui/ErrorBoundary';
 import { useGlobalKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuthStore();
-  return user ? <>{children}</> : <Navigate to="/login" replace />;
+  const { user, isLoading, isAuthenticated } = useAuthStore();
+  
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+  
+  // Redirect to login if not authenticated
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
 }
 
 // Component that handles keyboard shortcuts within Router context

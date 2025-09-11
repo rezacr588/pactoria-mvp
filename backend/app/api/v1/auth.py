@@ -86,10 +86,18 @@ async def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
     # Create company if provided
     company = None
     if user_data.company_name:
+        from app.domain.entities.company import CompanyType, IndustryType
         company = Company(
             name=user_data.company_name,
+            company_type=CompanyType.PRIVATE_LIMITED,  # Default for UK SMEs
+            industry=IndustryType.PROFESSIONAL_SERVICES,  # Default industry
             subscription_tier=SubscriptionTier.STARTER,
             max_users=settings.MAX_USERS_PER_ACCOUNT,
+            primary_contact_email=user_data.email,  # Required field
+            address_line1="TBD",  # Placeholder - can be updated later
+            city="London",  # Default UK city
+            postcode="SW1A 1AA",  # Default UK postcode
+            created_by_user_id="temp",  # Will be updated after user creation
         )
         db.add(company)
         db.flush()  # Get company ID without committing
@@ -106,6 +114,12 @@ async def register_user(user_data: UserRegister, db: Session = Depends(get_db)):
     )
 
     db.add(user)
+    db.flush()  # Get user ID without committing
+    
+    # Update company's created_by_user_id with actual user ID
+    if company:
+        company.created_by_user_id = user.id
+    
     db.commit()
     db.refresh(user)
 
@@ -400,12 +414,19 @@ async def create_company(
         )
 
     # Create company
+    from app.domain.entities.company import CompanyType, IndustryType
     company = Company(
         name=company_data.name,
-        registration_number=company_data.registration_number,
-        address=company_data.address,
+        company_type=CompanyType.PRIVATE_LIMITED,  # Default for UK SMEs
+        industry=IndustryType.PROFESSIONAL_SERVICES,  # Default industry
+        company_number=company_data.registration_number,
         subscription_tier=SubscriptionTier.STARTER,
         max_users=settings.MAX_USERS_PER_ACCOUNT,
+        primary_contact_email=current_user.email,  # Required field
+        address_line1=company_data.address or "TBD",  # Required field
+        city="London",  # Default UK city
+        postcode="SW1A 1AA",  # Default UK postcode
+        created_by_user_id=current_user.id,
     )
 
     db.add(company)

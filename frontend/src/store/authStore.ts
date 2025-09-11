@@ -210,6 +210,8 @@ export const useAuthStore = create<AuthState>()(
         const { token } = get();
         if (!token) return;
         
+        set({ isLoading: true, error: null });
+        
         try {
           const userResponse = await AuthService.getCurrentUser();
           // Enhance user object with computed properties for UI consistency
@@ -219,10 +221,24 @@ export const useAuthStore = create<AuthState>()(
             avatar: undefined,
             company: get().company?.name || undefined
           };
-          set({ user: enhancedUser, error: null });
+          set({ 
+            user: enhancedUser, 
+            error: null, 
+            isLoading: false,
+            isAuthenticated: true,
+            connectionStatus: 'connected'
+          });
         } catch (error: any) {
           // Token might be expired, clear auth state
-          set({ user: null, company: null, token: null, error: 'Session expired' });
+          set({ 
+            user: null, 
+            company: null, 
+            token: null, 
+            error: 'Session expired',
+            isLoading: false,
+            isAuthenticated: false,
+            connectionStatus: 'error'
+          });
           clearToken();
           throw error;
         }
@@ -282,10 +298,21 @@ if (typeof window !== 'undefined') {
   const token = getStoredToken();
   if (token) {
     useAuthStore.setState({ token });
-    // Optionally refresh user data if token exists
-    useAuthStore.getState().refreshUser().catch(() => {
-      // Silently handle refresh errors on initialization
-      useAuthStore.getState().logout();
+    // Check if token is valid and set authentication status
+    const isValid = useAuthStore.getState().checkAuthStatus();
+    if (isValid) {
+      // Optionally refresh user data if token exists and is valid
+      useAuthStore.getState().refreshUser().catch(() => {
+        // Silently handle refresh errors on initialization
+        useAuthStore.getState().logout();
+      });
+    }
+  } else {
+    // No token found, ensure we're in a clean state
+    useAuthStore.setState({ 
+      isLoading: false, 
+      isAuthenticated: false, 
+      connectionStatus: 'disconnected' 
     });
   }
 }

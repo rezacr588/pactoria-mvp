@@ -6,18 +6,33 @@ export const testCredentials = {
 };
 
 export async function loginWithTestAccount(page: Page) {
-  // Mock successful login API response
-  await page.route('**/api/v1/auth/login*', async route => {
+  // Mock successful login API response with correct format
+  await page.route('**/api/v1/auth/login', async route => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        token: 'mock-test-token-12345',
+        token: {
+          access_token: 'mock-test-token-12345',
+          token_type: 'bearer',
+          expires_in: 3600
+        },
         user: {
           id: 'test-user-123',
           email: testCredentials.email,
           full_name: 'Test User',
-          company_name: 'Test Company Ltd'
+          is_active: true,
+          timezone: 'Europe/London',
+          company_id: 'test-company-123',
+          created_at: new Date().toISOString(),
+          last_login_at: new Date().toISOString()
+        },
+        company: {
+          id: 'test-company-123',
+          name: 'Test Company Ltd',
+          subscription_tier: 'premium',
+          max_users: 10,
+          created_at: new Date().toISOString()
         }
       })
     });
@@ -26,36 +41,46 @@ export async function loginWithTestAccount(page: Page) {
   // Navigate to login page
   await page.goto('/login');
   
-  // Fill login form
-  await page.fill('input[name="email"]', testCredentials.email);
-  await page.fill('input[name="password"]', testCredentials.password);
+  // Fill login form using more specific selectors
+  await page.fill('input[type="email"]', testCredentials.email);
+  await page.fill('input[type="password"]', testCredentials.password);
   
-  // Submit form
-  await page.click('button[type="submit"]');
+  // Submit form and wait for response
+  await Promise.all([
+    page.waitForResponse('**/api/v1/auth/login'),
+    page.click('button[type="submit"], button:has-text("Sign in")')
+  ]);
   
-  // Wait for navigation with more flexible timeout
-  try {
-    await page.waitForURL(/\/dashboard/, { timeout: 15000 });
-  } catch {
-    // If direct navigation fails, try manual navigation
-    await page.goto('/dashboard');
-  }
-  
-  // Set auth token in localStorage for subsequent requests
+  // Set auth tokens in localStorage with correct keys
   await page.evaluate(() => {
-    localStorage.setItem('pactoria_auth_token', 'mock-test-token-12345');
+    // Use the correct token storage key from env config
+    localStorage.setItem('pactoria-auth-token', 'mock-test-token-12345');
     localStorage.setItem('auth-storage', JSON.stringify({
       state: {
-        token: 'mock-test-token-12345',
         user: {
           id: 'test-user-123',
           email: 'test@pactoria.com',
           full_name: 'Test User',
-          company_name: 'Test Company Ltd'
+          name: 'Test User',
+          is_active: true,
+          timezone: 'Europe/London',
+          company_id: 'test-company-123',
+          company: 'Test Company Ltd'
+        },
+        company: {
+          id: 'test-company-123',
+          name: 'Test Company Ltd',
+          subscription_tier: 'premium',
+          max_users: 10
         }
-      }
+      },
+      version: 0
     }));
   });
+  
+  // Wait for navigation to complete
+  await page.waitForURL(/\/dashboard/, { timeout: 10000 });
+  await page.waitForLoadState('networkidle', { timeout: 5000 });
 }
 
 export async function loginWithCredentials(page: Page, email: string, password: string) {

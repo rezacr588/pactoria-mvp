@@ -2,7 +2,8 @@
 // Centralized API configuration and error handling
 
 import type { 
-  Notification
+  Notification,
+  PaginatedNotificationResponse
 } from '../types';
 import { env } from '../config/env';
 
@@ -122,8 +123,26 @@ async function apiRequest<T>(
   
   // Fallback to Zustand storage for backward compatibility
   if (!token) {
-    const authStorage = localStorage.getItem('auth-storage');
-    token = authStorage ? JSON.parse(authStorage).state?.token : null;
+    try {
+      const authStorage = localStorage.getItem('auth-storage');
+      if (authStorage) {
+        const parsed = JSON.parse(authStorage);
+        token = parsed.state?.token || null;
+      }
+    } catch (error) {
+      console.warn('Failed to parse auth storage:', error);
+    }
+  }
+  
+  // Additional fallback - try to get token from auth store directly
+  if (!token && typeof window !== 'undefined') {
+    try {
+      // Import auth store dynamically to avoid circular dependencies
+      const { useAuthStore } = await import('../store/authStore');
+      token = useAuthStore.getState().token;
+    } catch (error) {
+      // Silently handle import errors
+    }
   }
 
   const defaultHeaders: HeadersInit = {
@@ -391,7 +410,7 @@ export class ContractService {
       page: number;
       size: number;
       pages: number;
-    }>('/contracts', params);
+    }>('/contracts/', params);
   }
 
   static async getContract(id: string) {
@@ -457,7 +476,7 @@ export class ContractService {
       ai_generation_id?: string;
       created_at: string;
       updated_at?: string;
-    }>('/contracts', data);
+    }>('/contracts/', data);
   }
 
   static async updateContract(id: string, data: {
