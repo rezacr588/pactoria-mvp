@@ -8,6 +8,7 @@ from app.services.ai_service import (
     ContractGenerationRequest,
     ComplianceAnalysisRequest,
 )
+from app.services.analytics_cache_service import invalidate_company_analytics_cache
 from app.core.datetime_utils import get_current_utc
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -226,6 +227,9 @@ async def create_contract(
     )
     db.add(audit_log)
     db.commit()
+
+    # Invalidate analytics cache for the company since new contract was created
+    await invalidate_company_analytics_cache(current_user.company_id)
 
     return ContractResponse.model_validate(contract)
 
