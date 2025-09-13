@@ -23,6 +23,7 @@ const AuditTrailPage = lazy(() => import('./pages/AuditTrailPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const HelpPage = lazy(() => import('./pages/HelpPage'));
+const PricingPage = lazy(() => import('./pages/PricingPage'));
 import CommandPalette from './components/ui/CommandPalette';
 import KeyboardShortcutsHelp from './components/ui/KeyboardShortcutsHelp';
 import SkipLinks from './components/ui/SkipLinks';
@@ -107,6 +108,7 @@ function App() {
                   {/* Public routes - Landing page accessible to all users */}
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/login" element={<LoginPage />} />
+                  <Route path="/pricing" element={<PricingPage />} />
                 
                 {/* Protected routes with layout */}
                 <Route path="/" element={

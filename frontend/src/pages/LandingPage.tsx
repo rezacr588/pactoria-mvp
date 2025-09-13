@@ -233,7 +233,7 @@ export default function LandingPage() {
             >
               Testimonials
             </button>
-            <Link to="/login" className={`${typography.body.medium} font-semibold leading-6 transition-all duration-200 text-secondary-600 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/20 min-h-[44px] flex items-center`}>
+            <Link to="/pricing" className={`${typography.body.medium} font-semibold leading-6 transition-all duration-200 text-secondary-600 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/20 min-h-[44px] flex items-center`}>
               Pricing
             </Link>
             {user && (
@@ -339,7 +339,7 @@ export default function LandingPage() {
                       Testimonials
                     </button>
                     <Link
-                      to="/login"
+                      to="/pricing"
                       className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary-900 dark:text-secondary-100 hover:bg-secondary-50 dark:hover:bg-secondary-800 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-h-[44px] flex items-center transition-colors duration-200"
                       onClick={() => setMobileMenuOpen(false)}
                     >
@@ -869,7 +869,7 @@ export default function LandingPage() {
               <ul className="space-y-3">
                 <li><button onClick={() => scrollToSection('features')} className={`${typography.body.small} text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-2 py-1 min-h-[32px] flex items-center`}>Features</button></li>
                 <li><button onClick={() => scrollToSection('use-cases')} className={`${typography.body.small} text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-2 py-1 min-h-[32px] flex items-center`}>Use Cases</button></li>
-                <li><Link to="/login" className={`${typography.body.small} text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-2 py-1 min-h-[32px] flex items-center`}>Pricing</Link></li>
+                <li><Link to="/pricing" className={`${typography.body.small} text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-2 py-1 min-h-[32px] flex items-center`}>Pricing</Link></li>
                 <li><button onClick={() => scrollToSection('testimonials')} className={`${typography.body.small} text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-2 py-1 min-h-[32px] flex items-center`}>Reviews</button></li>
               </ul>
             </div>
