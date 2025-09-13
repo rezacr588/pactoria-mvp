@@ -34,6 +34,7 @@ from app.infrastructure.database.models import (
     SubscriptionTier,
     UserRole,
 )
+from app.domain.entities.company import CompanyType, IndustryType
 from app.services.ai_service import GroqAIService
 
 
@@ -56,10 +57,16 @@ class TestDataFactory:
         return {
             "id": str(uuid.uuid4()),
             "name": name or f"Test Company {unique_id}",
-            "registration_number": f"TC{unique_id.upper()}",
-            "address": f"123 Test Street, London, SW1A 1AA",
+            "company_number": f"TC{unique_id.upper()}",
+            "address_line1": f"123 Test Street",
+            "city": "London", 
+            "postcode": "SW1A 1AA",
+            "primary_contact_email": f"contact{unique_id}@test.com",
+            "company_type": CompanyType.PRIVATE_LIMITED,
+            "industry": IndustryType.PROFESSIONAL_SERVICES,
             "subscription_tier": SubscriptionTier.STARTER,
             "max_users": 5,
+            "created_by_user_id": "temp",  # Will be updated after user creation
         }
 
     @staticmethod
@@ -229,7 +236,10 @@ class E2ETestBase:
 
     def create_test_user(self, company: Company, data: Dict[str, Any] = None) -> User:
         """Create a test user in database"""
-        user_data = data or TestDataFactory.create_user_data(company_id=company.id)
+        # Start with default user data and merge with custom data
+        user_data = TestDataFactory.create_user_data(company_id=company.id)
+        if data:
+            user_data.update(data)
 
         user = User(**{k: v for k, v in user_data.items() if k != "password"})
         self.db.add(user)
