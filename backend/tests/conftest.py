@@ -247,13 +247,11 @@ def valid_contract_request():
         "title": "Professional Services Agreement",
         "contract_type": "service_agreement",
         "plain_english_input": "I need a contract for professional consulting services. The work involves business analysis and recommendations. Payment should be monthly within 30 days. The contract should include confidentiality clauses and IP ownership terms.",
-        "client_name": "Example Consulting Ltd",
-        "client_email": "legal@exampleconsulting.com",
-        "supplier_name": "Professional Services Corp",
-        "contract_value": 50000.0,
-        "currency": "GBP",
-        "start_date": "2024-02-01T00:00:00Z",
-        "end_date": "2024-12-31T23:59:59Z"
+        "company_details": {
+            "name": "Example Consulting Ltd",
+            "registration_number": "12345678",
+        },
+        "compliance_level": "standard",
     }
 
 
