@@ -159,9 +159,10 @@ class TestContractEntity:
             overall_score=0.96, gdpr_compliance=0.98, employment_law_compliance=0.94
         )
         risk_assessment = RiskAssessment(
-            risk_score=2,
-            risk_factors=["Low risk factors"],
-            recommendations=["Continue as planned"],
+            overall_score=2.0,
+            risk_level="Low",
+            assessment_summary="Low risk factors",
+            priority_actions=["Continue as planned"],
         )
 
         # When
