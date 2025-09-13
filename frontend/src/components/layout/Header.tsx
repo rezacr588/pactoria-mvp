@@ -69,10 +69,10 @@ export default function Header({ onMenuClick }: HeaderProps) {
             src="/pactoria-logo-96.png"
             srcSet="/pactoria-logo-48.png 1x, /pactoria-logo-96.png 2x, /pactoria-logo-128.png 3x"
             alt="Pactoria - UK Contract Management"
-            className="h-8 w-8 sm:h-10 sm:w-10 object-contain pactoria-logo"
+            className="h-10 w-10 sm:h-12 sm:w-12 object-contain pactoria-logo"
             loading="lazy"
-            width="40"
-            height="40"
+            width="48"
+            height="48"
           />
           <span className={textStyles.pageTitle}>Pactoria</span>
         </div>
