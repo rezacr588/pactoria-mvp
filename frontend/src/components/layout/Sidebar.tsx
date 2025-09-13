@@ -52,10 +52,10 @@ export default function Sidebar() {
             src="/pactoria-logo-128.png"
             srcSet="/pactoria-logo-64.png 1x, /pactoria-logo-128.png 2x, /pactoria-logo-256.png 3x"
             alt="Pactoria - UK Contract Management"
-            className="w-10 h-10 lg:w-12 lg:h-12 object-contain pactoria-logo"
+            className="w-12 h-12 lg:w-14 lg:h-14 object-contain pactoria-logo"
             loading="lazy"
-            width="48"
-            height="48"
+            width="56"
+            height="56"
           />
           <span className={`text-xl lg:text-2xl font-bold ${textColors.primary}`}>Pactoria</span>
         </div>
