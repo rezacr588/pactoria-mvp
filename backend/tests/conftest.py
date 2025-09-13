@@ -305,17 +305,24 @@ IN WITNESS WHEREOF, the parties have executed this Agreement as of the date firs
 # Helper functions for database setup
 def create_test_company(db, **kwargs):
     """Create a test company with default values"""
-    from app.infrastructure.database.models import Company, SubscriptionTier
+    from app.infrastructure.database.models import Company, SubscriptionTier, CompanyType, IndustryType
     import uuid
 
     defaults = {
         "id": str(uuid.uuid4()),
         "name": "Test Company Ltd",
-        "registration_number": "12345678",
-        "address": "123 Test St, London, UK",
+        "company_type": CompanyType.PRIVATE_LIMITED,  # Fixed: correct enum value
+        "company_number": "12345678",  # Fixed: was registration_number
+        "vat_number": "GB123456789",
+        "industry": IndustryType.TECHNOLOGY,
+        "primary_contact_email": "contact@testcompany.com",
+        "address_line1": "123 Test St",
+        "city": "London",
+        "postcode": "SW1A 1AA",
         "subscription_tier": SubscriptionTier.PROFESSIONAL,
         "max_users": 10,
-        "settings": {},
+        "created_by_user_id": str(uuid.uuid4()),  # Added required field
+        # Removed 'settings': {} - not a valid field
     }
     defaults.update(kwargs)
 

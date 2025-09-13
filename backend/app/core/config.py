@@ -227,10 +227,11 @@ class Settings(BaseSettings):
         os.getenv("ENABLE_REDIS_CACHING", "false").lower() == "true"
     )
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-        extra = "ignore"
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": True,
+        "extra": "ignore"
+    }
 
 
 @lru_cache()
