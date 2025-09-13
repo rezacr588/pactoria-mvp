@@ -215,6 +215,7 @@ class E2ETestBase:
     def __init__(self, client: TestClient, db: Session):
         self.client = client
         self.db = db
+        self.test_data_factory = TestDataFactory()
         self.created_entities = {
             "users": [],
             "companies": [],
