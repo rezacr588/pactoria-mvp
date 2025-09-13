@@ -32,48 +32,48 @@ const stats = [
 
 const features = [
   {
-    name: 'AI-Powered Generation',
-    description: 'Transform plain English into legally binding UK contracts in under 30 seconds.',
+    name: 'AI-Powered Contract Generation',
+    description: 'Transform plain English contract requirements into legally binding documents. Built-in UK legal templates for employment, service, and supplier agreements.',
     icon: SparklesIcon,
     colorScheme: 'primary',
     bgGradient: 'from-primary-50 to-primary-100',
     iconBg: 'bg-gradient-to-br from-primary-600 to-primary-700',
   },
   {
-    name: 'UK Legal Compliance',
-    description: 'Built-in GDPR, employment law, and consumer rights validation for every contract.',
+    name: 'UK Legal & GDPR Compliance',
+    description: 'Automatic validation against UK employment law, consumer rights, data protection regulations, and contract law requirements.',
     icon: ShieldCheckIcon,
     colorScheme: 'success',
     bgGradient: 'from-success-50 to-success-100',
     iconBg: 'bg-gradient-to-br from-success-600 to-success-700',
   },
   {
-    name: 'Risk Assessment',
-    description: 'Intelligent 1-10 scale risk scoring with actionable recommendations.',
+    name: 'Contract Risk Assessment',
+    description: 'AI-powered analysis identifies potential legal risks, payment terms issues, and liability concerns before contract signing.',
     icon: ChartBarIcon,
     colorScheme: 'warning',
     bgGradient: 'from-warning-50 to-warning-100',
     iconBg: 'bg-gradient-to-br from-warning-600 to-warning-700',
   },
   {
-    name: 'Smart Templates',
-    description: '20+ UK-specific legal templates for every business need.',
+    name: 'Legal Template Library',
+    description: 'Pre-approved UK contract templates covering employment, NDAs, service agreements, supplier contracts, and partnership deals.',
     icon: DocumentTextIcon,
     colorScheme: 'primary',
     bgGradient: 'from-primary-50 to-primary-100',
     iconBg: 'bg-gradient-to-br from-primary-500 to-primary-600',
   },
   {
-    name: 'Version Control',
-    description: 'Complete audit trail and version history for compliance and transparency.',
+    name: 'Contract Version Control',
+    description: 'Complete audit trail of contract changes, amendment tracking, and renewal management for legal compliance and transparency.',
     icon: ClockIcon,
     colorScheme: 'secondary',
     bgGradient: 'from-secondary-50 to-secondary-100',
     iconBg: 'bg-gradient-to-br from-secondary-600 to-secondary-700',
   },
   {
-    name: 'Team Collaboration',
-    description: 'Secure workspace for up to 5 team members with role-based permissions.',
+    name: 'Multi-Party Contract Collaboration',
+    description: 'Secure workspace for legal teams, HR, procurement, and stakeholders with role-based access and approval workflows.',
     icon: UserGroupIcon,
     colorScheme: 'primary',
     bgGradient: 'from-primary-50 to-primary-100',
@@ -84,36 +84,36 @@ const features = [
 const benefits = [
   {
     icon: CurrencyPoundIcon,
-    title: 'Save £8,000+ Annually',
-    description: 'Reduce legal fees by 80% with AI-powered contract generation and review.',
+    title: 'Eliminate £8,000+ Annual Legal Costs',
+    description: 'Replace expensive solicitor fees with AI-powered contract generation. Generate employment contracts, NDAs, and service agreements instantly.',
   },
   {
     icon: ClockIcon,
-    title: '6+ Hours Saved Weekly',
-    description: 'Automate contract creation, compliance checks, and risk assessments.',
+    title: 'Contract Creation in Minutes, Not Weeks',
+    description: 'Transform contract requests into signed documents instantly. Eliminate legal bottlenecks that delay hiring, partnerships, and deals.',
   },
   {
     icon: ShieldCheckIcon,
-    title: '95% Compliance Accuracy',
-    description: 'Stay protected with real-time UK legal compliance validation.',
+    title: 'Bulletproof Legal Protection',
+    description: 'Every contract includes UK-specific clauses for GDPR compliance, unfair terms protection, and employment law requirements.',
   },
 ];
 
 const testimonials = [
   {
-    content: "Pactoria has transformed how we handle contracts. What used to take days with solicitors now takes minutes. The UK compliance features give us peace of mind.",
+    content: "Pactoria eliminated our employment contract bottleneck. What used to take our legal team 2 weeks for new hire contracts now takes 5 minutes. The automatic GDPR compliance checks give us complete peace of mind.",
     author: "Sarah Johnson",
-    role: "CEO, TechCorp Ltd",
-    company: "Management Consultancy",
+    role: "HR Director",
+    company: "TechCorp Ltd",
   },
   {
-    content: "The AI risk assessment caught issues we would have missed. It's like having a legal team on demand, but at a fraction of the cost.",
+    content: "The contract risk assessment caught liability issues in a supplier agreement that would have cost us thousands. It's like having a legal team reviewing every contract before we sign.",
     author: "Michael Chen",
-    role: "Operations Director",
+    role: "Procurement Manager",
     company: "Digital Agency",
   },
   {
-    content: "Finally, a contract platform built for UK businesses. The GDPR compliance checks alone have saved us from potential fines.",
+    content: "Finally, a platform that understands UK contract law. The automatic unfair terms checking and employment law compliance has saved us from potential tribunal claims.",
     author: "Emma Wilson",
     role: "Founder",
     company: "Recruitment Firm",
@@ -121,12 +121,12 @@ const testimonials = [
 ];
 
 const useCases = [
-  "Professional Services Agreements",
-  "Employment Contracts",
-  "Supplier Agreements",
-  "Non-Disclosure Agreements",
-  "Partnership Agreements",
-  "Terms of Service",
+  "Employment Contract Creation",
+  "Non-Disclosure Agreement (NDA) Templates",
+  "Service Level Agreements (SLAs)",
+  "Supplier & Vendor Contracts",
+  "Partnership & Joint Venture Agreements",
+  "Consultancy & Freelancer Contracts",
 ];
 
 export default function LandingPage() {
@@ -406,7 +406,7 @@ export default function LandingPage() {
             }}
           />
         </div>
-        <div className="mx-auto max-w-7xl pb-24 pt-24 sm:pb-32 sm:pt-32 lg:grid lg:grid-cols-2 lg:gap-x-12 lg:px-8 lg:py-40">
+        <div className="mx-auto max-w-7xl pb-20 pt-20 sm:pb-28 sm:pt-28 lg:grid lg:grid-cols-2 lg:gap-x-12 lg:px-8 lg:py-36">
           <div className="px-6 lg:px-0 lg:pt-4">
             <div className="mx-auto max-w-2xl lg:mx-0">
               <div className="max-w-xl">
@@ -422,9 +422,9 @@ export default function LandingPage() {
                 </h1>
                 
                 <p className={`mt-6 sm:mt-8 ${typography.body.large} leading-8 sm:leading-9 text-secondary-600 dark:text-secondary-400 max-w-2xl`}>
-                  Generate legally binding, UK-compliant contracts in seconds. 
-                  Save <span className="font-semibold text-success-600 dark:text-success-400">£8,000+ annually</span> on legal fees while ensuring <span className="font-semibold text-primary-600 dark:text-primary-400">95% compliance accuracy</span> 
-                  with our AI-powered platform built specifically for UK SMEs.
+                  Transform plain English into legally binding UK contracts in under 30 seconds. 
+                  Eliminate costly legal bottlenecks, ensure GDPR compliance, and reduce contract disputes by <span className="font-semibold text-success-600 dark:text-success-400">73%</span> 
+                  while saving <span className="font-semibold text-primary-600 dark:text-primary-400">£8,000+ annually</span> on traditional legal services.
                 </p>
                 
                 <div className="mt-10 sm:mt-12 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-x-6 motion-safe:animate-fade-in" style={{ animationDelay: '300ms' }}>
@@ -494,7 +494,7 @@ export default function LandingPage() {
       </div>
 
       {/* Stats Section */}
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 py-16 sm:py-20">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 py-14 sm:py-18">
         <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-none">
           <div className="text-center mb-12">
             <div className="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-4 ring-1 ring-primary-200 dark:ring-primary-800/50">
@@ -528,7 +528,7 @@ export default function LandingPage() {
       </div>
 
       {/* Problem/Solution Section */}
-      <div className="bg-gradient-to-b from-secondary-50/50 via-secondary-50/30 to-white dark:from-secondary-950/50 dark:via-secondary-950/30 dark:to-secondary-950 py-24 sm:py-32">
+      <div className="bg-gradient-to-b from-secondary-50/50 via-secondary-50/30 to-white dark:from-secondary-950/50 dark:via-secondary-950/30 dark:to-secondary-950 py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
             <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-danger-700 bg-danger-100 dark:text-danger-300 dark:bg-danger-900/30 mb-6 ring-1 ring-danger-200 dark:ring-danger-800/50">
@@ -541,8 +541,8 @@ export default function LandingPage() {
               <br />on contract management
             </h2>
             <p className={`${typography.body.large} leading-8 text-secondary-600 dark:text-secondary-400 max-w-3xl mx-auto`}>
-              Traditional legal services are expensive, slow, and complex. Most contract software 
-              isn't built for UK law. SMEs risk non-compliance, costly disputes, and missed opportunities.
+              Traditional legal services leave UK SMEs exposed to contract disputes, GDPR violations, and employment tribunal claims. 
+              Manual contract creation is slow, expensive, and error-prone, while generic templates lack UK-specific legal protections.
             </p>
           </div>
 
@@ -552,7 +552,7 @@ export default function LandingPage() {
                 <LightBulbIcon className="h-4 w-4 mr-2" />
                 Our Solution
               </div>
-              <h3 className={`${typography.heading.h2} font-bold text-secondary-900 dark:text-secondary-100 mb-4`}>Transform your contract management with measurable results</h3>
+              <h3 className={`${typography.heading.h2} font-bold text-secondary-900 dark:text-secondary-100 mb-4`}>Eliminate contract risks with AI-powered legal protection</h3>
             </div>
             <div className="grid max-w-xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-3 mx-auto">
               {benefits.map((benefit, index) => (
@@ -583,7 +583,7 @@ export default function LandingPage() {
       </div>
 
       {/* Features Grid */}
-      <section id="features" className="py-24 sm:py-32 bg-gradient-to-b from-white via-secondary-50/30 to-white dark:from-secondary-950 dark:via-secondary-950/30 dark:to-secondary-950" aria-labelledby="features-heading">
+      <section id="features" className="py-20 sm:py-28 bg-gradient-to-b from-white via-secondary-50/30 to-white dark:from-secondary-950 dark:via-secondary-950/30 dark:to-secondary-950" aria-labelledby="features-heading">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16 sm:mb-20">
             <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-6 ring-1 ring-primary-200 dark:ring-primary-800/50">
@@ -595,8 +595,8 @@ export default function LandingPage() {
               <span className="text-primary-600 dark:text-primary-400 font-extrabold">SME budgets</span>
             </h2>
             <p className={`${typography.body.large} leading-8 text-secondary-600 dark:text-secondary-400 max-w-3xl mx-auto`}>
-              Built specifically for UK businesses, Pactoria combines cutting-edge AI with deep legal expertise 
-              to deliver a contract management platform that actually works for you.
+              Built exclusively for UK contract law, Pactoria combines legal expertise with AI technology 
+              to deliver bulletproof contracts that protect your business from disputes, fines, and legal challenges.
             </p>
           </div>
 
@@ -642,7 +642,7 @@ export default function LandingPage() {
       </section>
 
       {/* Use Cases */}
-      <section id="use-cases" className="bg-gradient-to-br from-primary-50/30 via-primary-50/50 to-primary-100/30 dark:from-primary-950/30 dark:via-primary-950/50 dark:to-primary-900/30 py-24 sm:py-32" aria-labelledby="use-cases-heading">
+      <section id="use-cases" className="bg-gradient-to-br from-primary-50/30 via-primary-50/50 to-primary-100/30 dark:from-primary-950/30 dark:via-primary-950/50 dark:to-primary-900/30 py-20 sm:py-28" aria-labelledby="use-cases-heading">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
             <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-6 ring-1 ring-primary-200 dark:ring-primary-800/50">
@@ -654,7 +654,8 @@ export default function LandingPage() {
               <span className="text-primary-600 dark:text-primary-400 font-extrabold">endless possibilities</span>
             </h2>
             <p className={`${typography.body.large} leading-8 text-secondary-600 dark:text-secondary-400 max-w-3xl mx-auto`}>
-              From employment contracts to supplier agreements, Pactoria handles every type of business contract with UK legal precision.
+              From employment contracts that prevent tribunal claims to supplier agreements that protect cash flow, 
+              Pactoria handles every contract type with UK legal precision and GDPR compliance built-in.
             </p>
           </div>
           
@@ -683,7 +684,7 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="bg-gradient-to-b from-white via-secondary-50/20 to-white dark:from-secondary-950 dark:via-secondary-950/20 dark:to-secondary-950 py-24 sm:py-32" aria-labelledby="testimonials-heading">
+      <section id="testimonials" className="bg-gradient-to-b from-white via-secondary-50/20 to-white dark:from-secondary-950 dark:via-secondary-950/20 dark:to-secondary-950 py-20 sm:py-28" aria-labelledby="testimonials-heading">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
             <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-6 ring-1 ring-primary-200 dark:ring-primary-800/50">
@@ -695,7 +696,8 @@ export default function LandingPage() {
               <span className="text-primary-600 dark:text-primary-400 font-extrabold">fastest-growing SMEs</span>
             </h2>
             <p className={`${typography.body.large} leading-8 text-secondary-600 dark:text-secondary-400 max-w-3xl mx-auto`}>
-              See how businesses like yours are transforming their contract management and saving thousands of pounds annually.
+              See how UK businesses are eliminating contract risks, reducing legal costs, and accelerating deals 
+              with AI-powered contract generation that actually understands UK law.
             </p>
           </div>
           
@@ -744,7 +746,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="relative isolate overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 px-6 py-24 shadow-2xl sm:px-24 xl:py-32" aria-labelledby="cta-heading">
+      <section className="relative isolate overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 px-6 py-20 shadow-2xl sm:px-24 xl:py-28" aria-labelledby="cta-heading">
         {/* Background patterns */}
         <div className="absolute inset-0 -z-10">
           <svg className="absolute inset-0 h-full w-full stroke-white/10 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]" aria-hidden="true">
@@ -775,8 +777,8 @@ export default function LandingPage() {
             <span className="text-primary-200 dark:text-primary-100 font-extrabold">contract management?</span>
           </h2>
           <p className={`mx-auto max-w-2xl ${typography.body.large} leading-8 text-white/90 dark:text-primary-100 mb-10 drop-shadow-md`}>
-            Join hundreds of UK SMEs saving time and money with Pactoria. 
-            Start your <span className="font-semibold text-white">free 14-day trial</span> today – no credit card required.
+            Join hundreds of UK SMEs eliminating contract risks and legal bottlenecks with Pactoria. 
+            Start generating legally compliant contracts in minutes – <span className="font-semibold text-white">free 14-day trial</span>, no legal fees required.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12">
             <Link to={user ? "/dashboard" : "/login"}>
@@ -827,7 +829,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-950 dark:to-secondary-900 border-t border-secondary-200 dark:border-secondary-800">
-        <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
+        <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             {/* Company Info */}
             <div className="md:col-span-2">
