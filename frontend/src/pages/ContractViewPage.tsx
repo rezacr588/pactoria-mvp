@@ -53,36 +53,53 @@ function classNames(...classes: string[]) {
 
 export default function ContractViewPage() {
   const { id } = useParams<{ id: string }>();
-  const { contracts, fetchContracts } = useContracts();
+  const { selectedContract, fetchContract, generateContent, analyzeCompliance } = useContracts();
   const [activeTab, setActiveTab] = useState('overview');
-
-  const handleExport = (format: 'pdf' | 'docx' | 'txt') => {
-    console.log(`Exporting contract ${contract?.name} as ${format.toUpperCase()}`);
-    // Mock export functionality - in real app would generate and download file
-    const filename = `${contract?.name}_v${contract?.version}.${format}`;
-    alert(`Generating ${format.toUpperCase()} export: ${filename}`);
-  };
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   useEffect(() => {
-    fetchContracts();
-  }, [fetchContracts]);
+    if (id) {
+      fetchContract(id);
+    }
+  }, [id, fetchContract]);
 
-  const contract = contracts.find(c => c.id === id);
+  // Use selectedContract from the hook
+  const contract = selectedContract || {
+    id: id || '',
+    title: 'Loading...',
+    contract_type: 'unknown',
+    status: 'draft',
+    currency: 'USD',
+    version: 1,
+    is_current_version: true,
+    company_id: '',
+    created_by: '',
+    created_at: new Date().toISOString(),
+    client_name: '',
+    client_email: '',
+    supplier_name: '',
+    contract_value: 0,
+    start_date: '',
+    end_date: '',
+    parties: [],
+    deadlines: [],
+    tags: [],
+    complianceScore: 0,
+    riskAssessment: {
+      overall: 0,
+      factors: [],
+      recommendations: [],
+      lastUpdated: new Date()
+    }
+  };
 
-  if (!contract) {
+  if (!selectedContract) {
     return (
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="text-center py-12">
-          <DocumentIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">Contract not found</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            The contract you're looking for doesn't exist or has been deleted.
-          </p>
-          <div className="mt-6">
-            <Link to="/contracts" className="btn-primary">
-              Back to Contracts
-            </Link>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading contract...</p>
         </div>
       </div>
     );

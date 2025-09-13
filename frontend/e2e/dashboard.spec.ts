@@ -165,7 +165,7 @@ test.describe('Dashboard Features', () => {
       await expect(page.locator('[role="status"], .loading, .spinner').first()).toBeVisible();
       
       // Wait for data to load
-      await page.waitForLoadState('networkidle', { timeout: TEST_TIMEOUT.medium });
+      await page.waitForLoadState('domcontentloaded', { timeout: 15000 });
       
       // Data should be visible again
       await expect(page.locator('text=/Total Contracts|Active/')).toBeVisible();

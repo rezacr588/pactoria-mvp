@@ -31,6 +31,8 @@ interface ContractState {
     total: number;
     pages: number;
   };
+  // Internal state for request management
+  _pendingRequests: Set<string>;
   
   // Actions
   fetchContracts: (params?: {
@@ -95,8 +97,8 @@ export const useContractStore = create<ContractState>((set, get) => ({
     total: 0,
     pages: 0
   },
-  // Request deduplication
-  _pendingRequests: new Set(),
+  // Request deduplication - use a string-based approach instead of Set
+  _pendingRequests: new Set<string>(),
 
   fetchContracts: async (params: {
     page?: number;
@@ -117,8 +119,9 @@ export const useContractStore = create<ContractState>((set, get) => ({
     }
     
     // Add to pending requests
-    state._pendingRequests.add(requestKey);
-    set({ isLoading: true, error: null });
+    const pendingRequests = new Set(state._pendingRequests);
+    pendingRequests.add(requestKey);
+    set({ isLoading: true, error: null, _pendingRequests: pendingRequests });
     
     try {
       const response = await ContractService.getContracts({
@@ -164,7 +167,9 @@ export const useContractStore = create<ContractState>((set, get) => ({
       throw new Error('Failed to load contracts');
     } finally {
       // Remove from pending requests
-      state._pendingRequests.delete(requestKey);
+      const pendingRequests = new Set(state._pendingRequests);
+      pendingRequests.delete(requestKey);
+      set({ _pendingRequests: pendingRequests });
     }
   },
 
@@ -223,7 +228,9 @@ export const useContractStore = create<ContractState>((set, get) => ({
       return [];
     } finally {
       // Remove from pending requests
-      state._pendingRequests.delete(requestKey);
+      const pendingRequests = new Set(state._pendingRequests);
+      pendingRequests.delete(requestKey);
+      set({ _pendingRequests: pendingRequests });
     }
   },
 

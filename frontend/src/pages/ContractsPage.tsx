@@ -20,8 +20,8 @@ import {
 } from '@heroicons/react/24/outline';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import Badge from '../components/ui/Badge';
 import EmptyState from '../components/ui/EmptyState';
-import { Badge, Input } from '../components/ui';
 
 const CONTRACT_TYPE_OPTIONS = [
   { value: 'professional_services', label: 'Professional Services' },
@@ -80,10 +80,6 @@ export default function ContractsPage() {
 
     return () => clearTimeout(timeoutId);
   }, [isAuthenticated, user, fetchContracts, statusFilter, typeFilter, searchQuery]);
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
 
   const handleStatusFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setStatusFilter(e.target.value);
@@ -218,12 +214,13 @@ export default function ContractsPage() {
           <div className="flex-1 max-w-md">
             <div className="relative">
               <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
+              <input
                 type="text"
                 placeholder="Search contracts..."
+                className="form-input pl-10"
+                data-testid="contracts-search"
                 value={searchQuery}
-                onChange={handleSearch}
-                className="pl-10"
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
@@ -234,6 +231,7 @@ export default function ContractsPage() {
               <select
                 value={statusFilter}
                 onChange={handleStatusFilter}
+                data-testid="status-filter"
                 className="pl-10 pr-8 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
               >
                 <option value="">All Status</option>
@@ -288,19 +286,21 @@ export default function ContractsPage() {
       </div>
 
       {/* Contracts List */}
-      {filteredContracts.length === 0 ? (
-        <EmptyState
-          title="No contracts found"
-          description="Get started by creating your first contract."
-          action={{
-            label: "Create Contract",
-            href: "/contracts/create"
-          }}
-        />
-      ) : viewMode === 'cards' ? (
+      <div data-testid="contracts-list">
+        {filteredContracts.length === 0 ? (
+          <EmptyState
+            title="No contracts found"
+            description="Get started by creating your first contract."
+            action={{
+              label: "Create Contract",
+              href: "/contracts/create"
+            }}
+            data-testid="contracts-empty-state"
+          />
+        ) : viewMode === 'cards' ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredContracts.map((contract: Contract) => (
-            <Card key={contract.id} className="p-6 hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
+            <Card key={contract.id} className="contract-card p-6 hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500" data-testid={`contract-card-${contract.id}`}>
               <div className="space-y-4">
                 {/* Header */}
                 <div className="flex items-start justify-between">
@@ -352,6 +352,7 @@ export default function ContractsPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleView(contract.id)}
+                      data-testid={`view-contract-${contract.id}`}
                       className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
                     >
                       <EyeIcon className="h-3 w-3" />
@@ -359,6 +360,7 @@ export default function ContractsPage() {
                     </button>
                     <button
                       onClick={() => handleEdit(contract.id)}
+                      data-testid={`edit-contract-${contract.id}`}
                       className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
                     >
                       <PencilIcon className="h-3 w-3" />
@@ -366,6 +368,7 @@ export default function ContractsPage() {
                     </button>
                     <button
                       onClick={() => handleDelete(contract.id)}
+                      data-testid={`delete-contract-${contract.id}`}
                       className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                         deleteConfirm === contract.id
                           ? 'text-white bg-red-600 hover:bg-red-700'
@@ -493,6 +496,7 @@ export default function ContractsPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

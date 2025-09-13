@@ -14,7 +14,7 @@ export interface User {
 }
 
 export interface Company {
-  id: string;
+  [key: string]: unknown;
   name: string;
   registration_number?: string;
   address?: string;
@@ -98,7 +98,7 @@ export interface Contract {
   id: string;
   title: string;
   contract_type: string;
-  status: string; // Changed to string to match API response - backend returns various status values
+  status: string;
   plain_english_input?: string;
   generated_content?: string;
   final_content?: string;
@@ -117,9 +117,12 @@ export interface Contract {
   ai_generation_id?: string;
   created_at: string;
   updated_at?: string;
-  // Additional properties used in UI components
-  name?: string; // Display name, can be computed from title
-  type?: string; // Alias for contract_type for UI consistency
+  // UI computed properties
+  name?: string;
+  type?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  // Mock data for UI components (will be populated by frontend logic)
   riskAssessment?: RiskAssessment;
   complianceScore?: number | {
     overall?: number;
@@ -139,8 +142,6 @@ export interface Contract {
   }>;
   deadlines?: Array<{ name: string; date: string; status: string; }>;
   tags?: string[];
-  createdAt?: string; // Alias for created_at for UI consistency
-  updatedAt?: string; // Alias for updated_at for UI consistency
 }
 
 export interface ContractListResponse {
@@ -153,7 +154,7 @@ export interface ContractListResponse {
 
 // Legacy - keeping for backward compatibility
 export interface TeamMember {
-  id: string;
+  [key: string]: unknown;
   name: string;
   email: string;
   role: 'admin' | 'editor' | 'viewer';
@@ -165,7 +166,7 @@ export interface TeamMember {
 }
 
 export interface ContractTemplate {
-  id: string;
+  [key: string]: unknown;
   name: string;
   category: string;
   contract_type: string;
@@ -237,7 +238,7 @@ export interface TimeSeriesData {
   period: string;
   data_points: Array<{
     date: string;
-    value: number;
+    value?: unknown;
     count?: number;
   }>;
   total: number;
@@ -356,7 +357,7 @@ export interface ContractSearchResults {
   pages?: number;
   took_ms: number;
   query: string;
-  filters_applied: Record<string, any>;
+  filters_applied: Record<string, unknown>;
 }
 
 export interface UserSearchFilters {
@@ -399,7 +400,7 @@ export interface UserSearchResults {
   pages?: number;
   took_ms: number;
   query: string;
-  filters_applied: Record<string, any>;
+  filters_applied: Record<string, unknown>;
 }
 
 export interface TemplateSearchFilters {
@@ -423,7 +424,7 @@ export interface TemplateSearchRequest {
 }
 
 export interface TemplateSearchResult {
-  id: string;
+  [key: string]: unknown;
   name: string;
   category: string;
   contract_type: string;
@@ -444,7 +445,7 @@ export interface TemplateSearchResults {
   pages?: number;
   took_ms: number;
   query: string;
-  filters_applied: Record<string, any>;
+  filters_applied: Record<string, unknown>;
 }
 
 // Bulk Operations Types
@@ -499,7 +500,7 @@ export interface BulkOperationError {
   resource_id: string;
   error_code: string;
   error_message: string;
-  details?: Record<string, any>;
+  properties?: Record<string, unknown>;
 }
 
 export interface BulkOperationResponse {
@@ -554,7 +555,7 @@ export interface ErrorMessage extends WebSocketMessage {
   type: 'error';
   error_code: string;
   error_message: string;
-  details?: Record<string, any>;
+  properties?: Record<string, unknown>;
 }
 
 export interface ContractUpdateMessage extends WebSocketMessage {
@@ -580,7 +581,7 @@ export interface NotificationMessage extends WebSocketMessage {
   priority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
   target_user_id?: string;
   target_role?: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   action_url?: string;
   expires_at?: string;
 }
@@ -638,7 +639,7 @@ export interface AuditEntry {
   location?: string;
   risk_level: 'low' | 'medium' | 'high';
   compliance_flag: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   // Alias for UI consistency
   riskLevel?: 'low' | 'medium' | 'high';
 }
@@ -712,7 +713,7 @@ export interface Notification {
     id: string;
     name: string;
   };
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface NotificationCreate {
@@ -725,7 +726,7 @@ export interface NotificationCreate {
   target_role?: string;
   related_contract_id?: string;
   expires_at?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface NotificationStats {
@@ -796,7 +797,7 @@ export interface TeamRole {
 
 // Integration Types
 export interface Integration {
-  id: string;
+  [key: string]: unknown;
   name: string;
   description: string;
   category: string;

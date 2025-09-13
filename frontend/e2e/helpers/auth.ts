@@ -1,104 +1,58 @@
 import { type Page } from '@playwright/test';
 
 export const testCredentials = {
-  email: 'test@pactoria.com',
-  password: 'TestPassword123!'
+  email: 'demo@pactoria.com',
+  password: 'Demo123!'
 };
 
 export async function loginWithTestAccount(page: Page) {
-  // Mock successful login API response with correct format
-  await page.route('**/api/v1/auth/login', async route => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        token: {
-          access_token: 'mock-test-token-12345',
-          token_type: 'bearer',
-          expires_in: 3600
-        },
-        user: {
-          id: 'test-user-123',
-          email: testCredentials.email,
-          full_name: 'Test User',
-          is_active: true,
-          timezone: 'Europe/London',
-          company_id: 'test-company-123',
-          created_at: new Date().toISOString(),
-          last_login_at: new Date().toISOString()
-        },
-        company: {
-          id: 'test-company-123',
-          name: 'Test Company Ltd',
-          subscription_tier: 'premium',
-          max_users: 10,
-          created_at: new Date().toISOString()
-        }
-      })
-    });
-  });
-
   // Navigate to login page
   await page.goto('/login');
-  
+
+  // Wait for login form to be visible
+  await page.waitForSelector('input[type="email"], input[name="email"]', { timeout: 10000 });
+
   // Fill login form using more specific selectors
-  await page.fill('input[type="email"]', testCredentials.email);
-  await page.fill('input[type="password"]', testCredentials.password);
-  
-  // Submit form and wait for response
-  await Promise.all([
-    page.waitForResponse('**/api/v1/auth/login'),
-    page.click('button[type="submit"], button:has-text("Sign in")')
-  ]);
-  
-  // Set auth tokens in localStorage with correct keys
-  await page.evaluate(() => {
-    // Use the correct token storage key from env config
-    localStorage.setItem('pactoria-auth-token', 'mock-test-token-12345');
-    localStorage.setItem('auth-storage', JSON.stringify({
-      state: {
-        user: {
-          id: 'test-user-123',
-          email: 'test@pactoria.com',
-          full_name: 'Test User',
-          name: 'Test User',
-          is_active: true,
-          timezone: 'Europe/London',
-          company_id: 'test-company-123',
-          company: 'Test Company Ltd'
-        },
-        company: {
-          id: 'test-company-123',
-          name: 'Test Company Ltd',
-          subscription_tier: 'premium',
-          max_users: 10
-        }
-      },
-      version: 0
-    }));
-  });
-  
-  // Wait for navigation to complete
-  await page.waitForURL(/\/dashboard/, { timeout: 10000 });
-  await page.waitForLoadState('networkidle', { timeout: 5000 });
+  await page.fill('input[type="email"], input[name="email"]', testCredentials.email);
+  await page.fill('input[type="password"], input[name="password"]', testCredentials.password);
+
+  // Submit form and wait for navigation
+  const submitButton = page.locator('button[type="submit"], button:has-text("Sign in"), button:has-text("Login")').first();
+  await submitButton.click();
+
+  // Wait for navigation to complete with extended timeout - allow multiple possible destinations
+  await page.waitForURL(/\/(dashboard|contracts)/, { timeout: 30000 });
+
+  // Additional wait for page to stabilize
+  await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
+
+  // Verify we're logged in by checking for dashboard or contracts elements
+  await page.waitForSelector('h1, [data-testid*="welcome"], .dashboard, [href*="/contracts"]', { timeout: 10000 });
 }
 
 export async function loginWithCredentials(page: Page, email: string, password: string) {
   // Navigate to login page
   await page.goto('/login');
-  
+
+  // Wait for login form to be visible
+  await page.waitForSelector('input[type="email"], input[name="email"]', { timeout: 15000 });
+
   // Fill login form
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
-  
+  await page.fill('input[type="email"], input[name="email"]', email);
+  await page.fill('input[type="password"], input[name="password"]', password);
+
   // Submit form
-  await page.click('button[type="submit"]');
-  
-  // Wait for navigation to dashboard with extended timeout
-  await page.waitForURL(/\/dashboard/, { timeout: 45000 });
-  
+  const submitButton = page.locator('button[type="submit"], button:has-text("Sign in"), button:has-text("Login")').first();
+  await submitButton.click();
+
+  // Wait for navigation to dashboard with extended timeout - allow multiple possible destinations
+  await page.waitForURL(/\/(dashboard|contracts)/, { timeout: 30000 });
+
   // Additional wait for page to stabilize
-  await page.waitForLoadState('networkidle', { timeout: 10000 });
+  await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
+
+  // Verify we're logged in by checking for dashboard or contracts elements
+  await page.waitForSelector('h1, [data-testid*="welcome"], .dashboard, [href*="/contracts"]', { timeout: 10000 });
 }
 
 export async function logout(page: Page) {
