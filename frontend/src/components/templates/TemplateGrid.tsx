@@ -85,7 +85,7 @@ export default function TemplateGrid({
 
   // Templates grid
   return (
-    <div className={`grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 ${className}`}>
+    <div data-testid="template-grid" className={`grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 ${className}`}>
       {templates.map((template) => (
         <TemplateCard
           key={template.id}

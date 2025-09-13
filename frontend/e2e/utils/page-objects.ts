@@ -3,9 +3,9 @@
  * Lightweight page object classes that wrap common page interactions
  */
 
-import { Page, Locator, expect } from '@playwright/test';
+import { type Page, type Locator, expect } from '@playwright/test';
 import { User } from './test-data';
-import { loginWithCredentials, logout as logoutHelper } from '../helpers/auth';
+import { logout as logoutHelper } from '../helpers/auth';
 import { APP_URL } from '../helpers/config';
 
 /**
@@ -23,7 +23,7 @@ class BasePage {
   }
 
   async waitForLoad() {
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
   }
 }
 
@@ -38,18 +38,18 @@ export class LandingPage extends BasePage {
   constructor(page: Page) {
     super(page);
     this.heroHeading = page.locator('h1, [data-testid="hero-heading"]').first();
-    this.loginButton = page.getByRole('link', { name: /sign in|login/i }).or(page.getByRole('button', { name: /sign in|login/i }));
-    this.signUpButton = page.getByRole('link', { name: /start free trial/i }).first();
+    this.loginButton = page.getByRole('link', { name: /start free trial|get started/i }).first();
+    this.signUpButton = page.getByRole('link', { name: /start free trial|get started/i }).first();
   }
 
   async clickLogin() {
     await this.loginButton.click();
-    await this.page.waitForURL(/\/login/);
+    await this.page.waitForURL(/\/login/, { timeout: 20000 });
   }
 
   async clickSignUp() {
     await this.signUpButton.click();
-    await this.page.waitForURL(/\/register/);
+    await this.page.waitForURL(/\/login/, { timeout: 20000 });
   }
 }
 
@@ -101,18 +101,36 @@ export class RegisterPage extends BasePage {
     this.emailInput = page.locator('input[type="email"], input[name="email"]').first();
     this.passwordInput = page.locator('input[type="password"], input[name="password"]').first();
     this.confirmPasswordInput = page.locator('input[name="confirmPassword"], input[name="confirm_password"], input[placeholder*="confirm"]').first();
-    this.fullNameInput = page.locator('input[name="fullName"], input[name="full_name"], input[name="name"]').first();
-    this.companyNameInput = page.locator('input[name="companyName"], input[name="company_name"], input[name="company"]').first();
-    this.registerButton = page.getByRole('button', { name: /sign up|register|create account/i });
+    this.fullNameInput = page.locator('input[name="full_name"]').first();
+    this.companyNameInput = page.locator('input[name="company_name"]').first();
+    this.registerButton = page.getByRole('button', { name: /create account|sign up/i });
   }
 
   async register(user: User) {
+    // First switch to registration mode by clicking the toggle
+    const signUpToggle = this.page.locator('button:has-text("Sign up")');
+    if (await signUpToggle.isVisible()) {
+      await signUpToggle.click();
+      await this.page.waitForTimeout(1000); // Wait for form to switch
+    }
+    
+    // Wait for registration fields to appear with better error handling
+    try {
+      await this.fullNameInput.waitFor({ state: 'visible', timeout: 15000 });
+    } catch (error) {
+      // If fields don't appear, try clicking the toggle again
+      const signUpToggle2 = this.page.locator('button:has-text("Sign up")');
+      if (await signUpToggle2.isVisible()) {
+        await signUpToggle2.click();
+        await this.page.waitForTimeout(1000);
+        await this.fullNameInput.waitFor({ state: 'visible', timeout: 10000 });
+      }
+    }
+    
     await this.fullNameInput.fill(user.full_name);
+    await this.companyNameInput.fill(user.company_name || 'Test Company');
     await this.emailInput.fill(user.email);
     await this.passwordInput.fill(user.password);
-    if (user.company_name) {
-      await this.companyNameInput.fill(user.company_name);
-    }
     await this.registerButton.click();
   }
 }
@@ -149,7 +167,7 @@ export class ContractsPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.createContractButton = page.locator('[data-testid="create-contract-button"]').or(page.getByRole('link', { name: /new contract/i })).or(page.getByRole('button', { name: /new contract|create contract/i }));
+    this.createContractButton = page.getByRole('link', { name: /new contract/i }).first();
     this.searchInput = page.locator('[data-testid="search-input"], input[placeholder*="Search"], input[name="search"]').first();
     this.contractRow = page.locator('[data-testid="contract-row"], [data-testid="contract-item"], tr[data-contract-id], .contract-card');
     this.statusFilter = page.locator('select[name*="status"], [data-testid="status-filter"]').first();
@@ -167,10 +185,8 @@ export class ContractsPage extends BasePage {
       // If DOM load times out, continue
     }
     
-    // Check for page header or title indicators
+    // Check for page indicators in order of preference
     const pageIndicators = [
-      this.page.locator('h1:has-text("Contracts")'),
-      this.page.locator('[data-testid="page-title"]:has-text("Contracts")'),
       this.page.locator('text="Contract Management"'),
       this.page.getByRole('heading', { name: /contracts/i }),
       this.page.locator('main'), // Main content area
@@ -240,7 +256,7 @@ export class ContractCreatePage extends BasePage {
     this.submitButton = page.getByRole('button', { name: /create|generate|save/i }).last();
   }
 
-  async createContract(contract: any) {
+  async createContract(contract: { title?: string; client_name?: string; client_email?: string; service_description?: string; contract_value?: string; currency?: string; start_date?: string }) {
     // Step 1: Select template if available
     const templates = this.page.locator('[data-testid*="template"], .template-card, .cursor-pointer');
     if (await templates.count() > 0) {

@@ -26,7 +26,8 @@ export default function TemplateCard({
 
   return (
     <div
-      className={`group relative rounded-xl border-2 p-6 transition-all duration-200 transform hover:scale-[1.02] ${
+      data-testid={`template-card-${template.id}`}
+      className={`template-card group relative rounded-xl border-2 p-6 transition-all duration-200 transform hover:scale-[1.02] ${
         isSelected
           ? 'border-primary-500 bg-gradient-to-br from-primary-50 to-primary-100/50 dark:from-primary-900/30 dark:to-primary-800/20 shadow-lg shadow-primary-200/30 dark:shadow-primary-900/20 scale-[1.02]'
           : 'border-neutral-200 dark:border-secondary-700 bg-white dark:bg-secondary-900 hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-md'

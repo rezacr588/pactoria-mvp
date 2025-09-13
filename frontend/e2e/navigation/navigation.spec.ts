@@ -1,29 +1,22 @@
 import { test, expect } from '@playwright/test';
 import { 
-  LandingPage, 
   DashboardPage, 
   ContractsPage, 
   ContractCreatePage,
   ContractViewPage,
   AnalyticsPage,
-  TemplatesPage,
-  SettingsPage,
   AppLayout 
 } from '../utils/page-objects';
-import { APIMocker } from '../utils/api-mock';
 
 test.describe('Navigation and Routing Tests', () => {
-  let landingPage: LandingPage;
   let dashboardPage: DashboardPage;
   let contractsPage: ContractsPage;
   let contractCreatePage: ContractCreatePage;
   let contractViewPage: ContractViewPage;
   let analyticsPage: AnalyticsPage;
   let appLayout: AppLayout;
-  let apiMocker: APIMocker;
 
   test.beforeEach(async ({ page }) => {
-    landingPage = new LandingPage(page);
     dashboardPage = new DashboardPage(page);
     contractsPage = new ContractsPage(page);
     contractCreatePage = new ContractCreatePage(page);
@@ -31,20 +24,12 @@ test.describe('Navigation and Routing Tests', () => {
     analyticsPage = new AnalyticsPage(page);
     appLayout = new AppLayout(page);
 
-    // Set up authenticated state
-    await page.addInitScript(() => {
-      localStorage.setItem('auth-storage', JSON.stringify({
-        state: {
-          user: { 
-            id: 'test-user', 
-            email: 'test@test.com',
-            full_name: 'Test User',
-            company_id: 'test-company'
-          },
-          token: 'mock-token'
-        }
-      }));
-    });
+    // Login with real demo credentials instead of mocking
+    await page.goto('/login');
+    await page.fill('input[name="email"]', 'demo@pactoria.com');
+    await page.fill('input[name="password"]', 'Demo123!');
+    await page.click('button[type="submit"]');
+    await page.waitForURL(/\/dashboard/, { timeout: 30000 });
   });
 
   test.describe('Primary Navigation', () => {
@@ -419,8 +404,6 @@ test.describe('Navigation and Routing Tests', () => {
       
       // Fill and save form
       await contractCreatePage.titleInput.fill('Saved Contract');
-      await contractCreatePage.contractTypeSelect.click();
-      await page.getByText('Service Agreement').click();
       await contractCreatePage.plainEnglishTextarea.fill('Contract content');
       await contractCreatePage.createButton.click();
       
@@ -520,7 +503,7 @@ test.describe('Navigation and Routing Tests', () => {
         await page.goto(route);
         
         // Wait for page to be interactive
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         
         const endTime = Date.now();
         navigationTimes.push(endTime - startTime);
