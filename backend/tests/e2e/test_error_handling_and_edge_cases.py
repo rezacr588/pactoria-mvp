@@ -84,11 +84,11 @@ class TestAuthenticationErrorScenarios:
         company = e2e_test_base.create_test_company()
 
         viewer_user = e2e_test_base.create_test_user(
-            company, {"role": "viewer", "full_name": "Viewer User"}
+            company, {"role": UserRole.VIEWER, "full_name": "Viewer User"}
         )
 
         manager_user = e2e_test_base.create_test_user(
-            company, {"role": "contract_manager", "full_name": "Manager User"}
+            company, {"role": UserRole.CONTRACT_MANAGER, "full_name": "Manager User"}
         )
 
         admin_user = e2e_test_base.create_test_user(
