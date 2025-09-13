@@ -51,8 +51,8 @@ def test_database():
         Integration,
         IntegrationConnection,
         TeamInvitation,
-        Base,
     )
+    from app.core.database import Base
 
     # Create all tables for testing
     Base.metadata.create_all(bind=test_engine)
@@ -64,9 +64,7 @@ def test_database():
     tables = inspector.get_table_names()
     print(f"Test database created with tables: {tables}")
 
-    # Override the database dependency for testing
-    from app.core.database import get_db
-
+    # Create session factory for test database
     TestingSessionLocal = sessionmaker(
         autocommit=False, autoflush=False, bind=test_engine
     )
@@ -78,14 +76,20 @@ def test_database():
         finally:
             db.close()
 
+    # Store original function to restore later
+    from app.core.database import get_db
+    
     # Clear existing overrides first
     app.dependency_overrides.clear()
-    # Override dependency and patch direct SessionLocal usage
+    # Override dependency
     app.dependency_overrides[get_db] = override_get_db
 
-    # Patch SessionLocal in database module to prevent direct access
+    # Patch the template seeder to prevent it from using the real database
     with patch("app.core.database.SessionLocal", TestingSessionLocal):
-        yield test_engine
+        with patch("app.core.template_seeder.async_seed_templates") as mock_seed:
+            # Mock the template seeder to prevent database access during app startup
+            mock_seed.return_value = None
+            yield test_engine
 
     # Cleanup
     app.dependency_overrides.clear()
