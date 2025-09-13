@@ -301,19 +301,53 @@ IN WITNESS WHEREOF, the parties have executed this Agreement as of the date firs
 
 
 # Helper functions for database setup
-def create_test_company(db, **kwargs):
+def create_test_company(db=None, **kwargs):
     """Create a test company with default values"""
-    from app.infrastructure.database.models import Company, SubscriptionTier
+    from app.infrastructure.database.models import Company, SubscriptionTier, User, UserRole
+    from app.domain.entities.company import CompanyType, IndustryType
+    from app.core.security import get_password_hash
     import uuid
+
+    # If no created_by_user_id is provided, create a minimal admin user first
+    if 'created_by_user_id' not in kwargs:
+        # Create a temporary admin user for the company
+        admin_user_id = str(uuid.uuid4())
+        temp_company_id = str(uuid.uuid4())  # We'll use this as the final company ID
+        
+        admin_user = User(
+            id=admin_user_id,
+            email=f"admin-{uuid.uuid4().hex[:8]}@example.com",
+            full_name="Test Admin",
+            hashed_password=get_password_hash("testpassword"),
+            is_active=True,
+            is_admin=True,
+            role=UserRole.ADMIN,
+            company_id=temp_company_id,
+            department="Administration",
+            timezone="Europe/London",
+            notification_preferences={}
+        )
+        
+        if db:
+            db.add(admin_user)
+            db.commit()
+            db.refresh(admin_user)
+        
+        kwargs['created_by_user_id'] = admin_user_id
+        kwargs['id'] = temp_company_id  # Use the same ID we referenced in the user
 
     defaults = {
         "id": str(uuid.uuid4()),
         "name": "Test Company Ltd",
-        "registration_number": "12345678",
-        "address": "123 Test St, London, UK",
+        "company_number": "12345678",  # Changed from registration_number
+        "company_type": CompanyType.PRIVATE_LIMITED,  # Use correct enum value
+        "industry": IndustryType.TECHNOLOGY,  # Add required industry  
+        "primary_contact_email": "test@company.com",  # Add required email
+        "address_line1": "123 Test St",  # Changed from address
+        "city": "London",  # Add required city
+        "postcode": "SW1A 1AA",  # Add required postcode
         "subscription_tier": SubscriptionTier.PROFESSIONAL,
         "max_users": 10,
-        "settings": {},
     }
     defaults.update(kwargs)
 

@@ -35,16 +35,18 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
     GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
-    # CORS - Dynamic for Azure Static Web Apps
-    CORS_ORIGINS: List[str] = []
+    # CORS - Dynamic for Azure Static Web Apps (set in __init__)
     # Allow-all CORS (development only). Set via env CORS_ALLOW_ALL=true
-    CORS_ALLOW_ALL: bool = os.getenv("CORS_ALLOW_ALL", "false").lower() == "true"
+    CORS_ALLOW_ALL: bool = False
 
     # Production connection safety flag
     PRODUCTION_CONNECTION_WARNING: bool = False
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        # Initialize CORS_ORIGINS as a regular attribute (not a Pydantic field)
+        object.__setattr__(self, 'CORS_ORIGINS', [])
+        self.CORS_ALLOW_ALL = os.getenv("CORS_ALLOW_ALL", "false").lower() == "true"
         self._validate_required_settings()
         self._setup_cors_origins()
         self._setup_azure_config()
@@ -69,17 +71,19 @@ class Settings(BaseSettings):
     def _setup_cors_origins(self):
         """Setup CORS origins dynamically based on environment"""
         if self.ENVIRONMENT == "development":
-            self.CORS_ORIGINS = [
+            cors_origins = [
                 "http://localhost:3000",
                 "http://localhost:5173",
                 "http://127.0.0.1:3000",
                 "http://127.0.0.1:5173"
             ]
+            object.__setattr__(self, 'CORS_ORIGINS', cors_origins)
         else:
             # Production CORS origins from environment or Azure defaults
             cors_env = os.getenv("CORS_ORIGINS", "")
             if cors_env:
-                self.CORS_ORIGINS = [origin.strip() for origin in cors_env.split(",")]
+                cors_origins = [origin.strip() for origin in cors_env.split(",")]
+                object.__setattr__(self, 'CORS_ORIGINS', cors_origins)
             else:
                 # Azure Static Web Apps specific origins
                 # These patterns need to be specific domains in production
@@ -98,14 +102,16 @@ class Settings(BaseSettings):
                     "https://app.pactoria.com"
                 ])
 
-                self.CORS_ORIGINS = default_origins
+                object.__setattr__(self, 'CORS_ORIGINS', default_origins)
 
     def _setup_azure_config(self):
         """Setup Azure-specific configuration"""
         # Azure App Service detection
         if os.getenv("WEBSITE_HOSTNAME"):
             website_hostname = os.getenv("WEBSITE_HOSTNAME")
-            self.CORS_ORIGINS.append(f"https://{website_hostname}")
+            current_origins = getattr(self, 'CORS_ORIGINS', [])
+            current_origins.append(f"https://{website_hostname}")
+            object.__setattr__(self, 'CORS_ORIGINS', current_origins)
 
         # Azure Database configuration
         if os.getenv("AZURE_POSTGRESQL_CONNECTION_STRING"):
