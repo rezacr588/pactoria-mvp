@@ -9,7 +9,6 @@ from unittest.mock import patch, AsyncMock, Mock
 import json
 
 from app.main import app
-from app.core.security import create_access_token
 
 
 class TestContractAPI:
@@ -21,11 +20,9 @@ class TestContractAPI:
         return TestClient(app)
 
     @pytest.fixture
-    def auth_headers(self):
-        """Mock authentication headers"""
-        # Mock user ID - in real tests this would be a valid user
-        token = create_access_token(subject="test-user-id")
-        return {"Authorization": f"Bearer {token}"}
+    def auth_token(self):
+        """Mock JWT token for authenticated requests"""
+        return "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.mock_token"
 
     @pytest.fixture
     def mock_user(self, test_database):
@@ -125,26 +122,22 @@ class TestContractAPI:
             app.dependency_overrides.clear()
 
     def test_contract_generation_ai_service_failure(
-        self, client, auth_headers, mock_user, valid_contract_request
+        self, client, valid_contract_request
     ):
         """Test handling of AI service failures"""
-        with patch("app.api.v1.contracts.ai_service") as mock_ai_service, \
-             patch("app.api.v1.contracts.get_current_user", return_value=mock_user):
-            
+        with patch("app.api.v1.endpoints.contracts.ai_service") as mock_ai_service:
             mock_ai_service.generate_contract = AsyncMock(
                 side_effect=Exception("AI service unavailable")
             )
 
             response = client.post(
-                "/api/v1/contracts/generate", 
-                json=valid_contract_request,
-                headers=auth_headers
+                "/api/v1/contracts/generate", json=valid_contract_request
             )
 
             assert response.status_code == 500
             error_data = response.json()
             assert "detail" in error_data
-            assert "Failed to generate contract content" in error_data["detail"]
+            assert "Contract generation failed" in error_data["detail"]
 
     def test_list_contracts_endpoint(self, client, auth_headers, mock_user, test_database):
         """Test contract listing endpoint"""
@@ -285,7 +278,7 @@ class TestContractAPI:
 
     def test_complete_contract_wizard(self, client):
         """Test complete contract wizard workflow"""
-        with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
+        with patch("app.api.v1.endpoints.contracts.ai_service") as mock_ai_service:
             # Mock AI service
             mock_ai_service.generate_contract = AsyncMock(
                 return_value=("WIZARD_GENERATED_CONTENT", {"processing_time_ms": 2000})
@@ -369,42 +362,37 @@ class TestContractAPI:
             "compliance_level": "strict",
         }
 
-        # Override the auth dependency (database is already overridden by conftest.py)
-        from app.core.auth import get_current_user
-        app.dependency_overrides[get_current_user] = lambda: mock_user
-
-        try:
-            with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
-                mock_ai_service.generate_contract = AsyncMock(
-                    return_value=(
-                        "COMPREHENSIVE_CONTRACT_CONTENT",
-                        {"processing_time_ms": 2500},
-                    )
+        with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
+            mock_ai_service.generate_contract = AsyncMock(
+                return_value=(
+                    "COMPREHENSIVE_CONTRACT_CONTENT",
+                    {"processing_time_ms": 2500},
                 )
-                mock_ai_service.validate_contract_compliance = AsyncMock(
-                    return_value={"overall_score": 0.96, "risk_score": 2}
-                )
+            )
+            mock_ai_service.validate_contract_compliance = AsyncMock(
+                return_value={"overall_score": 0.96, "risk_score": 2}
+            )
 
-                response = client.post(
-                    "/api/v1/contracts/generate", 
-                    json=comprehensive_request,
-                    headers=auth_headers
-                )
+            response = client.post(
+                "/api/v1/contracts/generate", 
+                json=comprehensive_request,
+                headers=auth_headers
+            )
 
-                assert response.status_code == 200
-                data = response.json()
+            assert response.status_code == 201
+            data = response.json()
 
-                contract = data["contract"]
-                assert contract["title"] == comprehensive_request["title"]
-                assert contract["contract_type"] == comprehensive_request["contract_type"]
+            contract = data["contract"]
+            assert contract["title"] == comprehensive_request["title"]
+            assert contract["contract_type"] == comprehensive_request["contract_type"]
 
-                # Verify AI service was called with correct parameters
-                mock_ai_service.generate_contract.assert_called_once()
-                call_args = mock_ai_service.generate_contract.call_args[1]
-                assert call_args["compliance_level"] == "strict"
-                assert (
-                    call_args["company_details"] == comprehensive_request["company_details"]
-                )
+            # Verify AI service was called with correct parameters
+            mock_ai_service.generate_contract.assert_called_once()
+            call_args = mock_ai_service.generate_contract.call_args[1]
+            assert call_args["compliance_level"] == "strict"
+            assert (
+                call_args["company_details"] == comprehensive_request["company_details"]
+            )
         finally:
             # Only clear the auth override, leave database as is
             if get_current_user in app.dependency_overrides:
@@ -430,6 +418,11 @@ class TestContractAPI:
             "compliance_level": "standard",
         }
 
+<<<<<<< HEAD
+        # Override the auth dependency
+        from app.core.auth import get_current_user
+        app.dependency_overrides[get_current_user] = lambda: mock_user
+
         # Override the auth dependency
         from app.core.auth import get_current_user
         app.dependency_overrides[get_current_user] = lambda: mock_user
@@ -452,7 +445,7 @@ class TestContractAPI:
                     headers=auth_headers
                 )
 
-                assert response.status_code == 200
+                assert response.status_code == 201
                 data = response.json()
                 assert data["contract"]["contract_type"] == contract_type
         finally:
@@ -538,32 +531,32 @@ class TestContractAPI:
                     headers=auth_headers
                 )
 
-                assert response.status_code == 200
+                assert response.status_code == 201
+                data = response.json()
+
+                # Verify response structure matches ContractGenerationResponse schema
+                required_fields = ["contract", "processing_time_ms", "message"]
+                for field in required_fields:
+                    assert field in data
+
+                # Verify contract structure matches ContractResponse schema
+                contract = data["contract"]
+                contract_fields = [
+                    "id",
+                    "title",
+                    "contract_type",
+                    "status",
+                    "version",
+                    "plain_english_input",
+                    "generated_content",
+                    "created_by",
+                    "company_id",
+                    "created_at",
+                    "updated_at",
+                ]
+                for field in contract_fields:
+                    assert field in contract
         finally:
             # Only clear the auth override, leave database as is
             if get_current_user in app.dependency_overrides:
                 del app.dependency_overrides[get_current_user]
-            data = response.json()
-
-            # Verify response structure matches ContractGenerationResponse schema
-            required_fields = ["contract", "processing_time_ms", "message"]
-            for field in required_fields:
-                assert field in data
-
-            # Verify contract structure matches ContractResponse schema
-            contract = data["contract"]
-            contract_fields = [
-                "id",
-                "title",
-                "contract_type",
-                "status",
-                "version",
-                "plain_english_input",
-                "generated_content",
-                "created_by",
-                "company_id",
-                "created_at",
-                "updated_at",
-            ]
-            for field in contract_fields:
-                assert field in contract

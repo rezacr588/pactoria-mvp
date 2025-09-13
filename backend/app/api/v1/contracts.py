@@ -8,6 +8,7 @@ from app.services.ai_service import (
     ContractGenerationRequest,
     ComplianceAnalysisRequest,
 )
+from app.services.analytics_cache_service import invalidate_company_analytics_cache
 from app.core.datetime_utils import get_current_utc
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -30,8 +31,6 @@ from app.infrastructure.database.models import (
     ContractType,
     ContractStatus,
     AuditLog,
-    AuditAction,
-    AuditResourceType,
 )
 from app.schemas.contracts import (
     ContractCreate,
@@ -212,6 +211,7 @@ async def create_contract(
     db.refresh(contract)
 
     # Create audit log
+    from app.infrastructure.database.models import AuditAction, AuditResourceType
     audit_log = AuditLog(
         action=AuditAction.CREATE,
         resource_type=AuditResourceType.CONTRACT,
@@ -227,186 +227,10 @@ async def create_contract(
     db.add(audit_log)
     db.commit()
 
+    # Invalidate analytics cache for the company since new contract was created
+    await invalidate_company_analytics_cache(current_user.company_id)
+
     return ContractResponse.model_validate(contract)
-
-
-@router.post(
-    "/generate",
-    response_model=dict,
-    status_code=status.HTTP_201_CREATED,
-    summary="Create and Generate Contract",
-    description="""
-    Create a new contract and immediately generate its content using AI.
-
-    **Key Features:**
-    - Creates contract and generates content in one step
-    - Returns both contract details and AI generation metadata
-    - Automatically runs compliance analysis
-    - Sets contract status to DRAFT for further editing
-
-    **Business Rules:**
-    - User must be associated with a company
-    - AI service must be available (requires GROQ_API_KEY)
-    - Generated content can be further edited
-
-    **Requires Authentication:** JWT Bearer token
-    """,
-    responses={
-        201: {
-            "description": "Contract created and generated successfully",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "contract": {
-                            "id": "contract-12345",
-                            "title": "Professional Services Agreement",
-                            "contract_type": "service_agreement",
-                            "status": "draft",
-                            "generated_content": "PROFESSIONAL SERVICES AGREEMENT...",
-                            "version": 1,
-                            "created_at": "2024-01-15T10:30:00Z"
-                        },
-                        "ai_generation": {
-                            "id": "gen-67890",
-                            "model_name": "llama3-70b-8192",
-                            "processing_time_ms": 2500,
-                            "confidence_score": 0.85
-                        },
-                        "processing_time_ms": 2500,
-                        "message": "Contract created and generated successfully"
-                    }
-                }
-            }
-        },
-        400: {
-            "description": "Invalid contract data",
-            "model": ErrorResponse,
-        },
-        401: {"description": "Authentication required", "model": UnauthorizedError},
-        503: {
-            "description": "AI service unavailable",
-            "model": ErrorResponse,
-        },
-    },
-    dependencies=[Depends(security)],
-)
-async def generate_contract(
-    contract_data: ContractCreate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """Create new contract and generate content using AI"""
-
-    ResourceValidator.validate_user_has_company(current_user)
-
-    # Check if AI service is available
-    if ai_service is None:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="AI service is not available. Please configure GROQ_API_KEY to enable AI features.",
-        )
-
-    # Check if template exists
-    template = None
-    if contract_data.template_id:
-        template = (
-            db.query(Template).filter(Template.id == contract_data.template_id).first()
-        )
-        if not template or not template.is_active:
-            raise APIExceptionFactory.not_found("Template", contract_data.template_id)
-
-    # Create contract
-    contract = Contract(
-        title=contract_data.title,
-        contract_type=ContractType(contract_data.contract_type),
-        status=ContractStatus.DRAFT,
-        plain_english_input=contract_data.plain_english_input,
-        client_name=contract_data.client_name,
-        client_email=contract_data.client_email,
-        supplier_name=contract_data.supplier_name,
-        contract_value=contract_data.contract_value,
-        currency=contract_data.currency,
-        start_date=contract_data.start_date,
-        end_date=contract_data.end_date,
-        company_id=current_user.company_id,
-        template_id=contract_data.template_id,
-        created_by=current_user.id,
-        version=1,
-        is_current_version=True,
-    )
-
-    db.add(contract)
-    db.flush()  # Get the ID without committing
-
-    try:
-        # Prepare AI generation request
-        ai_request = ContractGenerationRequest(
-            plain_english_input=contract_data.plain_english_input,
-            contract_type=contract_data.contract_type.value,
-            client_name=contract_data.client_name,
-            supplier_name=contract_data.supplier_name,
-            contract_value=contract_data.contract_value,
-            currency=contract_data.currency,
-            start_date=contract_data.start_date.isoformat() if contract_data.start_date else None,
-            end_date=contract_data.end_date.isoformat() if contract_data.end_date else None,
-        )
-
-        # Generate content using AI service
-        ai_response = await ai_service.generate_contract(ai_request)
-
-        # Create AI generation record
-        ai_generation = AIGeneration(
-            model_name=ai_response.model_name,
-            model_version=ai_response.model_version,
-            input_prompt=f"Contract generation for {contract_data.contract_type}: {contract_data.plain_english_input}",
-            generated_content=ai_response.content,
-            processing_time_ms=ai_response.processing_time_ms,
-            token_usage=ai_response.token_usage,
-            confidence_score=ai_response.confidence_score,
-        )
-
-        db.add(ai_generation)
-        db.flush()
-
-        # Update contract with generated content
-        contract.generated_content = ai_response.content
-        contract.ai_generation_id = ai_generation.id
-
-        db.commit()
-        db.refresh(contract)
-        db.refresh(ai_generation)
-
-        # Create audit log
-        audit_log = AuditLog(
-            action=AuditAction.CREATE,
-            resource_type=AuditResourceType.CONTRACT,
-            resource_id=contract.id,
-            user_id=current_user.id,
-            new_values={
-                "title": contract.title,
-                "contract_type": contract.contract_type.value,
-                "status": contract.status.value,
-                "ai_generation_id": ai_generation.id,
-            },
-            contract_id=contract.id,
-        )
-        db.add(audit_log)
-        db.commit()
-
-        # Return comprehensive response
-        return {
-            "contract": ContractResponse.model_validate(contract),
-            "ai_generation": AIGenerationResponse.model_validate(ai_generation),
-            "processing_time_ms": ai_response.processing_time_ms,
-            "message": "Contract created and generated successfully"
-        }
-
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to generate contract content: {str(e)}",
-        )
 
 
 @router.get(

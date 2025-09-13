@@ -34,6 +34,8 @@ from app.schemas.analytics import (
 )
 from app.schemas.common import UnauthorizedError, ForbiddenError
 from app.services.ai_service import ai_service
+from app.services.analytics_cache_service import cache_analytics_result
+from app.services.query_performance_monitor import log_query_performance
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
@@ -193,90 +195,76 @@ async def get_dashboard_analytics(
 
 
 @router.get("/business", response_model=BusinessMetricsResponse)
+@cache_analytics_result(ttl_seconds=300)  # Cache for 5 minutes
+@log_query_performance("get_business_metrics")
 async def get_business_metrics(
     company: Company = Depends(get_user_company), db: Session = Depends(get_db)
 ):
     """Get business metrics for company"""
 
-    # Contract counts
-    total_contracts = (
-        db.query(Contract)
-        .filter(Contract.company_id == company.id, Contract.is_current_version)
-        .count()
-    )
-
-    active_contracts = (
-        db.query(Contract)
-        .filter(
-            Contract.company_id == company.id,
-            Contract.is_current_version,
-            Contract.status == ContractStatus.ACTIVE,
-        )
-        .count()
-    )
-
-    draft_contracts = (
-        db.query(Contract)
-        .filter(
-            Contract.company_id == company.id,
-            Contract.is_current_version,
-            Contract.status == ContractStatus.DRAFT,
-        )
-        .count()
-    )
-
-    completed_contracts = (
-        db.query(Contract)
-        .filter(
-            Contract.company_id == company.id,
-            Contract.is_current_version,
-            Contract.status == ContractStatus.COMPLETED,
-        )
-        .count()
-    )
-
-    terminated_contracts = (
-        db.query(Contract)
-        .filter(
-            Contract.company_id == company.id,
-            Contract.is_current_version,
-            Contract.status == ContractStatus.TERMINATED,
-        )
-        .count()
-    )
-
-    # Contract values
-    value_result = (
+    # OPTIMIZED: Single query for all contract counts and values using conditional aggregation
+    contract_stats = (
         db.query(
-            func.sum(Contract.contract_value).label("total"),
-            func.avg(Contract.contract_value).label("average"),
+            # Count by status using CASE statements
+            func.sum(
+                func.case(
+                    (Contract.status == ContractStatus.ACTIVE, 1),
+                    else_=0
+                )
+            ).label("active_contracts"),
+            func.sum(
+                func.case(
+                    (Contract.status == ContractStatus.DRAFT, 1),
+                    else_=0
+                )
+            ).label("draft_contracts"),
+            func.sum(
+                func.case(
+                    (Contract.status == ContractStatus.COMPLETED, 1),
+                    else_=0
+                )
+            ).label("completed_contracts"),
+            func.sum(
+                func.case(
+                    (Contract.status == ContractStatus.TERMINATED, 1),
+                    else_=0
+                )
+            ).label("terminated_contracts"),
+            # Total count and values
+            func.count(Contract.id).label("total_contracts"),
+            func.sum(Contract.contract_value).label("total_value"),
+            func.avg(Contract.contract_value).label("average_value"),
         )
-        .filter(
-            Contract.company_id == company.id,
-            Contract.is_current_version,
-            Contract.contract_value.isnot(None),
-        )
+        .filter(Contract.company_id == company.id, Contract.is_current_version)
         .first()
     )
 
-    total_value = float(value_result.total) if value_result.total else 0.0
-    avg_value = float(value_result.average) if value_result.average else 0.0
+    total_contracts = contract_stats.total_contracts or 0
+    active_contracts = contract_stats.active_contracts or 0
+    draft_contracts = contract_stats.draft_contracts or 0
+    completed_contracts = contract_stats.completed_contracts or 0
+    terminated_contracts = contract_stats.terminated_contracts or 0
+    total_value = float(contract_stats.total_value) if contract_stats.total_value else 0.0
+    avg_value = float(contract_stats.average_value) if contract_stats.average_value else 0.0
 
-    # Compliance metrics
-    compliance_avg = (
-        db.query(func.avg(ComplianceScore.overall_score))
+    # OPTIMIZED: Single query for compliance metrics and high risk contracts
+    compliance_stats = (
+        db.query(
+            func.avg(ComplianceScore.overall_score).label("compliance_avg"),
+            func.sum(
+                func.case(
+                    (ComplianceScore.risk_score >= 7, 1),
+                    else_=0
+                )
+            ).label("high_risk_count"),
+        )
         .join(Contract)
         .filter(Contract.company_id == company.id)
-        .scalar()
-        or 0.8
+        .first()
     )
 
-    high_risk_contracts = (
-        db.query(ComplianceScore)
-        .join(Contract)
-        .filter(Contract.company_id == company.id, ComplianceScore.risk_score >= 7)
-        .count()
-    )
+    compliance_avg = float(compliance_stats.compliance_avg) if compliance_stats.compliance_avg else 0.8
+    high_risk_contracts = compliance_stats.high_risk_count or 0
 
     # Monthly growth
     now = get_current_utc()
@@ -324,6 +312,8 @@ async def get_business_metrics(
 
 
 @router.get("/users", response_model=UserMetricsResponse)
+@cache_analytics_result(ttl_seconds=300)  # Cache for 5 minutes
+@log_query_performance("get_user_metrics")
 async def get_user_metrics(
     company: Company = Depends(get_user_company), db: Session = Depends(get_db)
 ):
@@ -398,19 +388,23 @@ async def get_user_metrics(
 
 
 @router.get("/contract-types", response_model=List[ContractTypeMetrics])
+@cache_analytics_result(ttl_seconds=300)  # Cache for 5 minutes
+@log_query_performance("get_contract_type_metrics")
 async def get_contract_type_metrics(
     company: Company = Depends(get_user_company), db: Session = Depends(get_db)
 ):
     """Get contract type distribution metrics"""
 
-    # Get contract type statistics
+    # OPTIMIZED: Single query to get contract stats and compliance scores using JOINs
     type_stats = (
         db.query(
             Contract.contract_type,
             func.count(Contract.id).label("count"),
             func.sum(Contract.contract_value).label("total_value"),
             func.avg(Contract.contract_value).label("avg_value"),
+            func.avg(ComplianceScore.overall_score).label("compliance_avg"),
         )
+        .outerjoin(ComplianceScore, Contract.id == ComplianceScore.contract_id)
         .filter(Contract.company_id == company.id, Contract.is_current_version)
         .group_by(Contract.contract_type)
         .all()
@@ -420,17 +414,6 @@ async def get_contract_type_metrics(
 
     results = []
     for stat in type_stats:
-        # Get average compliance score for this contract type
-        compliance_avg = (
-            db.query(func.avg(ComplianceScore.overall_score))
-            .join(Contract)
-            .filter(
-                Contract.company_id == company.id,
-                Contract.contract_type == stat.contract_type,
-            )
-            .scalar()
-        )
-
         results.append(
             ContractTypeMetrics(
                 contract_type=stat.contract_type.value,
@@ -440,7 +423,7 @@ async def get_contract_type_metrics(
                 ),
                 total_value=float(stat.total_value) if stat.total_value else 0.0,
                 average_value=float(stat.avg_value) if stat.avg_value else 0.0,
-                compliance_score=float(compliance_avg) if compliance_avg else None,
+                compliance_score=float(stat.compliance_avg) if stat.compliance_avg else None,
             )
         )
 
@@ -593,12 +576,14 @@ async def get_time_series_metrics(
 
 
 @router.get("/compliance", response_model=ComplianceMetricsResponse)
+@cache_analytics_result(ttl_seconds=300)  # Cache for 5 minutes
+@log_query_performance("get_compliance_metrics")
 async def get_compliance_metrics(
     company: Company = Depends(get_user_company), db: Session = Depends(get_db)
 ):
     """Get compliance metrics for company"""
 
-    # Average compliance scores
+    # OPTIMIZED: Single query for compliance averages and risk distribution
     compliance_stats = (
         db.query(
             func.avg(ComplianceScore.overall_score).label("overall"),
@@ -606,66 +591,64 @@ async def get_compliance_metrics(
             func.avg(ComplianceScore.employment_law_compliance).label("employment"),
             func.avg(ComplianceScore.consumer_rights_compliance).label("consumer"),
             func.avg(ComplianceScore.commercial_terms_compliance).label("commercial"),
+            # Risk distribution using conditional aggregation
+            func.sum(
+                func.case(
+                    (ComplianceScore.risk_score >= 7, 1),
+                    else_=0
+                )
+            ).label("high_risk"),
+            func.sum(
+                func.case(
+                    ((ComplianceScore.risk_score >= 4) & (ComplianceScore.risk_score < 7), 1),
+                    else_=0
+                )
+            ).label("medium_risk"),
+            func.sum(
+                func.case(
+                    (ComplianceScore.risk_score < 4, 1),
+                    else_=0
+                )
+            ).label("low_risk"),
         )
         .join(Contract)
         .filter(Contract.company_id == company.id)
         .first()
     )
 
-    # Risk distribution
-    high_risk = (
-        db.query(ComplianceScore)
-        .join(Contract)
-        .filter(Contract.company_id == company.id, ComplianceScore.risk_score >= 7)
-        .count()
-    )
-
-    medium_risk = (
-        db.query(ComplianceScore)
-        .join(Contract)
-        .filter(
-            Contract.company_id == company.id,
-            ComplianceScore.risk_score >= 4,
-            ComplianceScore.risk_score < 7,
-        )
-        .count()
-    )
-
-    low_risk = (
-        db.query(ComplianceScore)
-        .join(Contract)
-        .filter(Contract.company_id == company.id, ComplianceScore.risk_score < 4)
-        .count()
-    )
-
-    # Compliance trend (simplified)
+    # OPTIMIZED: Separate query for recent trend and recommendations count
     thirty_days_ago = get_current_utc() - timedelta(days=30)
-    recent_avg = (
-        db.query(func.avg(ComplianceScore.overall_score))
-        .join(Contract)
-        .filter(
-            Contract.company_id == company.id,
-            ComplianceScore.analysis_date >= thirty_days_ago,
+    trend_and_recommendations = (
+        db.query(
+            func.avg(
+                func.case(
+                    (ComplianceScore.analysis_date >= thirty_days_ago, ComplianceScore.overall_score),
+                    else_=None
+                )
+            ).label("recent_avg"),
+            func.sum(func.json_array_length(ComplianceScore.recommendations)).label("recommendations_count"),
         )
-        .scalar()
-        or 0.8
+        .join(Contract)
+        .filter(Contract.company_id == company.id)
+        .first()
     )
 
+    # Extract results
+    high_risk = compliance_stats.high_risk or 0
+    medium_risk = compliance_stats.medium_risk or 0
+    low_risk = compliance_stats.low_risk or 0
+    
     overall_avg = float(compliance_stats.overall) if compliance_stats.overall else 0.8
+    recent_avg = float(trend_and_recommendations.recent_avg) if trend_and_recommendations.recent_avg else overall_avg
+    
+    # Calculate trend
     trend = "stable"
     if recent_avg > overall_avg + 0.05:
         trend = "improving"
     elif recent_avg < overall_avg - 0.05:
         trend = "declining"
 
-    # Count recommendations
-    recommendations_count = (
-        db.query(func.sum(func.json_array_length(ComplianceScore.recommendations)))
-        .join(Contract)
-        .filter(Contract.company_id == company.id)
-        .scalar()
-        or 0
-    )
+    recommendations_count = int(trend_and_recommendations.recommendations_count) if trend_and_recommendations.recommendations_count else 0
 
     return ComplianceMetricsResponse(
         overall_compliance_average=overall_avg,
@@ -727,6 +710,32 @@ async def get_system_health(
         active_sessions=active_sessions,
         peak_concurrent_users=peak_concurrent_users,
     )
+
+
+from app.services.analytics_cache_service import analytics_cache
+from app.services.query_performance_monitor import query_monitor
+
+@router.get("/performance/cache-stats")
+async def get_cache_stats(current_user: User = Depends(get_admin_user)):
+    """Get analytics cache performance statistics (admin only)"""
+    return analytics_cache.get_cache_stats()
+
+@router.get("/performance/query-stats")
+async def get_query_performance_stats(current_user: User = Depends(get_admin_user)):
+    """Get query performance statistics (admin only)"""
+    return query_monitor.get_performance_report()
+
+@router.post("/performance/clear-cache")
+async def clear_analytics_cache(current_user: User = Depends(get_admin_user)):
+    """Clear analytics cache (admin only)"""
+    await analytics_cache.invalidate()
+    return {"message": "Analytics cache cleared successfully"}
+
+@router.post("/performance/reset-query-stats")
+async def reset_query_performance_stats(current_user: User = Depends(get_admin_user)):
+    """Reset query performance statistics (admin only)"""
+    query_monitor.reset_stats()
+    return {"message": "Query performance statistics reset"}
 
 
 @router.get("/performance", response_model=PerformanceMetricsResponse)
