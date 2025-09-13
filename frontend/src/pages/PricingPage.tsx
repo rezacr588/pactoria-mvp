@@ -12,7 +12,14 @@ import {
   Bars3Icon,
   HomeIcon,
 } from '@heroicons/react/24/outline';
-import { Button } from '../components/ui';
+import { 
+  Button, 
+  HeroSection, 
+  HeroBadge, 
+  HeroActions, 
+  HeroTrustIndicators, 
+  HeroImage 
+} from '../components/ui';
 import Card, { CardContent } from '../components/ui/Card';
 import ThemeToggle from '../components/ui/ThemeToggle';
 import { useAuthStore } from '../store/authStore';
@@ -436,116 +443,47 @@ export default function PricingPage() {
 
       {/* Main Content - Add top padding to account for fixed header */}
       <div className="pt-20">
-      {/* Hero Section - Redesigned for Pricing Focus */}
-      <div className="relative isolate overflow-hidden bg-gradient-to-b from-primary-50 via-white to-secondary-50/30 dark:from-secondary-950 dark:via-secondary-900 dark:to-secondary-800">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <svg className="absolute left-[max(50%,25rem)] top-0 h-[64rem] w-[128rem] -translate-x-1/2 stroke-primary-200 dark:stroke-secondary-700 [mask-image:radial-gradient(64rem_64rem_at_top,white,transparent)]" aria-hidden="true">
-            <defs>
-              <pattern id="e813992c-7d03-4cc4-a2bd-151760b470a0" width={200} height={200} x="50%" y={-1} patternUnits="userSpaceOnUse">
-                <path d="M100 200V.5M.5 .5H200" fill="none" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" strokeWidth={0} fill="url(#e813992c-7d03-4cc4-a2bd-151760b470a0)" />
-          </svg>
-        </div>
-        
-        <div className="mx-auto max-w-7xl px-6 pb-16 pt-10 sm:pb-24 lg:px-8 lg:py-20">
-          <div className="mx-auto max-w-4xl text-center">
-            <div className="inline-flex items-center rounded-full px-6 py-3 text-sm font-semibold text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-8 ring-1 ring-primary-200 dark:ring-primary-800/50 shadow-sm">
-              <CurrencyPoundIcon className="h-5 w-5 mr-2" />
-              Transparent Pricing • No Hidden Fees • 14-Day Free Trial
-            </div>
-            
-            <h1 className={`${typography.display.large} font-bold tracking-tight text-secondary-900 dark:text-secondary-100 mb-6`}>
-              Exceptional value for UK businesses
-            </h1>
-            
-            <p className={`${typography.body.large} leading-8 text-secondary-600 dark:text-secondary-400 mb-8 max-w-3xl mx-auto`}>
-              Save up to <span className="font-semibold text-primary-600 dark:text-primary-400">80% on legal fees</span> with our 
-              intelligent contract management platform. All plans include UK legal compliance, unlimited exports, and full support.
-            </p>
-            
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap items-center justify-center gap-8 mb-10 text-sm text-secondary-500 dark:text-secondary-400">
-              <div className="flex items-center gap-2">
-                <ShieldCheckIcon className="h-5 w-5 text-green-600" />
-                <span>GDPR Compliant</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <SparklesIcon className="h-5 w-5 text-primary-600" />
-                <span>AI-Powered</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon className="h-5 w-5 text-green-600" />
-                <span>UK Legal Validated</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <LightBulbIcon className="h-5 w-5 text-amber-600" />
-                <span>6+ Hours Saved Weekly</span>
-              </div>
-            </div>
-            
-            {/* Value Proposition Cards */}
-            <div className="grid md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto">
-              <Card variant="elevated" className="p-6 text-center bg-white/60 dark:bg-secondary-800/60 backdrop-blur-sm">
-                <CardContent className="p-0">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
-                    <CurrencyPoundIcon className="h-6 w-6 text-green-600 dark:text-green-400" />
-                  </div>
-                  <h3 className={`${typography.body.large} font-semibold text-secondary-900 dark:text-secondary-100 mb-2`}>
-                    From £29/month
-                  </h3>
-                  <p className={`${typography.body.medium} text-secondary-600 dark:text-secondary-400`}>
-                    Replace £2,500+ legal fees with intelligent automation
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card variant="elevated" className="p-6 text-center bg-white/60 dark:bg-secondary-800/60 backdrop-blur-sm">
-                <CardContent className="p-0">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-4">
-                    <SparklesIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <h3 className={`${typography.body.large} font-semibold text-secondary-900 dark:text-secondary-100 mb-2`}>
-                    AI-Generated Contracts
-                  </h3>
-                  <p className={`${typography.body.medium} text-secondary-600 dark:text-secondary-400`}>
-                    Transform plain English into legal contracts in seconds
-                  </p>
-                </CardContent>
-              </Card>
-              
-              <Card variant="elevated" className="p-6 text-center bg-white/60 dark:bg-secondary-800/60 backdrop-blur-sm">
-                <CardContent className="p-0">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 mb-4">
-                    <ShieldCheckIcon className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <h3 className={`${typography.body.large} font-semibold text-secondary-900 dark:text-secondary-100 mb-2`}>
-                    Full UK Compliance
-                  </h3>
-                  <p className={`${typography.body.medium} text-secondary-600 dark:text-secondary-400`}>
-                    Built-in GDPR, employment law, and consumer rights validation
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-            
-            {/* Primary CTA */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to={user ? "/dashboard" : "/login"}>
-                <Button size="lg" className="px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
-                  Start Free Trial
-                  <ArrowRightIcon className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link to="/login" className={`${typography.body.large} font-semibold leading-6 text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200`}>
-                Sign in <span aria-hidden="true">→</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Hero Section */}
+      <HeroSection
+        badge={
+          <HeroBadge 
+            icon={CurrencyPoundIcon}
+            mobileText="Transparent Pricing"
+          >
+            Transparent Pricing • UK-Compliant • 14-Day Trial
+          </HeroBadge>
+        }
+        title={
+          <>
+            Simple, predictable pricing
+            <span className="text-primary-600 dark:text-primary-400 font-extrabold"> for UK businesses</span>
+          </>
+        }
+        description={
+          <>
+            Choose the plan that fits your business size and contract volume. 
+            All plans include <span className="font-semibold text-success-600 dark:text-success-400">UK legal compliance</span>, 
+            unlimited exports, and <span className="font-semibold text-primary-600 dark:text-primary-400">14-day free trial</span>.
+          </>
+        }
+        actions={
+          <HeroActions 
+            user={user}
+            primaryButtonText="Start Free Trial"
+            secondaryButtonText="Sign In"
+          />
+        }
+        trustIndicators={
+          !user ? <HeroTrustIndicators /> : undefined
+        }
+        image={
+          <HeroImage
+            src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=80"
+            alt="Professional pricing dashboard showing transparent plans and features for UK contract management software"
+          />
+        }
+        showTrustIndicators={!user}
+      />
 
       {/* Pricing Toggle */}
       <div className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8">

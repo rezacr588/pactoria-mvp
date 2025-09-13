@@ -21,6 +21,15 @@ export { default as ToastContainer } from './ToastContainer';
 export { default as Toggle } from './Toggle';
 export { default as StatusBadge } from './StatusBadge';
 
+// Export Hero components
+export { 
+  HeroSection, 
+  HeroBadge, 
+  HeroActions, 
+  HeroTrustIndicators, 
+  HeroImage 
+} from './Hero';
+
 // Export types
 export type { BadgeProps, NotificationBadgeProps } from './Badge';
 export type { ButtonProps } from './Button';
@@ -32,3 +41,12 @@ export type { ModalProps } from './Modal';
 export type { SelectProps, SelectOption } from './Select';
 export type { TextareaProps } from './Textarea';
 export type { ToastType } from './Toast';
+
+// Export Hero component types
+export type { 
+  HeroSectionProps, 
+  HeroBadgeProps, 
+  HeroActionsProps, 
+  HeroTrustIndicatorsProps, 
+  HeroImageProps 
+} from './Hero';
