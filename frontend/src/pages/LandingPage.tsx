@@ -406,7 +406,7 @@ export default function LandingPage() {
             }}
           />
         </div>
-        <div className="mx-auto max-w-7xl pb-24 pt-24 sm:pb-32 sm:pt-32 lg:grid lg:grid-cols-2 lg:gap-x-12 lg:px-8 lg:py-40">
+        <div className="mx-auto max-w-7xl pb-20 pt-20 sm:pb-28 sm:pt-28 lg:grid lg:grid-cols-2 lg:gap-x-12 lg:px-8 lg:py-36">
           <div className="px-6 lg:px-0 lg:pt-4">
             <div className="mx-auto max-w-2xl lg:mx-0">
               <div className="max-w-xl">
@@ -494,7 +494,7 @@ export default function LandingPage() {
       </div>
 
       {/* Stats Section */}
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 py-16 sm:py-20">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 py-14 sm:py-18">
         <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-none">
           <div className="text-center mb-12">
             <div className="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-4 ring-1 ring-primary-200 dark:ring-primary-800/50">
@@ -528,7 +528,7 @@ export default function LandingPage() {
       </div>
 
       {/* Problem/Solution Section */}
-      <div className="bg-gradient-to-b from-secondary-50/50 via-secondary-50/30 to-white dark:from-secondary-950/50 dark:via-secondary-950/30 dark:to-secondary-950 py-24 sm:py-32">
+      <div className="bg-gradient-to-b from-secondary-50/50 via-secondary-50/30 to-white dark:from-secondary-950/50 dark:via-secondary-950/30 dark:to-secondary-950 py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
             <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-danger-700 bg-danger-100 dark:text-danger-300 dark:bg-danger-900/30 mb-6 ring-1 ring-danger-200 dark:ring-danger-800/50">
@@ -583,7 +583,7 @@ export default function LandingPage() {
       </div>
 
       {/* Features Grid */}
-      <section id="features" className="py-24 sm:py-32 bg-gradient-to-b from-white via-secondary-50/30 to-white dark:from-secondary-950 dark:via-secondary-950/30 dark:to-secondary-950" aria-labelledby="features-heading">
+      <section id="features" className="py-20 sm:py-28 bg-gradient-to-b from-white via-secondary-50/30 to-white dark:from-secondary-950 dark:via-secondary-950/30 dark:to-secondary-950" aria-labelledby="features-heading">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16 sm:mb-20">
             <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-6 ring-1 ring-primary-200 dark:ring-primary-800/50">
@@ -642,7 +642,7 @@ export default function LandingPage() {
       </section>
 
       {/* Use Cases */}
-      <section id="use-cases" className="bg-gradient-to-br from-primary-50/30 via-primary-50/50 to-primary-100/30 dark:from-primary-950/30 dark:via-primary-950/50 dark:to-primary-900/30 py-24 sm:py-32" aria-labelledby="use-cases-heading">
+      <section id="use-cases" className="bg-gradient-to-br from-primary-50/30 via-primary-50/50 to-primary-100/30 dark:from-primary-950/30 dark:via-primary-950/50 dark:to-primary-900/30 py-20 sm:py-28" aria-labelledby="use-cases-heading">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
             <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-6 ring-1 ring-primary-200 dark:ring-primary-800/50">
@@ -683,7 +683,7 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="bg-gradient-to-b from-white via-secondary-50/20 to-white dark:from-secondary-950 dark:via-secondary-950/20 dark:to-secondary-950 py-24 sm:py-32" aria-labelledby="testimonials-heading">
+      <section id="testimonials" className="bg-gradient-to-b from-white via-secondary-50/20 to-white dark:from-secondary-950 dark:via-secondary-950/20 dark:to-secondary-950 py-20 sm:py-28" aria-labelledby="testimonials-heading">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center mb-16">
             <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-6 ring-1 ring-primary-200 dark:ring-primary-800/50">
@@ -744,7 +744,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="relative isolate overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 px-6 py-24 shadow-2xl sm:px-24 xl:py-32" aria-labelledby="cta-heading">
+      <section className="relative isolate overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 px-6 py-20 shadow-2xl sm:px-24 xl:py-28" aria-labelledby="cta-heading">
         {/* Background patterns */}
         <div className="absolute inset-0 -z-10">
           <svg className="absolute inset-0 h-full w-full stroke-white/10 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]" aria-hidden="true">
@@ -827,7 +827,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-950 dark:to-secondary-900 border-t border-secondary-200 dark:border-secondary-800">
-        <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
+        <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             {/* Company Info */}
             <div className="md:col-span-2">
