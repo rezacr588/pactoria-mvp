@@ -436,45 +436,99 @@ export default function PricingPage() {
 
       {/* Main Content - Add top padding to account for fixed header */}
       <div className="pt-20">
-      {/* Header */}
+      {/* Hero Section */}
       <div className="relative isolate overflow-hidden bg-gradient-to-br from-primary-50 via-white to-primary-50/30 dark:from-secondary-950 dark:via-secondary-900 dark:to-secondary-950">
-        <div className="mx-auto max-w-7xl px-6 pb-24 pt-10 sm:pb-32 lg:flex lg:px-8 lg:py-20">
-          <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-xl lg:flex-shrink-0 lg:pt-8">
-            <div className="mt-10 sm:mt-16 lg:mt-0">
-              <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-6 ring-1 ring-primary-200 dark:ring-primary-800/50">
-                <CurrencyPoundIcon className="h-4 w-4 mr-2" />
-                Transparent Pricing
-              </div>
-              <h1 className={`${typography.display.large} font-bold tracking-tight text-secondary-900 dark:text-secondary-100`}>
-                Simple, predictable pricing for UK businesses
-              </h1>
-              <p className={`mt-6 ${typography.body.large} leading-8 text-secondary-600 dark:text-secondary-400`}>
-                Choose the plan that fits your business size and contract volume. 
-                All plans include UK legal compliance, unlimited exports, and 14-day free trial.
-              </p>
-              <div className="mt-10 flex items-center gap-x-6">
-                <Link to={user ? "/dashboard" : "/login"}>
-                  <Button size="lg" className="px-8">
-                    Start Free Trial
-                    <ArrowRightIcon className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link to="/login" className={`${typography.body.large} font-semibold leading-6 text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400`}>
-                  Sign in <span aria-hidden="true">→</span>
-                </Link>
+        {/* Background decoration */}
+        <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80" aria-hidden="true">
+          <div
+            className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-primary-400 to-primary-600 opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+            style={{
+              clipPath:
+                'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
+            }}
+          />
+        </div>
+        <div className="mx-auto max-w-7xl pb-20 pt-20 sm:pb-28 sm:pt-28 lg:grid lg:grid-cols-2 lg:gap-x-12 lg:px-8 lg:py-36">
+          <div className="px-6 lg:px-0 lg:pt-4">
+            <div className="mx-auto max-w-2xl lg:mx-0">
+              <div className="max-w-xl">
+                <div className="inline-flex items-center rounded-full px-3 py-1 text-xs sm:text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-6 sm:mb-8 ring-1 ring-primary-200 dark:ring-primary-800/50 animate-fade-in shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100">
+                  <CurrencyPoundIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2 motion-safe:animate-pulse" />
+                  <span className="hidden sm:inline">Transparent Pricing • UK-Compliant • 14-Day Trial</span>
+                  <span className="sm:hidden">Transparent Pricing</span>
+                </div>
+                
+                <h1 className={`${typography.display.large} font-bold tracking-tight text-secondary-900 dark:text-secondary-100 leading-tight`}>
+                  Simple, predictable pricing
+                  <span className="text-primary-600 dark:text-primary-400 font-extrabold"> for UK businesses</span>
+                </h1>
+                
+                <p className={`mt-6 sm:mt-8 ${typography.body.large} leading-8 sm:leading-9 text-secondary-600 dark:text-secondary-400 max-w-2xl`}>
+                  Choose the plan that fits your business size and contract volume. 
+                  All plans include <span className="font-semibold text-success-600 dark:text-success-400">UK legal compliance</span>, 
+                  unlimited exports, and <span className="font-semibold text-primary-600 dark:text-primary-400">14-day free trial</span>.
+                </p>
+                
+                <div className="mt-10 sm:mt-12 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-x-6 motion-safe:animate-fade-in" style={{ animationDelay: '300ms' }}>
+                  <Link to={user ? "/dashboard" : "/login"} className="w-full sm:w-auto">
+                    <Button size="lg" className="px-8 py-4 w-full sm:w-auto text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group">
+                      {user ? (
+                        <>
+                          <HomeIcon className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+                          Go to Dashboard
+                        </>
+                      ) : (
+                        <>
+                          Start Free Trial
+                          <ArrowRightIcon className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
+                        </>
+                      )}
+                    </Button>
+                  </Link>
+                  {!user && (
+                    <Link to="/login" className={`${typography.body.large} font-semibold leading-6 text-secondary-600 dark:text-secondary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-200 flex items-center justify-center sm:justify-start group hover:scale-105 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 min-h-[44px]`}>
+                      Sign In <ArrowRightIcon className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
+                    </Link>
+                  )}
+                </div>
+
+                {!user && (
+                  <div className={`mt-8 sm:mt-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-x-8 ${typography.body.small} text-secondary-600 dark:text-secondary-400 motion-safe:animate-fade-in`} style={{ animationDelay: '500ms' }}>
+                    {[
+                      'No credit card required',
+                      '14-day free trial', 
+                      'Cancel anytime'
+                    ].map((text, index) => (
+                      <div key={text} className="flex items-center motion-safe:animate-fade-in" style={{ animationDelay: `${600 + index * 100}ms` }}>
+                        <CheckIcon className="h-5 w-5 text-success-600 dark:text-success-400 mr-2 flex-shrink-0" />
+                        {text}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
-          <div className="mx-auto mt-16 flex max-w-2xl sm:mt-24 lg:ml-10 lg:mr-0 lg:mt-0 lg:max-w-none lg:flex-none xl:ml-32">
-            <div className="max-w-3xl flex-none sm:max-w-5xl lg:max-w-none">
-              <div className="relative">
-                <img
-                  src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
-                  alt="UK business professional reviewing contracts on laptop"
-                  className="aspect-[6/5] w-full rounded-2xl bg-secondary-50 object-cover shadow-2xl ring-1 ring-secondary-900/10 dark:ring-secondary-700/50"
-                  width={2432}
-                  height={1442}
-                />
+          
+          <div className="mt-16 sm:mt-20 md:mx-auto md:max-w-2xl lg:mx-0 lg:mt-0 lg:w-screen lg:max-w-none">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-primary-600/10 rounded-3xl transform rotate-1" />
+              <div className="relative bg-white dark:bg-secondary-800 rounded-2xl shadow-2xl ring-1 ring-secondary-900/10 dark:ring-secondary-700/50 overflow-hidden">
+                <div className="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-950/40 dark:to-primary-900/40 px-6 pt-8 sm:px-10 sm:pt-10">
+                  <div className="relative">
+                    <img
+                      src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2560&q=80"
+                      alt="Professional pricing dashboard showing transparent plans and features for UK contract management software"
+                      className="w-full rounded-t-xl shadow-xl ring-1 ring-secondary-900/10 dark:ring-secondary-700/50 transform hover:scale-105 transition-transform duration-300 motion-reduce:transform-none motion-reduce:hover:scale-100"
+                      width={2432}
+                      height={1442}
+                      loading="lazy"
+                    />
+                    {/* Floating elements for visual appeal */}
+                    <div className="absolute -top-4 -right-4 w-20 h-20 bg-primary-500 rounded-full opacity-20 motion-safe:animate-pulse" />
+                    <div className="absolute -bottom-6 -left-6 w-16 h-16 bg-primary-300 rounded-full opacity-30 motion-safe:animate-bounce" style={{ animationDelay: '1s' }} />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
