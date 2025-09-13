@@ -31,13 +31,12 @@ interface OnboardingChecklistProps {
 }
 
 export default function OnboardingChecklist({ onDismiss, showDismiss = true }: OnboardingChecklistProps) {
-  const { contracts, fetchContracts } = useContracts();
+  const { contracts } = useContracts();
   const { user } = useAuthStore();
   const [steps, setSteps] = useState<OnboardingStep[]>([]);
 
   useEffect(() => {
-    const initializeSteps = async () => {
-      await fetchContracts();
+    const initializeSteps = () => {
       
       const onboardingSteps: OnboardingStep[] = [
         {
@@ -92,7 +91,7 @@ export default function OnboardingChecklist({ onDismiss, showDismiss = true }: O
     if (user) {
       initializeSteps();
     }
-  }, [contracts, user, fetchContracts]);
+  }, [contracts, user]); // Removed fetchContracts from dependencies
 
   const completedSteps = steps.filter(step => step.completed).length;
   const totalSteps = steps.length;
