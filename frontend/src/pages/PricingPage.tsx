@@ -1,22 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   CheckIcon,
   XMarkIcon,
   SparklesIcon,
   ShieldCheckIcon,
-  UserGroupIcon,
-  BuildingOfficeIcon,
   ArrowRightIcon,
   CurrencyPoundIcon,
-  ClockIcon,
   ChartBarIcon,
   LightBulbIcon,
+  Bars3Icon,
+  HomeIcon,
 } from '@heroicons/react/24/outline';
 import { Button } from '../components/ui';
-import Card, { CardContent, CardTitle } from '../components/ui/Card';
+import Card, { CardContent } from '../components/ui/Card';
+import ThemeToggle from '../components/ui/ThemeToggle';
 import { useAuthStore } from '../store/authStore';
-import { textColors, textStyles, typography } from '../utils/typography';
+import { typography } from '../utils/typography';
 
 interface PricingTier {
   id: string;
@@ -170,6 +170,35 @@ const features = [
 export default function PricingPage() {
   const { user } = useAuthStore();
   const [isYearly, setIsYearly] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Handle scroll effect for navbar
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 10;
+      setScrolled(isScrolled);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  // Handle smooth scrolling to landing page sections
+  const scrollToLandingSection = (sectionId: string) => {
+    // Navigate to landing page with section anchor
+    window.location.href = `/#${sectionId}`;
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent, action: () => void) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      action();
+    }
+  };
 
   const getPrice = (tier: PricingTier) => {
     return isYearly ? tier.yearlyPrice : tier.monthlyPrice;
@@ -183,6 +212,230 @@ export default function PricingPage() {
 
   return (
     <div className="bg-white dark:bg-secondary-950 min-h-screen">
+      {/* Navbar */}
+      <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+        scrolled 
+          ? 'bg-white/95 dark:bg-secondary-900/95 backdrop-blur-md border-b border-neutral-200/50 dark:border-secondary-700/50 shadow-sm dark:shadow-secondary-950/20' 
+          : 'bg-transparent'
+      }`}>
+        <nav className="flex items-center justify-between p-6 lg:px-8 max-w-7xl mx-auto" aria-label="Global">
+          <div className="flex lg:flex-1">
+            <Link to="/" className="-m-1.5 p-1.5">
+              <div className="flex items-center space-x-3">
+                <img
+                  src="/pactoria-logo-96.png"
+                  srcSet="/pactoria-logo-48.png 1x, /pactoria-logo-96.png 2x, /pactoria-logo-128.png 3x"
+                  alt="Pactoria - UK Contract Management"
+                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain pactoria-logo"
+                  loading="lazy"
+                  width="40"
+                  height="40"
+                />
+                <span className={`${typography.heading.h3} sm:${typography.heading.h2} font-bold transition-colors text-primary-600 dark:text-primary-400 group-hover:text-primary-700 dark:group-hover:text-primary-300`}>Pactoria</span>
+              </div>
+            </Link>
+          </div>
+          <div className="flex lg:hidden">
+            <button
+              type="button"
+              className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-secondary-700 dark:text-secondary-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-w-[44px] min-h-[44px]"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open main navigation menu"
+            >
+              <span className="sr-only">Open main menu</span>
+              <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+            </button>
+          </div>
+          <div className="hidden lg:flex lg:gap-x-8">
+            <button
+              onClick={() => scrollToLandingSection('features')}
+              onKeyDown={(e) => handleKeyDown(e, () => scrollToLandingSection('features'))}
+              className={`${typography.body.medium} font-semibold leading-6 transition-all duration-200 text-secondary-600 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/20 min-h-[44px] flex items-center`}
+              aria-label="Navigate to Features section"
+            >
+              Features
+            </button>
+            <button
+              onClick={() => scrollToLandingSection('use-cases')}
+              onKeyDown={(e) => handleKeyDown(e, () => scrollToLandingSection('use-cases'))}
+              className={`${typography.body.medium} font-semibold leading-6 transition-all duration-200 text-secondary-600 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/20 min-h-[44px] flex items-center`}
+              aria-label="Navigate to Use Cases section"
+            >
+              Use Cases
+            </button>
+            <button
+              onClick={() => scrollToLandingSection('testimonials')}
+              onKeyDown={(e) => handleKeyDown(e, () => scrollToLandingSection('testimonials'))}
+              className={`${typography.body.medium} font-semibold leading-6 transition-all duration-200 text-secondary-600 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/20 min-h-[44px] flex items-center`}
+              aria-label="Navigate to Testimonials section"
+            >
+              Testimonials
+            </button>
+            <Link to="/pricing" className={`${typography.body.medium} font-semibold leading-6 transition-all duration-200 text-primary-600 dark:text-primary-400 font-bold focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/20 min-h-[44px] flex items-center`}>
+              Pricing
+            </Link>
+            {user && (
+              <Link to="/dashboard" className={`${typography.body.medium} font-semibold leading-6 transition-colors text-secondary-600 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 min-h-[44px]`}>
+                <HomeIcon className="h-4 w-4" />
+                Back to App
+              </Link>
+            )}
+          </div>
+          <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4 lg:items-center">
+            {/* Theme Toggle */}
+            <ThemeToggle size="sm" variant="button" />
+            
+            {user ? (
+              <Link to="/dashboard">
+                <Button size="sm" className="px-4">
+                  <HomeIcon className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className={`${typography.body.medium} font-semibold leading-6 transition-colors text-secondary-600 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-lg px-3 py-2 min-h-[44px] flex items-center`}>
+                  Sign In
+                </Link>
+                <Link to="/login">
+                  <Button size="sm" className="px-4">
+                    Start Free Trial
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
+        </nav>
+
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden">
+            <div 
+              className="fixed inset-0 z-50 bg-black/20 dark:bg-black/40" 
+              onClick={() => setMobileMenuOpen(false)}
+              onKeyDown={(e) => e.key === 'Escape' && setMobileMenuOpen(false)}
+              role="button"
+              tabIndex={0}
+              aria-label="Close menu"
+            />
+            <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white dark:bg-secondary-900 px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-secondary-900/10 dark:sm:ring-secondary-700/50">
+              <div className="flex items-center justify-between">
+                <Link to="/" className="-m-1.5 p-1.5">
+                  <div className="flex items-center space-x-3">
+                    <img
+                      src="/pactoria-logo-96.png"
+                      srcSet="/pactoria-logo-48.png 1x, /pactoria-logo-96.png 2x, /pactoria-logo-128.png 3x"
+                      alt="Pactoria - UK Contract Management"
+                      className="w-8 h-8 sm:w-10 sm:h-10 object-contain pactoria-logo"
+                      loading="lazy"
+                      width="40"
+                      height="40"
+                    />
+                    <span className="text-xl sm:text-2xl font-bold text-primary-600 dark:text-primary-400">Pactoria</span>
+                  </div>
+                </Link>
+                <button
+                  type="button"
+                  className="-m-2.5 rounded-md p-2.5 text-secondary-700 dark:text-secondary-300 hover:text-primary-600 dark:hover:text-primary-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors duration-200"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span className="sr-only">Close menu</span>
+                  <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                </button>
+              </div>
+              <div className="mt-6 flow-root">
+                <div className="-my-6 divide-y divide-secondary-200 dark:divide-secondary-700">
+                  <div className="space-y-2 py-6">
+                    <button
+                      onClick={() => {
+                        scrollToLandingSection('features');
+                        setMobileMenuOpen(false);
+                      }}
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary-900 dark:text-secondary-100 hover:bg-secondary-50 dark:hover:bg-secondary-800 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-secondary-900 min-h-[44px] flex items-center transition-colors duration-200"
+                      aria-label="Navigate to Features section"
+                    >
+                      Features
+                    </button>
+                    <button
+                      onClick={() => {
+                        scrollToLandingSection('use-cases');
+                        setMobileMenuOpen(false);
+                      }}
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary-900 dark:text-secondary-100 hover:bg-secondary-50 dark:hover:bg-secondary-800 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-secondary-900 min-h-[44px] flex items-center transition-colors duration-200"
+                      aria-label="Navigate to Use Cases section"
+                    >
+                      Use Cases
+                    </button>
+                    <button
+                      onClick={() => {
+                        scrollToLandingSection('testimonials');
+                        setMobileMenuOpen(false);
+                      }}
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary-900 dark:text-secondary-100 hover:bg-secondary-50 dark:hover:bg-secondary-800 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-secondary-900 min-h-[44px] flex items-center transition-colors duration-200"
+                      aria-label="Navigate to Testimonials section"
+                    >
+                      Testimonials
+                    </button>
+                    <Link
+                      to="/pricing"
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-primary-600 dark:text-primary-400 font-bold hover:bg-secondary-50 dark:hover:bg-secondary-800 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-h-[44px] flex items-center transition-colors duration-200"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Pricing
+                    </Link>
+                    {user && (
+                      <Link
+                        to="/dashboard"
+                        className="-mx-3 flex items-center gap-2 rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary-900 dark:text-secondary-100 hover:bg-secondary-50 dark:hover:bg-secondary-800 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 min-h-[44px] transition-colors duration-200"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <HomeIcon className="h-5 w-5" />
+                        Back to App
+                      </Link>
+                    )}
+                  </div>
+                  <div className="py-6 space-y-2">
+                    {/* Theme Toggle for Mobile */}
+                    <div className="px-3">
+                      <ThemeToggle size="sm" variant="button" />
+                    </div>
+                    {user ? (
+                      <Link
+                        to="/dashboard"
+                        className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary-900 dark:text-secondary-100 hover:bg-secondary-50 dark:hover:bg-secondary-800 min-h-[44px] flex items-center transition-colors duration-200"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <HomeIcon className="h-5 w-5 mr-2" />
+                        Dashboard
+                      </Link>
+                    ) : (
+                      <>
+                        <Link
+                          to="/login"
+                          className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-secondary-900 dark:text-secondary-100 hover:bg-secondary-50 dark:hover:bg-secondary-800 min-h-[44px] flex items-center transition-colors duration-200"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Sign In
+                        </Link>
+                        <Link
+                          to="/login"
+                          className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 bg-primary-600 text-white hover:bg-primary-700 min-h-[44px] flex items-center transition-colors duration-200"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Start Free Trial
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* Main Content - Add top padding to account for fixed header */}
+      <div className="pt-20">
       {/* Header */}
       <div className="relative isolate overflow-hidden bg-gradient-to-br from-primary-50 via-white to-primary-50/30 dark:from-secondary-950 dark:via-secondary-900 dark:to-secondary-950">
         <div className="mx-auto max-w-7xl px-6 pb-24 pt-10 sm:pb-32 lg:flex lg:px-8 lg:py-20">
@@ -460,6 +713,7 @@ export default function PricingPage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
