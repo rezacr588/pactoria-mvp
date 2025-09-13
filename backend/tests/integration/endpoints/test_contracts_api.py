@@ -9,7 +9,7 @@ from unittest.mock import patch, AsyncMock, Mock
 import json
 
 from app.main import app
-from app.core.auth import create_access_token
+from app.core.security import create_access_token
 
 
 class TestContractAPI:
