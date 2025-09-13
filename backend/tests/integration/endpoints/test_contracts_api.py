@@ -348,7 +348,7 @@ class TestContractAPI:
         assert data["filename"] == f"contract_{contract_id}.pdf"
         assert "PDF generated successfully" in data["message"]
 
-    def test_contract_generation_with_all_parameters(self, client, auth_headers, mock_user):
+    def test_contract_generation_with_all_parameters(self, client, auth_headers, mock_user, test_database):
         """Test contract generation with all optional parameters"""
         comprehensive_request = {
             "title": "Comprehensive Test Contract",
@@ -369,7 +369,7 @@ class TestContractAPI:
             "compliance_level": "strict",
         }
 
-        # Override the dependency to return mock user
+        # Override the auth dependency (database is already overridden by conftest.py)
         from app.core.auth import get_current_user
         app.dependency_overrides[get_current_user] = lambda: mock_user
 
@@ -406,8 +406,9 @@ class TestContractAPI:
                     call_args["company_details"] == comprehensive_request["company_details"]
                 )
         finally:
-            # Clean up dependency override
-            app.dependency_overrides.clear()
+            # Only clear the auth override, leave database as is
+            if get_current_user in app.dependency_overrides:
+                del app.dependency_overrides[get_current_user]
 
     @pytest.mark.parametrize(
         "contract_type",
@@ -429,7 +430,7 @@ class TestContractAPI:
             "compliance_level": "standard",
         }
 
-        # Override the dependency to return mock user
+        # Override the auth dependency
         from app.core.auth import get_current_user
         app.dependency_overrides[get_current_user] = lambda: mock_user
 
@@ -455,12 +456,13 @@ class TestContractAPI:
                 data = response.json()
                 assert data["contract"]["contract_type"] == contract_type
         finally:
-            # Clean up dependency override
-            app.dependency_overrides.clear()
+            # Only clear the auth override, leave database as is
+            if get_current_user in app.dependency_overrides:
+                del app.dependency_overrides[get_current_user]
 
     def test_api_error_handling(self, client, auth_headers, mock_user):
         """Test API error handling and response formats"""
-        # Override the dependency to return mock user
+        # Override the auth dependency
         from app.core.auth import get_current_user
         app.dependency_overrides[get_current_user] = lambda: mock_user
 
@@ -493,12 +495,13 @@ class TestContractAPI:
             )
             assert response.status_code == 422
         finally:
-            # Clean up dependency override
-            app.dependency_overrides.clear()
+            # Only clear the auth override, leave database as is
+            if get_current_user in app.dependency_overrides:
+                del app.dependency_overrides[get_current_user]
 
     def test_response_schemas_compliance(self, client, auth_headers, mock_user, valid_contract_request):
         """Test that API responses match defined schemas"""
-        # Override the dependency to return mock user
+        # Override the auth dependency
         from app.core.auth import get_current_user
         app.dependency_overrides[get_current_user] = lambda: mock_user
 
@@ -537,8 +540,9 @@ class TestContractAPI:
 
                 assert response.status_code == 200
         finally:
-            # Clean up dependency override
-            app.dependency_overrides.clear()
+            # Only clear the auth override, leave database as is
+            if get_current_user in app.dependency_overrides:
+                del app.dependency_overrides[get_current_user]
             data = response.json()
 
             # Verify response structure matches ContractGenerationResponse schema
