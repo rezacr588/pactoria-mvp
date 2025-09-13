@@ -46,7 +46,7 @@ export default function LoginPage() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-secondary-900 flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         <Card className="p-6 sm:p-8">
           <div className="text-center mb-8">
@@ -58,10 +58,10 @@ export default function LoginPage() {
               </div>
               <span className="mt-2 block text-lg font-bold text-primary-600">Pactoria</span>
             </Link>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
               {isLogin ? 'Welcome back' : 'Get started today'}
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-gray-600 dark:text-secondary-300">
               {isLogin ? "Don't have an account? " : "Already have an account? "}
               <button
                 onClick={() => setIsLogin(!isLogin)}
@@ -167,7 +167,7 @@ export default function LoginPage() {
           </div>
 
           <div className="text-center pt-4">
-            <Link to="/" className="text-sm text-gray-600 hover:text-gray-900">
+            <Link to="/" className="text-sm text-gray-600 dark:text-secondary-300 hover:text-gray-900 dark:hover:text-white">
               ← Back to homepage
             </Link>
           </div>
