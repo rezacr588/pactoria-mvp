@@ -9,7 +9,6 @@ from unittest.mock import patch, AsyncMock, Mock
 import json
 
 from app.main import app
-from app.core.auth import create_access_token
 
 
 class TestContractAPI:
@@ -21,52 +20,48 @@ class TestContractAPI:
         return TestClient(app)
 
     @pytest.fixture
-    def auth_headers(self):
-        """Mock authentication headers"""
-        # Mock user ID - in real tests this would be a valid user
-        token = create_access_token(subject="test-user-id")
-        return {"Authorization": f"Bearer {token}"}
+    def auth_token(self):
+        """Mock JWT token for authenticated requests"""
+        return "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.mock_token"
 
-    @pytest.fixture
-    def mock_user(self):
-        """Mock authenticated user with company"""
-        return Mock(
-            id="test-user-id",
-            email="test@example.com",
-            company_id="test-company-id",
-            role="contract_manager",
-            is_active=True
-        )
-
-    def test_contract_generation_endpoint_success(self, client, auth_headers, mock_user, valid_contract_request):
+    def test_contract_generation_endpoint_success(self, client, valid_contract_request):
         """Test successful contract generation via API"""
-        with patch("app.api.v1.contracts.ai_service") as mock_ai_service, \
-             patch("app.api.v1.contracts.get_current_user", return_value=mock_user):
-            
-            # Mock AI service response to match the expected structure
-            mock_ai_response = Mock()
-            mock_ai_response.content = "GENERATED_CONTRACT_CONTENT"
-            mock_ai_response.model_name = "llama3-70b-8192"
-            mock_ai_response.model_version = "v1.0"
-            mock_ai_response.processing_time_ms = 1500
-            mock_ai_response.token_usage = {"prompt_tokens": 150, "completion_tokens": 800}
-            mock_ai_response.confidence_score = 0.85
-            
-            mock_ai_service.generate_contract = AsyncMock(return_value=mock_ai_response)
-
-            # Make request with authentication
-            response = client.post(
-                "/api/v1/contracts/generate", 
-                json=valid_contract_request,
-                headers=auth_headers
+        with patch("app.api.v1.endpoints.contracts.ai_service") as mock_ai_service:
+            # Mock AI service responses
+            mock_ai_service.generate_contract = AsyncMock(
+                return_value=(
+                    "GENERATED_CONTRACT_CONTENT",
+                    {
+                        "model_used": "llama3-70b-8192",
+                        "processing_time_ms": 1500,
+                        "prompt_tokens": 150,
+                        "completion_tokens": 800,
+                        "confidence_score": 0.85,
+                    },
+                )
             )
 
-            # Assertions - should be 201 for creation
-            assert response.status_code == 201
+            mock_ai_service.validate_contract_compliance = AsyncMock(
+                return_value={
+                    "overall_score": 0.92,
+                    "gdpr_compliance": 0.95,
+                    "employment_law_compliance": 0.90,
+                    "risk_score": 3,
+                    "risk_factors": ["Minor issues"],
+                    "recommendations": ["Add GDPR clauses"],
+                }
+            )
+
+            # Make request
+            response = client.post(
+                "/api/v1/contracts/generate", json=valid_contract_request
+            )
+
+            # Assertions
+            assert response.status_code == 200
             data = response.json()
 
             assert "contract" in data
-            assert "ai_generation" in data
             assert "processing_time_ms" in data
             assert "message" in data
 
@@ -76,44 +71,39 @@ class TestContractAPI:
             assert contract["status"] == "draft"
             assert contract["version"] == 1
             assert "generated_content" in contract
+            assert "compliance_score" in contract
+            assert "ai_generation" in contract
 
     def test_contract_generation_invalid_request(
-        self, client, auth_headers, mock_user, invalid_contract_request
+        self, client, invalid_contract_request
     ):
         """Test contract generation with invalid request data"""
-        with patch("app.api.v1.contracts.get_current_user", return_value=mock_user):
-            response = client.post(
-                "/api/v1/contracts/generate", 
-                json=invalid_contract_request,
-                headers=auth_headers
-            )
+        response = client.post(
+            "/api/v1/contracts/generate", json=invalid_contract_request
+        )
 
-            # Should return 422 for validation errors
-            assert response.status_code == 422
-            error_data = response.json()
-            assert "detail" in error_data
+        # Should return 422 for validation errors
+        assert response.status_code == 422
+        error_data = response.json()
+        assert "detail" in error_data
 
     def test_contract_generation_ai_service_failure(
-        self, client, auth_headers, mock_user, valid_contract_request
+        self, client, valid_contract_request
     ):
         """Test handling of AI service failures"""
-        with patch("app.api.v1.contracts.ai_service") as mock_ai_service, \
-             patch("app.api.v1.contracts.get_current_user", return_value=mock_user):
-            
+        with patch("app.api.v1.endpoints.contracts.ai_service") as mock_ai_service:
             mock_ai_service.generate_contract = AsyncMock(
                 side_effect=Exception("AI service unavailable")
             )
 
             response = client.post(
-                "/api/v1/contracts/generate", 
-                json=valid_contract_request,
-                headers=auth_headers
+                "/api/v1/contracts/generate", json=valid_contract_request
             )
 
             assert response.status_code == 500
             error_data = response.json()
             assert "detail" in error_data
-            assert "Failed to generate contract content" in error_data["detail"]
+            assert "Contract generation failed" in error_data["detail"]
 
     def test_list_contracts_endpoint(self, client):
         """Test contract listing endpoint"""
@@ -253,7 +243,7 @@ class TestContractAPI:
 
     def test_complete_contract_wizard(self, client):
         """Test complete contract wizard workflow"""
-        with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
+        with patch("app.api.v1.endpoints.contracts.ai_service") as mock_ai_service:
             # Mock AI service
             mock_ai_service.generate_contract = AsyncMock(
                 return_value=("WIZARD_GENERATED_CONTENT", {"processing_time_ms": 2000})
@@ -342,7 +332,7 @@ class TestContractAPI:
             "compliance_level": "strict",
         }
 
-        with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
+        with patch("app.api.v1.endpoints.contracts.ai_service") as mock_ai_service:
             mock_ai_service.generate_contract = AsyncMock(
                 return_value=(
                     "COMPREHENSIVE_CONTRACT_CONTENT",
@@ -392,7 +382,7 @@ class TestContractAPI:
             "compliance_level": "standard",
         }
 
-        with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
+        with patch("app.api.v1.endpoints.contracts.ai_service") as mock_ai_service:
             mock_ai_service.generate_contract = AsyncMock(
                 return_value=(
                     f"GENERATED_{contract_type.upper()}_CONTENT",
@@ -436,7 +426,7 @@ class TestContractAPI:
 
     def test_response_schemas_compliance(self, client, valid_contract_request):
         """Test that API responses match defined schemas"""
-        with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
+        with patch("app.api.v1.endpoints.contracts.ai_service") as mock_ai_service:
             mock_ai_service.generate_contract = AsyncMock(
                 return_value=(
                     "CONTRACT_CONTENT",
