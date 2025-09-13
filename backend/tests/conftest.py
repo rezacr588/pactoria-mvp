@@ -304,16 +304,26 @@ IN WITNESS WHEREOF, the parties have executed this Agreement as of the date firs
 def create_test_company(db, **kwargs):
     """Create a test company with default values"""
     from app.infrastructure.database.models import Company, SubscriptionTier
+    from app.domain.entities.company import CompanyType, CompanySize, IndustryType
     import uuid
+
+    # Create a minimal test user ID for created_by relationship
+    created_by_user_id = kwargs.get("created_by_user_id", str(uuid.uuid4()))
 
     defaults = {
         "id": str(uuid.uuid4()),
         "name": "Test Company Ltd",
-        "registration_number": "12345678",
-        "address": "123 Test St, London, UK",
+        "company_number": "12345678",
+        "company_type": CompanyType.PRIVATE_LIMITED,
+        "industry": IndustryType.TECHNOLOGY,
+        "company_size": CompanySize.SMALL,
+        "primary_contact_email": "test@example.com",
+        "address_line1": "123 Test St",
+        "city": "London",
+        "postcode": "SW1A 1AA",
         "subscription_tier": SubscriptionTier.PROFESSIONAL,
         "max_users": 10,
-        "settings": {},
+        "created_by_user_id": created_by_user_id,
     }
     defaults.update(kwargs)
 

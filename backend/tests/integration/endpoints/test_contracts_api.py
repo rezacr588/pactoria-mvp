@@ -58,48 +58,58 @@ class TestContractAPI:
 
     def test_contract_generation_endpoint_success(self, client, auth_headers, mock_user, valid_contract_request):
         """Test successful contract generation via API"""
-        with patch("app.api.v1.contracts.ai_service") as mock_ai_service, \
-             patch("app.api.v1.contracts.get_current_user", return_value=mock_user):
-            
-            # Mock AI service response to match the expected structure
-            mock_ai_response = Mock()
-            mock_ai_response.content = "GENERATED_CONTRACT_CONTENT"
-            mock_ai_response.model_name = "llama3-70b-8192"
-            mock_ai_response.model_version = "v1.0"
-            mock_ai_response.processing_time_ms = 1500
-            mock_ai_response.token_usage = {"prompt_tokens": 150, "completion_tokens": 800}
-            mock_ai_response.confidence_score = 0.85
-            
-            mock_ai_service.generate_contract = AsyncMock(return_value=mock_ai_response)
+        # Override the dependency to return mock user
+        from app.core.auth import get_current_user
+        app.dependency_overrides[get_current_user] = lambda: mock_user
 
-            # Make request with authentication
-            response = client.post(
-                "/api/v1/contracts/generate", 
-                json=valid_contract_request,
-                headers=auth_headers
-            )
+        try:
+            with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
+                # Mock AI service response to match the expected structure
+                mock_ai_response = Mock()
+                mock_ai_response.content = "GENERATED_CONTRACT_CONTENT"
+                mock_ai_response.model_name = "llama3-70b-8192"
+                mock_ai_response.model_version = "v1.0"
+                mock_ai_response.processing_time_ms = 1500
+                mock_ai_response.token_usage = {"prompt_tokens": 150, "completion_tokens": 800}
+                mock_ai_response.confidence_score = 0.85
+                
+                mock_ai_service.generate_contract = AsyncMock(return_value=mock_ai_response)
 
-            # Assertions - should be 201 for creation
-            assert response.status_code == 201
-            data = response.json()
+                # Make request with authentication
+                response = client.post(
+                    "/api/v1/contracts/generate", 
+                    json=valid_contract_request,
+                    headers=auth_headers
+                )
 
-            assert "contract" in data
-            assert "ai_generation" in data
-            assert "processing_time_ms" in data
-            assert "message" in data
+                # Assertions - should be 201 for creation
+                assert response.status_code == 201
+                data = response.json()
 
-            contract = data["contract"]
-            assert contract["title"] == valid_contract_request["title"]
-            assert contract["contract_type"] == valid_contract_request["contract_type"]
-            assert contract["status"] == "draft"
-            assert contract["version"] == 1
-            assert "generated_content" in contract
+                assert "contract" in data
+                assert "ai_generation" in data
+                assert "processing_time_ms" in data
+                assert "message" in data
+
+                contract = data["contract"]
+                assert contract["title"] == valid_contract_request["title"]
+                assert contract["contract_type"] == valid_contract_request["contract_type"]
+                assert contract["status"] == "draft"
+                assert contract["version"] == 1
+                assert "generated_content" in contract
+        finally:
+            # Clean up dependency override
+            app.dependency_overrides.clear()
 
     def test_contract_generation_invalid_request(
         self, client, auth_headers, mock_user, invalid_contract_request
     ):
         """Test contract generation with invalid request data"""
-        with patch("app.api.v1.contracts.get_current_user", return_value=mock_user):
+        # Override the dependency to return mock user
+        from app.core.auth import get_current_user
+        app.dependency_overrides[get_current_user] = lambda: mock_user
+
+        try:
             response = client.post(
                 "/api/v1/contracts/generate", 
                 json=invalid_contract_request,
@@ -110,6 +120,9 @@ class TestContractAPI:
             assert response.status_code == 422
             error_data = response.json()
             assert "detail" in error_data
+        finally:
+            # Clean up dependency override
+            app.dependency_overrides.clear()
 
     def test_contract_generation_ai_service_failure(
         self, client, auth_headers, mock_user, valid_contract_request
@@ -135,9 +148,10 @@ class TestContractAPI:
 
     def test_list_contracts_endpoint(self, client, auth_headers, mock_user, test_database):
         """Test contract listing endpoint"""
-        response = client.get("/api/v1/contracts/", headers=auth_headers)
+        with patch("app.api.v1.contracts.get_current_user", return_value=mock_user):
+            response = client.get("/api/v1/contracts/", headers=auth_headers)
 
-        assert response.status_code == 200
+            assert response.status_code == 200
         data = response.json()
 
         assert "contracts" in data
@@ -334,7 +348,7 @@ class TestContractAPI:
         assert data["filename"] == f"contract_{contract_id}.pdf"
         assert "PDF generated successfully" in data["message"]
 
-    def test_contract_generation_with_all_parameters(self, client):
+    def test_contract_generation_with_all_parameters(self, client, auth_headers, mock_user):
         """Test contract generation with all optional parameters"""
         comprehensive_request = {
             "title": "Comprehensive Test Contract",
@@ -355,35 +369,45 @@ class TestContractAPI:
             "compliance_level": "strict",
         }
 
-        with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
-            mock_ai_service.generate_contract = AsyncMock(
-                return_value=(
-                    "COMPREHENSIVE_CONTRACT_CONTENT",
-                    {"processing_time_ms": 2500},
+        # Override the dependency to return mock user
+        from app.core.auth import get_current_user
+        app.dependency_overrides[get_current_user] = lambda: mock_user
+
+        try:
+            with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
+                mock_ai_service.generate_contract = AsyncMock(
+                    return_value=(
+                        "COMPREHENSIVE_CONTRACT_CONTENT",
+                        {"processing_time_ms": 2500},
+                    )
                 )
-            )
-            mock_ai_service.validate_contract_compliance = AsyncMock(
-                return_value={"overall_score": 0.96, "risk_score": 2}
-            )
+                mock_ai_service.validate_contract_compliance = AsyncMock(
+                    return_value={"overall_score": 0.96, "risk_score": 2}
+                )
 
-            response = client.post(
-                "/api/v1/contracts/generate", json=comprehensive_request
-            )
+                response = client.post(
+                    "/api/v1/contracts/generate", 
+                    json=comprehensive_request,
+                    headers=auth_headers
+                )
 
-            assert response.status_code == 200
-            data = response.json()
+                assert response.status_code == 200
+                data = response.json()
 
-            contract = data["contract"]
-            assert contract["title"] == comprehensive_request["title"]
-            assert contract["contract_type"] == comprehensive_request["contract_type"]
+                contract = data["contract"]
+                assert contract["title"] == comprehensive_request["title"]
+                assert contract["contract_type"] == comprehensive_request["contract_type"]
 
-            # Verify AI service was called with correct parameters
-            mock_ai_service.generate_contract.assert_called_once()
-            call_args = mock_ai_service.generate_contract.call_args[1]
-            assert call_args["compliance_level"] == "strict"
-            assert (
-                call_args["company_details"] == comprehensive_request["company_details"]
-            )
+                # Verify AI service was called with correct parameters
+                mock_ai_service.generate_contract.assert_called_once()
+                call_args = mock_ai_service.generate_contract.call_args[1]
+                assert call_args["compliance_level"] == "strict"
+                assert (
+                    call_args["company_details"] == comprehensive_request["company_details"]
+                )
+        finally:
+            # Clean up dependency override
+            app.dependency_overrides.clear()
 
     @pytest.mark.parametrize(
         "contract_type",
@@ -396,7 +420,7 @@ class TestContractAPI:
             "consultancy",
         ],
     )
-    def test_contract_generation_all_types(self, client, contract_type):
+    def test_contract_generation_all_types(self, client, auth_headers, mock_user, contract_type):
         """Test contract generation for all supported contract types"""
         request_data = {
             "title": f"Test {contract_type.replace('_', ' ').title()}",
@@ -405,81 +429,116 @@ class TestContractAPI:
             "compliance_level": "standard",
         }
 
-        with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
-            mock_ai_service.generate_contract = AsyncMock(
-                return_value=(
-                    f"GENERATED_{contract_type.upper()}_CONTENT",
-                    {"processing_time_ms": 1500},
+        # Override the dependency to return mock user
+        from app.core.auth import get_current_user
+        app.dependency_overrides[get_current_user] = lambda: mock_user
+
+        try:
+            with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
+                mock_ai_service.generate_contract = AsyncMock(
+                    return_value=(
+                        f"GENERATED_{contract_type.upper()}_CONTENT",
+                        {"processing_time_ms": 1500},
+                    )
                 )
-            )
-            mock_ai_service.validate_contract_compliance = AsyncMock(
-                return_value={"overall_score": 0.90, "risk_score": 4}
-            )
+                mock_ai_service.validate_contract_compliance = AsyncMock(
+                    return_value={"overall_score": 0.90, "risk_score": 4}
+                )
 
-            response = client.post("/api/v1/contracts/generate", json=request_data)
+                response = client.post(
+                    "/api/v1/contracts/generate", 
+                    json=request_data,
+                    headers=auth_headers
+                )
 
-            assert response.status_code == 200
-            data = response.json()
-            assert data["contract"]["contract_type"] == contract_type
+                assert response.status_code == 200
+                data = response.json()
+                assert data["contract"]["contract_type"] == contract_type
+        finally:
+            # Clean up dependency override
+            app.dependency_overrides.clear()
 
-    def test_api_error_handling(self, client):
+    def test_api_error_handling(self, client, auth_headers, mock_user):
         """Test API error handling and response formats"""
-        # Test malformed JSON
-        response = client.post(
-            "/api/v1/contracts/generate",
-            data="invalid json",
-            headers={"Content-Type": "application/json"},
-        )
-        assert response.status_code == 422
+        # Override the dependency to return mock user
+        from app.core.auth import get_current_user
+        app.dependency_overrides[get_current_user] = lambda: mock_user
 
-        # Test missing required fields
-        response = client.post("/api/v1/contracts/generate", json={})
-        assert response.status_code == 422
-
-        # Test invalid enum values
-        response = client.post(
-            "/api/v1/contracts/generate",
-            json={
-                "title": "Test",
-                "contract_type": "invalid_type",
-                "plain_english_input": "test input",
-            },
-        )
-        assert response.status_code == 422
-
-    def test_response_schemas_compliance(self, client, valid_contract_request):
-        """Test that API responses match defined schemas"""
-        with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
-            mock_ai_service.generate_contract = AsyncMock(
-                return_value=(
-                    "CONTRACT_CONTENT",
-                    {
-                        "model_used": "llama3-70b-8192",
-                        "processing_time_ms": 1500,
-                        "prompt_tokens": 150,
-                        "completion_tokens": 800,
-                        "confidence_score": 0.85,
-                        "input_prompt": "test prompt",
-                    },
-                )
-            )
-
-            mock_ai_service.validate_contract_compliance = AsyncMock(
-                return_value={
-                    "overall_score": 0.92,
-                    "gdpr_compliance": 0.95,
-                    "risk_score": 3,
-                    "risk_factors": ["test"],
-                    "recommendations": ["test rec"],
-                    "validation_method": "ai",
-                }
-            )
-
+        try:
+            # Test malformed JSON
             response = client.post(
-                "/api/v1/contracts/generate", json=valid_contract_request
+                "/api/v1/contracts/generate",
+                data="invalid json",
+                headers={"Content-Type": "application/json", **auth_headers},
             )
+            assert response.status_code == 422
 
-            assert response.status_code == 200
+            # Test missing required fields
+            response = client.post(
+                "/api/v1/contracts/generate", 
+                json={},
+                headers=auth_headers
+            )
+            assert response.status_code == 422
+
+            # Test invalid enum values
+            response = client.post(
+                "/api/v1/contracts/generate",
+                json={
+                    "title": "Test",
+                    "contract_type": "invalid_type",
+                    "plain_english_input": "test input",
+                },
+                headers=auth_headers
+            )
+            assert response.status_code == 422
+        finally:
+            # Clean up dependency override
+            app.dependency_overrides.clear()
+
+    def test_response_schemas_compliance(self, client, auth_headers, mock_user, valid_contract_request):
+        """Test that API responses match defined schemas"""
+        # Override the dependency to return mock user
+        from app.core.auth import get_current_user
+        app.dependency_overrides[get_current_user] = lambda: mock_user
+
+        try:
+            with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
+                mock_ai_service.generate_contract = AsyncMock(
+                    return_value=(
+                        "CONTRACT_CONTENT",
+                        {
+                            "model_used": "llama3-70b-8192",
+                            "processing_time_ms": 1500,
+                            "prompt_tokens": 150,
+                            "completion_tokens": 800,
+                            "confidence_score": 0.85,
+                            "input_prompt": "test prompt",
+                        },
+                    )
+                )
+
+                mock_ai_service.validate_contract_compliance = AsyncMock(
+                    return_value={
+                        "overall_score": 0.92,
+                        "gdpr_compliance": 0.95,
+                        "risk_score": 3,
+                        "risk_factors": ["test"],
+                        "recommendations": ["test rec"],
+                        "validation_method": "ai",
+                    }
+                )
+
+                response = client.post(
+                    "/api/v1/contracts/generate", 
+                    json=valid_contract_request,
+                    headers=auth_headers
+                )
+
+                assert response.status_code == 200
+        finally:
+            # Clean up dependency override
+            app.dependency_overrides.clear()
             data = response.json()
 
             # Verify response structure matches ContractGenerationResponse schema
