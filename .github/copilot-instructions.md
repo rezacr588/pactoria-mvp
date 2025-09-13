@@ -33,18 +33,19 @@ contract = Contract.create(
 
 ### Testing Requirements
 - **100% domain logic coverage** - All business rules must have tests
-- Use `pytest` with `asyncio_mode = auto` 
+- Use `pytest` with `asyncio_mode = auto` (configured in `pytest.ini`)
 - Test files: `tests/unit/`, `tests/integration/`, `tests/e2e/`
 - Mock external services (Groq API) in tests using `unittest.mock`
+- **Install first**: `pip install pytest pytest-asyncio` if not already installed
 
 Critical test patterns:
 ```python
-# Domain entity tests
+# Domain entity tests (from tests/unit/)
 async def test_contract_creation_validates_business_rules():
     with pytest.raises(DomainValidationError):
         Contract.create(contract_id=None)  # Should fail
 
-# API endpoint tests  
+# API endpoint tests (from tests/integration/)
 async def test_create_contract_endpoint(client, auth_headers):
     response = await client.post("/api/v1/contracts", 
                                 json=contract_data, 
@@ -74,23 +75,48 @@ await ai_service.generate_contract(ContractGenerationRequest(...))
 
 ### Key AI Endpoints
 - `/api/v1/ai/generate` - Contract generation from plain English
-- `/api/v1/ai/analyze` - Legal compliance analysis
+- `/api/v1/ai/analyze` - Legal compliance analysis  
 - Uses `llama-3.3-70b-versatile` model for UK legal expertise
+
+### Actual AI Service Usage
+```python
+# From app/services/ai_service.py - real implementation
+ai_service = GroqAIService()
+request = ContractGenerationRequest(
+    plain_english_input="Create a service agreement...",
+    contract_type="service_agreement"
+)
+response = await ai_service.generate_contract(request)
+```
 
 ## Environment & Deployment
 
-### Local Development
+### Local Development Setup
 ```bash
-# Backend
-cd backend && python startup.py  # Initializes DB + seeds
-uvicorn app.main:app --reload
+# 1. Install backend dependencies (REQUIRED FIRST)
+cd backend && pip install -r requirements.txt
 
-# Frontend  
-cd frontend && npm run dev
+# 2. Initialize database and seed data
+python startup.py
 
-# Services (macOS background services)
-cd services && ./install.sh && pactoria-service start
+# 3. Start backend server  
+uvicorn app.main:app --reload --port 8000
+
+# 4. Install frontend dependencies (new terminal)
+cd ../frontend && npm install
+
+# 5. Start frontend development server
+npm run dev
+
+# 6. Optional: Services (macOS background services)
+cd ../services && ./install.sh && pactoria-service start
 ```
+
+### Common Setup Issues
+- **Missing backend dependencies**: Always run `pip install -r requirements.txt` first
+- **Frontend type errors**: Run `npm install` - some TypeScript errors are expected in development
+- **Port conflicts**: Backend runs on 8000, frontend on 5173 by default
+- **Database errors**: Run `python startup.py` to reinitialize database
 
 ### Configuration
 - Environment variables in `.env` files
@@ -136,20 +162,24 @@ cd services && ./install.sh && pactoria-service start
 ## Quick Reference Commands
 
 ```bash
-# Run tests
-pytest tests/ -v --cov=app
+# Backend tests (ensure backend deps installed first)
+cd backend && pip install -r requirements.txt  # Required first
+python -m pytest tests/ -v --cov=app           # Run tests
 
 # Database migration
-alembic upgrade head
+cd backend && alembic upgrade head
 
 # Format code
-black app/ && isort app/
+cd backend && black app/ && isort app/
 
-# Frontend type check
-cd frontend && npm run type-check
+# Frontend commands  
+cd frontend && npm install                      # Install deps first
+npm run build                                   # Production build
+npm run test:e2e                               # E2E tests
+# Note: npm run type-check may show dev-stage TypeScript errors
 
-# E2E tests
-cd frontend && npm run test:e2e
+# Service management (macOS)
+cd services && ./pactoria-service status
 ```
 
 ## When Adding Features
@@ -160,3 +190,25 @@ cd frontend && npm run test:e2e
 5. Expose via API endpoint
 6. Update frontend components
 7. Verify end-to-end functionality
+
+## Troubleshooting Common Issues
+
+### Backend Issues
+- **"No module named pytest"**: Run `pip install pytest pytest-asyncio`
+- **Database connection errors**: Run `python startup.py` to initialize DB
+- **Import errors**: Ensure you're in `/backend` directory when running Python commands
+- **Port 8000 in use**: Kill existing process or use different port with `--port 8001`
+
+### Frontend Issues  
+- **"Cannot find module 'react-router-dom'"**: Run `npm install` to install dependencies
+- **Type checking fails**: Ensure all @types packages installed with `npm install`
+- **Build errors**: Check that backend is running on correct port (8000)
+
+### Services Issues
+- **macOS services not starting**: Run `cd services && ./install.sh` first
+- **Permission denied**: Make scripts executable with `chmod +x services/*.sh`
+
+### Development Workflow Issues
+- **Tests failing**: Ensure test database is clean, restart with fresh `python startup.py`
+- **AI generation not working**: Check Groq API key in `.env` file
+- **CORS errors**: Verify frontend runs on port 5173, backend on 8000
