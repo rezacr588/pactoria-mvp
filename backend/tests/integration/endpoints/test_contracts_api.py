@@ -362,37 +362,42 @@ class TestContractAPI:
             "compliance_level": "strict",
         }
 
-        with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
-            mock_ai_service.generate_contract = AsyncMock(
-                return_value=(
-                    "COMPREHENSIVE_CONTRACT_CONTENT",
-                    {"processing_time_ms": 2500},
+        # Override the auth dependency (database is already overridden by conftest.py)
+        from app.core.auth import get_current_user
+        app.dependency_overrides[get_current_user] = lambda: mock_user
+
+        try:
+            with patch("app.api.v1.contracts.ai_service") as mock_ai_service:
+                mock_ai_service.generate_contract = AsyncMock(
+                    return_value=(
+                        "COMPREHENSIVE_CONTRACT_CONTENT",
+                        {"processing_time_ms": 2500},
+                    )
                 )
-            )
-            mock_ai_service.validate_contract_compliance = AsyncMock(
-                return_value={"overall_score": 0.96, "risk_score": 2}
-            )
+                mock_ai_service.validate_contract_compliance = AsyncMock(
+                    return_value={"overall_score": 0.96, "risk_score": 2}
+                )
 
-            response = client.post(
-                "/api/v1/contracts/generate", 
-                json=comprehensive_request,
-                headers=auth_headers
-            )
+                response = client.post(
+                    "/api/v1/contracts/generate", 
+                    json=comprehensive_request,
+                    headers=auth_headers
+                )
 
-            assert response.status_code == 201
-            data = response.json()
+                assert response.status_code == 201
+                data = response.json()
 
-            contract = data["contract"]
-            assert contract["title"] == comprehensive_request["title"]
-            assert contract["contract_type"] == comprehensive_request["contract_type"]
+                contract = data["contract"]
+                assert contract["title"] == comprehensive_request["title"]
+                assert contract["contract_type"] == comprehensive_request["contract_type"]
 
-            # Verify AI service was called with correct parameters
-            mock_ai_service.generate_contract.assert_called_once()
-            call_args = mock_ai_service.generate_contract.call_args[1]
-            assert call_args["compliance_level"] == "strict"
-            assert (
-                call_args["company_details"] == comprehensive_request["company_details"]
-            )
+                # Verify AI service was called with correct parameters
+                mock_ai_service.generate_contract.assert_called_once()
+                call_args = mock_ai_service.generate_contract.call_args[1]
+                assert call_args["compliance_level"] == "strict"
+                assert (
+                    call_args["company_details"] == comprehensive_request["company_details"]
+                )
         finally:
             # Only clear the auth override, leave database as is
             if get_current_user in app.dependency_overrides:
@@ -417,11 +422,6 @@ class TestContractAPI:
             "plain_english_input": f"I need a {contract_type.replace('_', ' ')} with standard terms and conditions",
             "compliance_level": "standard",
         }
-
-<<<<<<< HEAD
-        # Override the auth dependency
-        from app.core.auth import get_current_user
-        app.dependency_overrides[get_current_user] = lambda: mock_user
 
         # Override the auth dependency
         from app.core.auth import get_current_user
