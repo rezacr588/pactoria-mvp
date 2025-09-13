@@ -482,17 +482,17 @@ export default function PricingPage() {
       </div>
 
       {/* Pricing Toggle */}
-      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
+      <div className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className={`${typography.heading.h2} font-bold tracking-tight text-secondary-900 dark:text-secondary-100 mb-6`}>
             Choose your plan
           </h2>
-          <p className={`${typography.body.large} leading-8 text-secondary-600 dark:text-secondary-400 mb-12`}>
+          <p className={`${typography.body.large} leading-8 text-secondary-600 dark:text-secondary-400 mb-10`}>
             All plans include a 14-day free trial with full access to features. No credit card required.
           </p>
           
           {/* Billing Toggle */}
-          <div className="flex items-center justify-center mb-16">
+          <div className="flex items-center justify-center mb-12">
             <div className="flex rounded-lg bg-secondary-100 dark:bg-secondary-800 p-1">
               <button
                 onClick={() => setIsYearly(false)}
@@ -521,7 +521,7 @@ export default function PricingPage() {
           </div>
 
           {/* Pricing Cards */}
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
             {pricingTiers.map((tier) => (
               <Card
                 key={tier.id}
@@ -609,9 +609,9 @@ export default function PricingPage() {
       </div>
 
       {/* Features Section */}
-      <div className="bg-gradient-to-b from-secondary-50/50 to-white dark:from-secondary-950/50 dark:to-secondary-950 py-24 sm:py-32">
+      <div className="bg-gradient-to-b from-secondary-50/50 to-white dark:from-secondary-950/50 dark:to-secondary-950 py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl lg:text-center mb-16">
+          <div className="mx-auto max-w-2xl lg:text-center mb-12">
             <div className="inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-primary-700 bg-primary-100 dark:text-primary-300 dark:bg-primary-900/30 mb-6 ring-1 ring-primary-200 dark:ring-primary-800/50">
               <LightBulbIcon className="h-4 w-4 mr-2" />
               Value Proposition
@@ -624,7 +624,7 @@ export default function PricingPage() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
             {features.map((feature) => (
               <Card key={feature.name} variant="elevated" hover className="text-center">
                 <CardContent className="p-6">
@@ -645,15 +645,15 @@ export default function PricingPage() {
       </div>
 
       {/* FAQ Section */}
-      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
-        <div className="mx-auto max-w-2xl lg:text-center mb-16">
+      <div className="mx-auto max-w-7xl px-6 py-20 sm:py-28 lg:px-8">
+        <div className="mx-auto max-w-2xl lg:text-center mb-12">
           <h2 className={`${typography.heading.h2} font-bold tracking-tight text-secondary-900 dark:text-secondary-100 mb-6`}>
             Frequently asked questions
           </h2>
         </div>
         
         <div className="mx-auto max-w-4xl">
-          <div className="space-y-8">
+          <div className="space-y-6">
             {[
               {
                 question: "Do you offer a free trial?",
@@ -676,11 +676,11 @@ export default function PricingPage() {
                 answer: "Yes! We offer a 25% discount for registered UK charities and non-profit organizations. Contact our sales team for details."
               }
             ].map((faq, index) => (
-              <Card key={index} variant="bordered" className="p-6">
+              <Card key={index} variant="bordered" className="p-6 hover:shadow-md dark:hover:shadow-secondary-900/20 transition-shadow duration-200">
                 <h3 className={`${typography.body.large} font-semibold text-secondary-900 dark:text-secondary-100 mb-3`}>
                   {faq.question}
                 </h3>
-                <p className={`${typography.body.medium} text-secondary-600 dark:text-secondary-400`}>
+                <p className={`${typography.body.medium} text-secondary-600 dark:text-secondary-400 leading-relaxed`}>
                   {faq.answer}
                 </p>
               </Card>
@@ -691,12 +691,12 @@ export default function PricingPage() {
 
       {/* CTA Section */}
       <div className="bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900">
-        <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
+        <div className="mx-auto max-w-7xl px-6 py-20 sm:py-28 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className={`${typography.display.medium} font-bold tracking-tight text-white mb-6`}>
               Ready to transform your contract management?
             </h2>
-            <p className={`${typography.body.large} leading-8 text-white/90 mb-10`}>
+            <p className={`${typography.body.large} leading-8 text-white/90 mb-8`}>
               Join hundreds of UK SMEs saving time and money with Pactoria. Start your free trial today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
