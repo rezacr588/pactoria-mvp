@@ -62,7 +62,9 @@ export default function ContractViewPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedContent, setEditedContent] = useState('');
+  const [editingSections, setEditingSections] = useState<Record<string, boolean>>({});
+  const [editedSections, setEditedSections] = useState<Record<string, string>>({});
+  const [isSaving, setIsSaving] = useState(false);
 
   // Use ref to store fetchContract to avoid infinite loop
   const fetchContractRef = useRef(fetchContract);
@@ -186,24 +188,62 @@ export default function ContractViewPage() {
 
   const handleEditContent = useCallback(() => {
     setIsEditing(true);
-    setEditedContent(contract.final_content || contract.generated_content || '');
-  }, [contract.final_content, contract.generated_content]);
-
-  const handleSaveContent = useCallback(async () => {
-    if (!contract.id) return;
-    
-    try {
-      await updateContract(contract.id, { final_content: editedContent });
-      await fetchContract(contract.id);
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Failed to save content:', error);
-    }
-  }, [contract.id, editedContent, updateContract, fetchContract]);
+  }, []);
 
   const handleCancelEdit = useCallback(() => {
     setIsEditing(false);
-    setEditedContent('');
+    setEditingSections({});
+    setEditedSections({});
+  }, []);
+
+  // New functions for inline editing
+  const handleStartInlineEdit = useCallback((sectionId: string, currentContent: string) => {
+    setEditingSections(prev => ({ ...prev, [sectionId]: true }));
+    setEditedSections(prev => ({ ...prev, [sectionId]: currentContent }));
+  }, []);
+
+  const handleSaveInlineEdit = useCallback(async (sectionId: string) => {
+    if (!contract.id || !editedSections[sectionId]) return;
+    
+    setIsSaving(true);
+    try {
+      // Reconstruct the full content with the edited section
+      const originalContent = contract.final_content || contract.generated_content || '';
+      const sections = originalContent.split('\n\n');
+      const sectionIndex = parseInt(sectionId.replace('section-', ''));
+      
+      if (sectionIndex >= 0 && sectionIndex < sections.length) {
+        sections[sectionIndex] = editedSections[sectionId];
+        const newContent = sections.join('\n\n');
+        
+        await updateContract(contract.id, { final_content: newContent });
+        await fetchContract(contract.id);
+      }
+      
+      setEditingSections(prev => ({ ...prev, [sectionId]: false }));
+      setEditedSections(prev => {
+        const newSections = { ...prev };
+        delete newSections[sectionId];
+        return newSections;
+      });
+    } catch (error) {
+      console.error('Failed to save section:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [contract.id, contract.final_content, contract.generated_content, editedSections, updateContract, fetchContract]);
+
+  const handleCancelInlineEdit = useCallback((sectionId: string) => {
+    setEditingSections(prev => ({ ...prev, [sectionId]: false }));
+    setEditedSections(prev => {
+      const newSections = { ...prev };
+      delete newSections[sectionId];
+      return newSections;
+    });
+  }, []);
+
+  const handleSectionContentChange = useCallback((sectionId: string, content: string) => {
+    setEditedSections(prev => ({ ...prev, [sectionId]: content }));
   }, []);
 
   const statusInfo = statusConfig[contract.status as keyof typeof statusConfig] || statusConfig.draft;
@@ -667,63 +707,43 @@ export default function ContractViewPage() {
             <div className="card">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-medium text-gray-900">Contract Content</h3>
-                {contract.generated_content && !isEditing && (
+                {(contract.generated_content || contract.final_content) && !isEditing && (
                   <button
                     onClick={handleEditContent}
                     className="btn-secondary text-sm"
                   >
                     <PencilIcon className="h-4 w-4 mr-1" />
-                    Edit Content
+                    Enable Interactive Editing
                   </button>
                 )}
                 {isEditing && (
                   <div className="flex space-x-2">
                     <button
-                      onClick={handleSaveContent}
-                      className="btn-primary text-sm"
-                    >
-                      Save Changes
-                    </button>
-                    <button
                       onClick={handleCancelEdit}
                       className="btn-secondary text-sm"
                     >
-                      Cancel
+                      Exit Editing Mode
                     </button>
                   </div>
                 )}
               </div>
               
-              {isEditing ? (
-                /* Live Edit Mode */
-                <div className="space-y-4">
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <PencilIcon className="h-5 w-5 text-yellow-600" />
-                      </div>
-                      <div className="ml-3">
-                        <h4 className="text-sm font-medium text-yellow-800">Editing Mode</h4>
-                        <p className="text-sm text-yellow-700">Make changes to the contract content. Remember to save your changes.</p>
-                      </div>
-                    </div>
-                  </div>
-                  <textarea
-                    value={editedContent}
-                    onChange={(e) => setEditedContent(e.target.value)}
-                    className="w-full h-96 p-4 border border-gray-300 rounded-lg font-mono text-sm resize-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Enter contract content..."
-                    style={{ fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace' }}
-                  />
-                  <div className="flex justify-between items-center text-sm text-gray-500">
-                    <span>{editedContent.length} characters</span>
-                    <span>Auto-save disabled in edit mode</span>
-                  </div>
-                </div>
-              ) : contract.generated_content ? (
+              {(contract.generated_content || contract.final_content) ? (
                 <div className="prose max-w-none">
-                  {/* PDF-like document styling */}
+                  {/* Interactive PDF-like document styling */}
                   <div className="bg-white border border-gray-300 rounded-lg shadow-lg p-8 mx-auto max-w-4xl" style={{ fontFamily: 'Times, serif' }}>
+                    {/* Editing mode indicator */}
+                    {isEditing && (
+                      <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div className="flex items-center">
+                          <PencilIcon className="h-5 w-5 text-blue-600 mr-2" />
+                          <span className="text-sm font-medium text-blue-800">
+                            Interactive Editing Mode - Click on any section to edit
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Document header */}
                     <div className="text-center mb-8 pb-4 border-b-2 border-gray-300">
                       <h1 className="text-2xl font-bold text-gray-900 mb-2">{contract.title}</h1>
@@ -742,7 +762,7 @@ export default function ContractViewPage() {
                       </div>
                     </div>
 
-                    {/* Document content with PDF-like formatting */}
+                    {/* Interactive document content */}
                     <div 
                       className="text-gray-800 leading-relaxed space-y-4"
                       style={{ 
@@ -751,38 +771,181 @@ export default function ContractViewPage() {
                         textAlign: 'justify'
                       }}
                     >
-                      {(contract.final_content || contract.generated_content).split('\n\n').map((paragraph, index) => {
+                      {(contract.final_content || contract.generated_content || '').split('\n\n').map((paragraph, index) => {
                         const trimmed = paragraph.trim();
                         if (!trimmed) return null;
                         
-                        // Style different parts of the contract
+                        const sectionId = `section-${index}`;
+                        const isEditingSection = editingSections[sectionId];
+                        const editContent = editedSections[sectionId] || trimmed;
+                        
+                        // Common editing controls for each section
+                        const EditingControls = () => (
+                          <div className="flex items-center space-x-2 mt-2">
+                            <button
+                              onClick={() => handleSaveInlineEdit(sectionId)}
+                              disabled={isSaving}
+                              className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 bg-green-100 border border-green-300 rounded hover:bg-green-200 disabled:opacity-50"
+                            >
+                              {isSaving ? 'Saving...' : 'Save'}
+                            </button>
+                            <button
+                              onClick={() => handleCancelInlineEdit(sectionId)}
+                              className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        );
+
+                        // Style different parts of the contract with inline editing
                         if (trimmed.toUpperCase() === trimmed && trimmed.length > 5) {
                           // All caps = heading
                           return (
-                            <h2 key={index} className="text-lg font-bold text-center my-6 text-gray-900">
-                              {trimmed}
-                            </h2>
+                            <div key={index} className={`relative group ${isEditing ? 'hover:bg-blue-50 hover:border hover:border-blue-200 rounded p-2' : ''}`}>
+                              {isEditingSection ? (
+                                <div>
+                                  <input
+                                    type="text"
+                                    value={editContent}
+                                    onChange={(e) => handleSectionContentChange(sectionId, e.target.value)}
+                                    className="w-full text-lg font-bold text-center my-6 text-gray-900 bg-transparent border-b-2 border-blue-300 focus:outline-none focus:border-blue-500"
+                                    autoFocus
+                                  />
+                                  <EditingControls />
+                                </div>
+                              ) : (
+                                <>
+                                  <h2 
+                                    className="text-lg font-bold text-center my-6 text-gray-900 cursor-pointer"
+                                    onClick={() => isEditing && handleStartInlineEdit(sectionId, trimmed)}
+                                  >
+                                    {trimmed}
+                                  </h2>
+                                  {isEditing && (
+                                    <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button
+                                        onClick={() => handleStartInlineEdit(sectionId, trimmed)}
+                                        className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+                                      >
+                                        <PencilIcon className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </div>
                           );
                         } else if (trimmed.match(/^\d+\./)) {
                           // Numbered sections
                           return (
-                            <div key={index} className="mt-6 mb-4">
-                              <p className="font-semibold text-gray-900">{trimmed}</p>
+                            <div key={index} className={`mt-6 mb-4 relative group ${isEditing ? 'hover:bg-blue-50 hover:border hover:border-blue-200 rounded p-2' : ''}`}>
+                              {isEditingSection ? (
+                                <div>
+                                  <textarea
+                                    value={editContent}
+                                    onChange={(e) => handleSectionContentChange(sectionId, e.target.value)}
+                                    className="w-full font-semibold text-gray-900 bg-transparent border border-blue-300 rounded p-2 focus:outline-none focus:border-blue-500 resize-vertical"
+                                    rows={Math.max(2, editContent.split('\n').length)}
+                                    autoFocus
+                                  />
+                                  <EditingControls />
+                                </div>
+                              ) : (
+                                <>
+                                  <p 
+                                    className="font-semibold text-gray-900 cursor-pointer"
+                                    onClick={() => isEditing && handleStartInlineEdit(sectionId, trimmed)}
+                                  >
+                                    {trimmed}
+                                  </p>
+                                  {isEditing && (
+                                    <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button
+                                        onClick={() => handleStartInlineEdit(sectionId, trimmed)}
+                                        className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+                                      >
+                                        <PencilIcon className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  )}
+                                </>
+                              )}
                             </div>
                           );
                         } else if (trimmed.match(/^[A-Z][A-Z\s]+:/)) {
                           // Section headers with colon
                           return (
-                            <h3 key={index} className="text-base font-bold mt-6 mb-3 text-gray-900 uppercase">
-                              {trimmed}
-                            </h3>
+                            <div key={index} className={`relative group ${isEditing ? 'hover:bg-blue-50 hover:border hover:border-blue-200 rounded p-2' : ''}`}>
+                              {isEditingSection ? (
+                                <div>
+                                  <input
+                                    type="text"
+                                    value={editContent}
+                                    onChange={(e) => handleSectionContentChange(sectionId, e.target.value)}
+                                    className="w-full text-base font-bold mt-6 mb-3 text-gray-900 uppercase bg-transparent border-b border-blue-300 focus:outline-none focus:border-blue-500"
+                                    autoFocus
+                                  />
+                                  <EditingControls />
+                                </div>
+                              ) : (
+                                <>
+                                  <h3 
+                                    className="text-base font-bold mt-6 mb-3 text-gray-900 uppercase cursor-pointer"
+                                    onClick={() => isEditing && handleStartInlineEdit(sectionId, trimmed)}
+                                  >
+                                    {trimmed}
+                                  </h3>
+                                  {isEditing && (
+                                    <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button
+                                        onClick={() => handleStartInlineEdit(sectionId, trimmed)}
+                                        className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+                                      >
+                                        <PencilIcon className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </div>
                           );
                         } else {
                           // Regular paragraphs
                           return (
-                            <p key={index} className="mb-4 text-gray-800">
-                              {trimmed}
-                            </p>
+                            <div key={index} className={`relative group ${isEditing ? 'hover:bg-blue-50 hover:border hover:border-blue-200 rounded p-2' : ''}`}>
+                              {isEditingSection ? (
+                                <div>
+                                  <textarea
+                                    value={editContent}
+                                    onChange={(e) => handleSectionContentChange(sectionId, e.target.value)}
+                                    className="w-full mb-4 text-gray-800 bg-transparent border border-blue-300 rounded p-2 focus:outline-none focus:border-blue-500 resize-vertical"
+                                    rows={Math.max(3, editContent.split('\n').length)}
+                                    autoFocus
+                                  />
+                                  <EditingControls />
+                                </div>
+                              ) : (
+                                <>
+                                  <p 
+                                    className="mb-4 text-gray-800 cursor-pointer"
+                                    onClick={() => isEditing && handleStartInlineEdit(sectionId, trimmed)}
+                                  >
+                                    {trimmed}
+                                  </p>
+                                  {isEditing && (
+                                    <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button
+                                        onClick={() => handleStartInlineEdit(sectionId, trimmed)}
+                                        className="p-1 text-blue-600 hover:bg-blue-100 rounded"
+                                      >
+                                        <PencilIcon className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </div>
                           );
                         }
                       })}
