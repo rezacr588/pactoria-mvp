@@ -771,7 +771,7 @@ export default function ContractViewPage() {
                         textAlign: 'justify'
                       }}
                     >
-                      {(contract.final_content || contract.generated_content).split('\n\n').map((paragraph, index) => {
+                      {(contract.final_content || contract.generated_content || '').split('\n\n').map((paragraph, index) => {
                         const trimmed = paragraph.trim();
                         if (!trimmed) return null;
                         
