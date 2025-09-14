@@ -48,6 +48,9 @@ export function useContractForm(): UseContractFormReturn {
         if (!formData.clientName.trim()) {
           newErrors.clientName = 'Client name is required';
         }
+        if (!formData.plainEnglishInput.trim()) {
+          newErrors.plainEnglishInput = 'Plain English description is required for AI generation';
+        }
         if (!formData.serviceDescription.trim()) {
           newErrors.serviceDescription = 'Service description is required';
         }
