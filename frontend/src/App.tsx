@@ -12,6 +12,7 @@ import LoadingSpinner from './components/ui/LoadingSpinner';
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const ContractsPage = lazy(() => import('./pages/ContractsPage'));
 const ContractCreatePage = lazy(() => import('./pages/ContractCreatePage'));
+const ContractEditPage = lazy(() => import('./pages/ContractEditPage'));
 const ContractViewPage = lazy(() => import('./pages/ContractViewPage'));
 const TeamPage = lazy(() => import('./pages/TeamPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
@@ -98,7 +99,12 @@ function App() {
       <ThemeProvider defaultTheme="light">
         <NotificationProvider>
           <ToastProvider>
-            <Router>
+            <Router
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
+            >
               <KeyboardShortcutsProvider>
                 {/* Skip Links for accessibility */}
                 <SkipLinks />
@@ -133,9 +139,15 @@ function App() {
                       <ContractCreatePage />
                     </ErrorBoundary>
                   } />
+                  <Route path="contracts/create" element={<Navigate to="/contracts/new" replace />} />
                   <Route path="contracts/:id" element={
                     <ErrorBoundary level="component">
                       <ContractViewPage />
+                    </ErrorBoundary>
+                  } />
+                  <Route path="contracts/:id/edit" element={
+                    <ErrorBoundary level="component">
+                      <ContractEditPage />
                     </ErrorBoundary>
                   } />
                   <Route path="analytics" element={

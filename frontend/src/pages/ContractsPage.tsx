@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useContracts } from '../hooks';
 import { useAuthStore } from '../store/authStore';
+import { usePermissions } from '../hooks/usePermissions';
+import { PermissionGate } from '../components/PermissionGate';
 import { Contract } from '../types';
 import { CONTRACT_STATUS_OPTIONS } from '../store/contractStore';
 import { 
@@ -34,6 +36,7 @@ const CONTRACT_TYPE_OPTIONS = [
 
 export default function ContractsPage() {
   const { user, isAuthenticated } = useAuthStore();
+  const permissions = usePermissions();
   const { 
     contracts = [], 
     isLoading, 
@@ -52,6 +55,10 @@ export default function ContractsPage() {
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
+  // Use ref to store fetchContracts to avoid infinite loop
+  const fetchContractsRef = useRef(fetchContracts);
+  fetchContractsRef.current = fetchContracts;
+
   useEffect(() => {
     // Only fetch contracts if user is authenticated
     if (!isAuthenticated || !user) {
@@ -60,7 +67,7 @@ export default function ContractsPage() {
 
     const loadContracts = async () => {
       try {
-        await fetchContracts({
+        await fetchContractsRef.current({
           page: 1,
           size: 100,
           status: statusFilter || undefined,
@@ -79,7 +86,7 @@ export default function ContractsPage() {
     }, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [isAuthenticated, user, fetchContracts, statusFilter, typeFilter, searchQuery]);
+  }, [isAuthenticated, user, statusFilter, typeFilter, searchQuery, fetchContractsRef]);
 
   const handleStatusFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setStatusFilter(e.target.value);
@@ -200,12 +207,14 @@ export default function ContractsPage() {
             Manage your contracts and agreements
           </p>
         </div>
-        <Link to="/contracts/create">
-          <Button className="flex items-center gap-2">
-            <PlusIcon className="h-4 w-4" />
-            New Contract
-          </Button>
-        </Link>
+        <PermissionGate permission="canManageContracts">
+          <Link to="/contracts/new">
+            <Button className="flex items-center gap-2">
+              <PlusIcon className="h-4 w-4" />
+              New Contract
+            </Button>
+          </Link>
+        </PermissionGate>
       </div>
 
       {/* Filters and View Toggle */}
@@ -293,7 +302,7 @@ export default function ContractsPage() {
             description="Get started by creating your first contract."
             action={{
               label: "Create Contract",
-              href: "/contracts/create"
+              href: "/contracts/new"
             }}
             data-testid="contracts-empty-state"
           />
@@ -358,26 +367,30 @@ export default function ContractsPage() {
                       <EyeIcon className="h-3 w-3" />
                       View
                     </button>
-                    <button
-                      onClick={() => handleEdit(contract.id)}
-                      data-testid={`edit-contract-${contract.id}`}
-                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
-                    >
-                      <PencilIcon className="h-3 w-3" />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(contract.id)}
-                      data-testid={`delete-contract-${contract.id}`}
-                      className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                        deleteConfirm === contract.id
-                          ? 'text-white bg-red-600 hover:bg-red-700'
-                          : 'text-red-600 hover:text-red-700 hover:bg-red-50'
-                      }`}
-                    >
-                      <TrashIcon className="h-3 w-3" />
-                      {deleteConfirm === contract.id ? 'Confirm' : 'Delete'}
-                    </button>
+                    <PermissionGate permission="canManageContracts">
+                      <button
+                        onClick={() => handleEdit(contract.id)}
+                        data-testid={`edit-contract-${contract.id}`}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
+                      >
+                        <PencilIcon className="h-3 w-3" />
+                        Edit
+                      </button>
+                    </PermissionGate>
+                    <PermissionGate permission="canManageContracts">
+                      <button
+                        onClick={() => handleDelete(contract.id)}
+                        data-testid={`delete-contract-${contract.id}`}
+                        className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                          deleteConfirm === contract.id
+                            ? 'text-white bg-red-600 hover:bg-red-700'
+                            : 'text-red-600 hover:text-red-700 hover:bg-red-50'
+                        }`}
+                      >
+                        <TrashIcon className="h-3 w-3" />
+                        {deleteConfirm === contract.id ? 'Confirm' : 'Delete'}
+                      </button>
+                    </PermissionGate>
                   </div>
                 </div>
               </div>
@@ -469,24 +482,28 @@ export default function ContractsPage() {
                         >
                           <EyeIcon className="h-4 w-4" />
                         </button>
-                        <button
-                          onClick={() => handleEdit(contract.id)}
-                          className="text-gray-600 hover:text-gray-900 p-1 rounded-md hover:bg-gray-50 transition-colors"
-                          title="Edit Contract"
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(contract.id)}
-                          className={`p-1 rounded-md transition-colors ${
-                            deleteConfirm === contract.id
-                              ? 'text-white bg-red-600 hover:bg-red-700'
-                              : 'text-red-600 hover:text-red-900 hover:bg-red-50'
-                          }`}
-                          title={deleteConfirm === contract.id ? 'Confirm Delete' : 'Delete Contract'}
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
+                        <PermissionGate permission="canManageContracts">
+                          <button
+                            onClick={() => handleEdit(contract.id)}
+                            className="text-gray-600 hover:text-gray-900 p-1 rounded-md hover:bg-gray-50 transition-colors"
+                            title="Edit Contract"
+                          >
+                            <PencilIcon className="h-4 w-4" />
+                          </button>
+                        </PermissionGate>
+                        <PermissionGate permission="canManageContracts">
+                          <button
+                            onClick={() => handleDelete(contract.id)}
+                            className={`p-1 rounded-md transition-colors ${
+                              deleteConfirm === contract.id
+                                ? 'text-white bg-red-600 hover:bg-red-700'
+                                : 'text-red-600 hover:text-red-900 hover:bg-red-50'
+                            }`}
+                            title={deleteConfirm === contract.id ? 'Confirm Delete' : 'Delete Contract'}
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </PermissionGate>
                       </div>
                     </td>
                   </tr>

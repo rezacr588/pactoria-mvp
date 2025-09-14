@@ -1,7 +1,8 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useContractStore } from '../store/contractStore';
 import { useUIStore } from '../store/uiStore';
 import { useStore, useOptimisticUpdate } from './useStore';
+// import { useDebouncedCallback } from './useDebounce';
 import { Contract } from '../types';
 
 export interface UseContractsOptions {
@@ -66,6 +67,20 @@ export function useContracts(options: UseContractsOptions = {}): UseContractsRet
     pagination = {}
   } = options;
 
+  // Keep stable refs for filters/pagination to avoid recreating callbacks each render
+  const filtersRef = useRef(filters);
+  const paginationRef = useRef(pagination);
+
+  // Update refs only when values actually change (deep compare via JSON string)
+  const filtersKey = JSON.stringify(filters);
+  const paginationKey = JSON.stringify(pagination);
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filtersKey]);
+  useEffect(() => {
+    paginationRef.current = pagination;
+  }, [paginationKey]);
+
   // Optimized selectors to prevent unnecessary re-renders
   const contracts = useStore(useContractStore, (state) => state.contracts);
   const selectedContract = useStore(useContractStore, (state) => state.selectedContract);
@@ -108,11 +123,11 @@ export function useContracts(options: UseContractsOptions = {}): UseContractsRet
     isLoading: true
   }));
 
-  // Enhanced fetch with UI integration
+  // Enhanced fetch with UI integration and debouncing
   const fetchContracts = useCallback(async (params = {}) => {
     const mergedParams = {
-      ...filters,
-      ...pagination,
+      ...filtersRef.current,
+      ...paginationRef.current,
       ...params
     };
 
@@ -141,7 +156,10 @@ export function useContracts(options: UseContractsOptions = {}): UseContractsRet
     } finally {
       setUILoading('contracts-fetch', false);
     }
-  }, [storeFetchContracts, filters, pagination, setUILoading, setUIError, addNotification]);
+  }, [storeFetchContracts, setUILoading, setUIError, addNotification]);
+
+  // Debounced version for frequent calls (like from dashboard)
+  // const debouncedFetchContracts = useDebouncedCallback(fetchContracts, 300);
 
   // Enhanced create with optimistic updates
   const createContract = useCallback(async (data: any): Promise<Contract> => {

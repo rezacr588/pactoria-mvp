@@ -12,7 +12,7 @@ sys.path.append('/Users/rezazeraat/Desktop/Pactoria-MVP/backend')
 
 from app.core.database import get_db
 from app.core.security import hash_password
-from app.infrastructure.database.models import User, Company
+from app.infrastructure.database.models import User, Company, UserRole
 from datetime import datetime
 from sqlalchemy.orm import Session
 
@@ -55,6 +55,7 @@ async def create_demo_user():
                 full_name="Demo User",
                 hashed_password=hashed_password,
                 is_active=True,
+                role=UserRole.ADMIN,
                 timezone="Europe/London",
                 company_id=company.id,
                 created_at=datetime.utcnow(),

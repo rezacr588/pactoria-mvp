@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   BellIcon,
   CheckIcon,
@@ -178,9 +178,13 @@ export default function NotificationsPage() {
     }
   }, [showToast]);
 
+  // Use ref to store fetchNotifications to avoid infinite loop
+  const fetchNotificationsRef = useRef(fetchNotifications);
+  fetchNotificationsRef.current = fetchNotifications;
+
   useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+    fetchNotificationsRef.current();
+  }, [fetchNotificationsRef]);
 
   useEffect(() => {
     const params: any = {};
@@ -194,8 +198,8 @@ export default function NotificationsPage() {
     else if (statusFilter === 'read') params.read = true;
     else if (statusFilter === 'actionRequired') params.action_required = true;
     
-    fetchNotifications(params);
-  }, [searchQuery, typeFilter, priorityFilter, statusFilter, fetchNotifications]);
+    fetchNotificationsRef.current(params);
+  }, [searchQuery, typeFilter, priorityFilter, statusFilter, fetchNotificationsRef]);
 
   const handleMarkAsRead = useCallback(async (id: string) => {
     try {

@@ -1,4 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+// Global guard to prevent double initialization in React 18 StrictMode
+declare global {
+  interface Window { __PACTORIA_APP_INITIALIZED__?: boolean }
+}
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -9,9 +14,13 @@ export default function AppLayout() {
   const { fetchContracts } = useContracts();
   const { fetchTemplates } = useTemplates();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const initializedRef = useRef(false);
 
   // Initialize data when layout mounts
   useEffect(() => {
+    if (initializedRef.current || window.__PACTORIA_APP_INITIALIZED__) return;
+    initializedRef.current = true;
+    window.__PACTORIA_APP_INITIALIZED__ = true;
     const initializeApp = async () => {
       try {
         // Fetch contracts and templates separately to handle failures independently

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useContractStore } from '../store/contractStore';
 import { ContractTemplate } from '../types';
 
@@ -35,15 +35,20 @@ export function useTemplates(options: UseTemplatesOptions = {}): UseTemplatesRet
   } = useContractStore();
 
   const { filters = {} } = options;
+  const filtersRef = useRef(filters);
+  const filtersKey = JSON.stringify(filters);
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters, filtersKey]);
 
   // Enhanced fetch with options
   const fetchTemplates = useCallback(async (params = {}) => {
     const mergedParams = {
-      ...filters,
+      ...filtersRef.current,
       ...params
     };
-    return storeFetchTemplates(mergedParams);
-  }, [storeFetchTemplates, filters]);
+    await storeFetchTemplates(mergedParams);
+  }, [storeFetchTemplates]);
 
   // Group templates by type
   const templatesByType = useMemo(() => {

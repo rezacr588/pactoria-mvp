@@ -449,10 +449,17 @@ export class ContractService {
     supplier_name?: string;
     contract_value?: number;
     currency?: string;
-    start_date?: string;
-    end_date?: string;
+    start_date?: string | null;
+    end_date?: string | null;
     template_id?: string;
   }) {
+    // Clean up the data before sending to API
+    const cleanedData = {
+      ...data,
+      start_date: data.start_date || undefined,
+      end_date: data.end_date || undefined,
+    };
+    
     return api.post<{
       id: string;
       title: string;
@@ -476,7 +483,7 @@ export class ContractService {
       ai_generation_id?: string;
       created_at: string;
       updated_at?: string;
-    }>('/contracts/', data);
+    }>('/contracts/', cleanedData);
   }
 
   static async updateContract(id: string, data: {
@@ -1120,11 +1127,11 @@ export class TemplateService {
   }
 
   static async getTemplateCategories() {
-    return api.get<string[]>('/templates/categories');
+    return api.get<string[]>('/templates/categories/');
   }
 
   static async getTemplateContractTypes() {
-    return api.get<string[]>('/templates/contract-types');
+    return api.get<string[]>('/templates/contract-types/');
   }
 }
 

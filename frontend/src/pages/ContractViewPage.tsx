@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useContracts } from '../hooks';
 import {
   ArrowLeftIcon,
@@ -53,16 +53,21 @@ function classNames(...classes: string[]) {
 
 export default function ContractViewPage() {
   const { id } = useParams<{ id: string }>();
-  const { selectedContract, fetchContract, generateContent, analyzeCompliance } = useContracts();
+  const navigate = useNavigate();
+  const { selectedContract, isLoading, error, fetchContract, generateContent, analyzeCompliance, clearError } = useContracts();
   const [activeTab, setActiveTab] = useState('overview');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  // Use ref to store fetchContract to avoid infinite loop
+  const fetchContractRef = useRef(fetchContract);
+  fetchContractRef.current = fetchContract;
+
   useEffect(() => {
     if (id) {
-      fetchContract(id);
+      fetchContractRef.current(id);
     }
-  }, [id, fetchContract]);
+  }, [id, fetchContractRef]);
 
   // Use selectedContract from the hook
   const contract = selectedContract || {
@@ -94,12 +99,66 @@ export default function ContractViewPage() {
     }
   };
 
-  if (!selectedContract) {
+  // Show loading state when still loading
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading contract...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state when there's an error and no contract
+  if (error && !selectedContract) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+            <ExclamationTriangleIcon className="h-12 w-12 text-red-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Contract Not Found</h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <div className="flex space-x-3 justify-center">
+              <Link
+                to="/contracts"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                <ArrowLeftIcon className="h-4 w-4 mr-2" />
+                Back to Contracts
+              </Link>
+              <button
+                onClick={() => {
+                  clearError();
+                  if (id) fetchContract(id);
+                }}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show not found if no contract and not loading/error
+  if (!selectedContract) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <DocumentIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Contract Not Found</h3>
+          <p className="text-gray-600 mb-4">The contract you're looking for doesn't exist or has been removed.</p>
+          <Link
+            to="/contracts"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+          >
+            <ArrowLeftIcon className="h-4 w-4 mr-2" />
+            Back to Contracts
+          </Link>
         </div>
       </div>
     );
@@ -223,7 +282,10 @@ export default function ContractViewPage() {
               </Transition>
             </Menu>
             
-            <button className="btn-secondary">
+            <button 
+              className="btn-secondary"
+              onClick={() => navigate(`/contracts/${id}/edit`)}
+            >
               <PencilIcon className="h-4 w-4 mr-2" />
               Edit
             </button>

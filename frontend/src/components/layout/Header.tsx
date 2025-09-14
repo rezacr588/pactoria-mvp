@@ -14,6 +14,7 @@ import {
 import { useAuthStore } from '../../store/authStore';
 import { NotificationMessage } from '../../types';
 import { useNotifications } from '../../hooks/useWebSocket';
+import { usePermissions } from '../../hooks/usePermissions';
 import { NotificationBell } from '../notifications/NotificationBell';
 import Button from '../ui/Button';
 import ThemeToggle from '../ui/ThemeToggle';
@@ -28,6 +29,7 @@ interface HeaderProps {
 export default function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const permissions = usePermissions();
   const [searchQuery, setSearchQuery] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -116,17 +118,21 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
         {/* Actions */}
         <div className="flex items-center space-x-2 sm:space-x-4">
-          {/* New Contract Button */}
-          <Link to="/contracts/new" className="hidden sm:block">
-            <Button size="sm" icon={<PlusIcon className="h-4 w-4" />}>
-              New Contract
-            </Button>
-          </Link>
-          <Link to="/contracts/new" className="sm:hidden">
-            <Button size="sm" variant="ghost">
-              <PlusIcon className="h-5 w-5" />
-            </Button>
-          </Link>
+          {/* New Contract Button - only show if user can manage contracts */}
+          {permissions.canManageContracts && (
+            <>
+              <Link to="/contracts/new" className="hidden sm:block">
+                <Button size="sm" icon={<PlusIcon className="h-4 w-4" />}>
+                  New Contract
+                </Button>
+              </Link>
+              <Link to="/contracts/new" className="sm:hidden">
+                <Button size="sm" variant="ghost">
+                  <PlusIcon className="h-5 w-5" />
+                </Button>
+              </Link>
+            </>
+          )}
 
           {/* Theme Toggle */}
           <ThemeToggle size="sm" />
@@ -207,6 +213,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
                     icon: QuestionMarkCircleIcon,
                     onClick: () => navigate('/help')
                   }
+                  // Note: All basic navigation items are accessible to all authenticated users
+                  // Future enhancement: Add permission checks here for admin-only menu items
                 ]
               },
               {
@@ -221,7 +229,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                   }
                 ]
               }
-            ]}
+            ].filter(section => section.items.length > 0)}
           />
         </div>
       </div>

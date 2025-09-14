@@ -1,5 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuthStore } from '../store/authStore';
+import { usePermissions } from '../hooks/usePermissions';
+import { PermissionGate } from '../components/PermissionGate';
 import { TeamService } from '../services/api';
 import { TeamMemberNew, TeamStats } from '../types';
 import { useToast } from '../contexts/ToastContext';
@@ -82,9 +84,13 @@ export default function TeamPage() {
     }
   }, [showToast]);
 
+  // Use ref to store fetchTeamMembers to avoid infinite loop
+  const fetchTeamMembersRef = useRef(fetchTeamMembers);
+  fetchTeamMembersRef.current = fetchTeamMembers;
+
   useEffect(() => {
-    fetchTeamMembers();
-  }, [fetchTeamMembers]);
+    fetchTeamMembersRef.current();
+  }, [fetchTeamMembersRef]);
 
   // Handle invite team member
   const handleInvite = async (e: React.FormEvent) => {
@@ -239,7 +245,15 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
+    <PermissionGate permission="canManageTeam" fallback={
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
+          <p className="text-gray-600">You don't have permission to access team management.</p>
+        </div>
+      </div>
+    }>
+      <div className="px-4 sm:px-6 lg:px-8">
       {/* Page header */}
       <div className="sm:flex sm:items-center sm:justify-between mb-8">
         <div>
@@ -591,6 +605,7 @@ export default function TeamPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </PermissionGate>
   );
 }
