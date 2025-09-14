@@ -278,20 +278,28 @@ export default function ContractCreatePage() {
               onClick={handleGenerate}
               disabled={!canProceed() || isGenerating}
               data-testid="generate-contract-button"
-              className="btn-success btn-lg disabled:opacity-50 disabled:cursor-not-allowed group"
+              className="btn-success btn-lg disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
             >
-              {isGenerating ? (
-                <span className="flex items-center">
-                  <ArrowPathIcon className="h-5 w-5 mr-3 animate-spin" />
-                  Generating Contract...
-                </span>
-              ) : (
-                <span className="flex items-center">
-                  <SparklesIcon className="h-5 w-5 mr-2 group-hover:animate-pulse" />
-                  Generate Contract
-                  <CheckCircleIcon className="h-5 w-5 ml-2" />
-                </span>
-              )}
+              <div className="absolute inset-0 bg-gradient-to-r from-success-600 to-emerald-600 transition-opacity duration-300 group-hover:opacity-90"></div>
+              <div className="relative flex items-center">
+                {isGenerating ? (
+                  <span className="flex items-center">
+                    <ArrowPathIcon className="h-5 w-5 mr-3 animate-spin" />
+                    Generating Contract...
+                    <div className="ml-3 flex space-x-1">
+                      <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-1 h-1 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                  </span>
+                ) : (
+                  <span className="flex items-center">
+                    <SparklesIcon className="h-5 w-5 mr-2 group-hover:animate-pulse" />
+                    Generate Contract with AI
+                    <CheckCircleIcon className="h-5 w-5 ml-2 opacity-75 group-hover:opacity-100 transition-opacity" />
+                  </span>
+                )}
+              </div>
             </button>
           )}
 

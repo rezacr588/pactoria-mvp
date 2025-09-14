@@ -69,7 +69,35 @@ export default function ContractViewPage() {
     }
   }, [id, fetchContractRef]);
 
-  // Use selectedContract from the hook
+  // Export functionality - define before any conditional returns
+  const handleExport = useCallback(async (format: 'pdf' | 'docx' | 'txt') => {
+    try {
+      const content = selectedContract?.final_content || selectedContract?.generated_content || 'No content available';
+      const title = selectedContract?.title || 'Contract';
+      
+      if (format === 'txt') {
+        // Simple text export
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        // For PDF and DOCX, we would typically call a backend endpoint
+        // For now, we'll show a notification that the feature is coming soon
+        alert(`${format.toUpperCase()} export feature is coming soon!`);
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Export failed. Please try again.');
+    }
+  }, [selectedContract?.final_content, selectedContract?.generated_content, selectedContract?.title]);
+
+  // Use selectedContract from the hook or create a default object
   const contract = selectedContract || {
     id: id || '',
     title: 'Loading...',
@@ -120,8 +148,19 @@ export default function ContractViewPage() {
     }
   }, [contract]);
 
+  const statusInfo = statusConfig[contract.status as keyof typeof statusConfig] || statusConfig.draft;
+  const StatusIcon = statusInfo.icon;
+  const riskLevel = contract.riskAssessment ? getRiskLevel(contract.riskAssessment.overall || 0) : 'Low';
+
+  const tabs = [
+    { id: 'overview', name: 'Overview' },
+    { id: 'compliance', name: 'Compliance' },
+    { id: 'risk', name: 'Risk Assessment' },
+    { id: 'history', name: 'History' },
+  ];
+
   // Show loading state when still loading
-  if (isLoading) {
+  if (isLoading && !selectedContract) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -165,37 +204,6 @@ export default function ContractViewPage() {
     );
   }
 
-  // Show not found if no contract and not loading/error
-  if (!selectedContract) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <DocumentIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Contract Not Found</h3>
-          <p className="text-gray-600 mb-4">The contract you're looking for doesn't exist or has been removed.</p>
-          <Link
-            to="/contracts"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-          >
-            <ArrowLeftIcon className="h-4 w-4 mr-2" />
-            Back to Contracts
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  const statusInfo = statusConfig[contract.status as keyof typeof statusConfig] || statusConfig.draft;
-  const StatusIcon = statusInfo.icon;
-  const riskLevel = contract.riskAssessment ? getRiskLevel(contract.riskAssessment.overall || 0) : 'Low';
-
-  const tabs = [
-    { id: 'overview', name: 'Overview' },
-    { id: 'compliance', name: 'Compliance' },
-    { id: 'risk', name: 'Risk Assessment' },
-    { id: 'history', name: 'History' },
-  ];
-
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       {/* Header */}
@@ -213,7 +221,7 @@ export default function ContractViewPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-3">
-              <h1 className="text-3xl font-bold text-gray-900 truncate">{contract.title || contract.name || 'Loading...'}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 truncate">{contract.title || contract.name || 'Untitled Contract'}</h1>
               <span className={classNames(
                 statusInfo.color,
                 statusInfo.bgColor,
@@ -347,7 +355,15 @@ export default function ContractViewPage() {
             </div>
             <div className="ml-4">
               <div className="text-sm font-medium text-gray-500">Parties</div>
-              <div className="text-2xl font-bold text-gray-900">{contract.parties?.length || 0}</div>
+              <div className="text-2xl font-bold text-gray-900">
+                {(() => {
+                  let count = 0;
+                  if (contract.client_name) count++;
+                  if (contract.supplier_name) count++;
+                  if (contract.parties?.length) count += contract.parties.length;
+                  return count;
+                })()}
+              </div>
             </div>
           </div>
         </div>
@@ -446,6 +462,20 @@ export default function ContractViewPage() {
                     </div>
                   )}
                   <div>
+                    <dt className="text-sm font-medium text-gray-500">Contract Value</dt>
+                    <dd className="mt-1 text-sm text-gray-900">
+                      {contract.contract_value ? `${contract.currency || 'GBP'} ${contract.contract_value.toLocaleString()}` : 'Not specified'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Client</dt>
+                    <dd className="mt-1 text-sm text-gray-900">{contract.client_name || 'Not specified'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-gray-500">Supplier</dt>
+                    <dd className="mt-1 text-sm text-gray-900">{contract.supplier_name || 'Not specified'}</dd>
+                  </div>
+                  <div>
                     <dt className="text-sm font-medium text-gray-500">Tags</dt>
                     <dd className="mt-1">
                       <div className="flex flex-wrap gap-2">
@@ -456,7 +486,7 @@ export default function ContractViewPage() {
                           >
                             {tag}
                           </span>
-                        ))}
+                        )) || <span className="text-sm text-gray-500">No tags</span>}
                       </div>
                     </dd>
                   </div>
@@ -467,8 +497,40 @@ export default function ContractViewPage() {
               <div className="card">
                 <h3 className="text-lg font-medium text-gray-900 mb-6">Contract Parties</h3>
                 <div className="space-y-4">
-                  {contract.parties && contract.parties.length > 0 ? contract.parties.map((party) => (
-                    <div key={party.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  {/* Client Party */}
+                  {contract.client_name && (
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{contract.client_name}</div>
+                        {contract.client_email && <div className="text-sm text-gray-500">{contract.client_email}</div>}
+                        <div className="text-xs text-gray-500 capitalize">Client</div>
+                      </div>
+                      <div className="text-right">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          Client
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Supplier Party */}
+                  {contract.supplier_name && (
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{contract.supplier_name}</div>
+                        <div className="text-xs text-gray-500 capitalize">Supplier</div>
+                      </div>
+                      <div className="text-right">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Supplier
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Fallback for legacy parties */}
+                  {contract.parties?.map((party) => (
+                    <div key={party.id || party.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{party.name}</div>
                         <div className="text-sm text-gray-500">{party.email}</div>
@@ -481,7 +543,7 @@ export default function ContractViewPage() {
                           'text-red-600 bg-red-100',
                           'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium'
                         )}>
-                          {party.signatureStatus}
+                          {party.signatureStatus || 'Pending'}
                         </span>
                         {party.signedAt && (
                           <div className="text-xs text-gray-500 mt-1">
@@ -490,30 +552,13 @@ export default function ContractViewPage() {
                         )}
                       </div>
                     </div>
-                  )) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <p>No parties defined yet</p>
-                      {(contract.client_name || contract.supplier_name) && (
-                        <div className="mt-4 space-y-2">
-                          {contract.client_name && (
-                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                              <div>
-                                <div className="text-sm font-medium text-gray-900">{contract.client_name}</div>
-                                {contract.client_email && <div className="text-sm text-gray-500">{contract.client_email}</div>}
-                                <div className="text-xs text-gray-500">Client</div>
-                              </div>
-                            </div>
-                          )}
-                          {contract.supplier_name && (
-                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                              <div>
-                                <div className="text-sm font-medium text-gray-900">{contract.supplier_name}</div>
-                                <div className="text-xs text-gray-500">Supplier</div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                  ))}
+                  
+                  {/* Empty state */}
+                  {!contract.client_name && !contract.supplier_name && (!contract.parties || contract.parties.length === 0) && (
+                    <div className="text-center py-8">
+                      <UserIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500">No parties defined for this contract</p>
                     </div>
                   )}
                 </div>
@@ -521,55 +566,86 @@ export default function ContractViewPage() {
             </div>
 
             {/* Contract Content */}
-            {(contract.plain_english_input || contract.generated_content || contract.final_content) && (
-              <div className="card">
-                <h3 className="text-lg font-medium text-gray-900 mb-6">Contract Content</h3>
-                <div className="space-y-6">
-                  {contract.plain_english_input && (
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-2">Original Requirements</h4>
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p className="text-sm text-gray-700">{contract.plain_english_input}</p>
-                      </div>
-                    </div>
+            <div className="card">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-medium text-gray-900">Contract Content</h3>
+                <div className="flex space-x-2">
+                  {!contract.generated_content && !contract.final_content && (
+                    <button
+                      onClick={() => generateContent(contract.id)}
+                      className="btn-secondary text-sm"
+                    >
+                      <DocumentIcon className="h-4 w-4 mr-2" />
+                      Generate Content
+                    </button>
                   )}
-                  {contract.generated_content && (
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-2">AI Generated Content</h4>
-                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                        <div className="text-sm text-gray-700 whitespace-pre-wrap">{contract.generated_content}</div>
-                      </div>
-                    </div>
-                  )}
-                  {contract.final_content && (
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-500 mb-2">Final Contract</h4>
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <div className="text-sm text-gray-700 whitespace-pre-wrap">{contract.final_content}</div>
-                      </div>
-                    </div>
-                  )}
-                  {!contract.generated_content && !contract.final_content && contract.plain_english_input && (
-                    <div className="text-center py-6">
-                      <p className="text-gray-500 mb-4">Contract content has not been generated yet.</p>
-                      <button
-                        onClick={() => generateContent(contract.id)}
-                        disabled={isGenerating}
-                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                      >
-                        {isGenerating ? 'Generating...' : 'Generate Contract Content'}
-                      </button>
-                    </div>
+                  {(contract.generated_content || contract.final_content) && (
+                    <button
+                      onClick={() => generateContent(contract.id, true)}
+                      className="btn-secondary text-sm"
+                    >
+                      <DocumentIcon className="h-4 w-4 mr-2" />
+                      Regenerate
+                    </button>
                   )}
                 </div>
               </div>
-            )}
+
+              {contract.final_content || contract.generated_content ? (
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-medium text-gray-900">
+                        {contract.final_content ? 'Final Content' : 'Generated Content'}
+                      </h4>
+                      <span className={classNames(
+                        contract.final_content ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800',
+                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium'
+                      )}>
+                        {contract.final_content ? 'Final' : 'Draft'}
+                      </span>
+                    </div>
+                    <div className="prose prose-sm max-w-none">
+                      <pre className="whitespace-pre-wrap text-sm text-gray-700 bg-white rounded p-3 border">
+                        {contract.final_content || contract.generated_content}
+                      </pre>
+                    </div>
+                  </div>
+                  
+                  {contract.plain_english_input && (
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Original Requirements</h4>
+                      <p className="text-sm text-gray-700">{contract.plain_english_input}</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <DocumentIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">No Contract Content Yet</h4>
+                  <p className="text-gray-600 mb-4">Generate AI-powered contract content based on your requirements.</p>
+                  {contract.plain_english_input && (
+                    <div className="bg-blue-50 rounded-lg p-4 mb-4 text-left">
+                      <h5 className="text-sm font-medium text-gray-900 mb-2">Requirements:</h5>
+                      <p className="text-sm text-gray-700">{contract.plain_english_input}</p>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => generateContent(contract.id)}
+                    className="btn-primary"
+                  >
+                    <DocumentIcon className="h-4 w-4 mr-2" />
+                    Generate Contract Content
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Deadlines */}
             <div className="card">
               <h3 className="text-lg font-medium text-gray-900 mb-6">Upcoming Deadlines</h3>
               <div className="space-y-4">
-                {contract.deadlines?.map((deadline, index) => (
+                {contract.deadlines?.length > 0 ? contract.deadlines.map((deadline, index) => (
                   <div key={(deadline as any).id || index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <div className={classNames(
@@ -598,7 +674,13 @@ export default function ContractViewPage() {
                       </div>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div className="text-center py-8">
+                    <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500">No deadlines set for this contract</p>
+                    <p className="text-sm text-gray-400 mt-1">Deadlines will appear here when added</p>
+                  </div>
+                )}
               </div>
             </div>
           </>
