@@ -579,6 +579,36 @@ export class ContractService {
       updated_at?: string;
     }>>('/contracts/templates', params);
   }
+
+  static async exportContractPDF(id: string): Promise<Blob> {
+    const response = await fetch(`${API_BASE_URL}/contracts/${id}/export/pdf`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('auth-token') || ''}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to export PDF: ${response.statusText}`);
+    }
+
+    return response.blob();
+  }
+
+  static async exportContractDOCX(id: string): Promise<Blob> {
+    const response = await fetch(`${API_BASE_URL}/contracts/${id}/export/docx`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('auth-token') || ''}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to export DOCX: ${response.statusText}`);
+    }
+
+    return response.blob();
+  }
 }
 
 export class AnalyticsService {

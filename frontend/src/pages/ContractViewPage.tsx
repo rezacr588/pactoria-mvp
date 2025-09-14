@@ -61,6 +61,8 @@ export default function ContractViewPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState('');
 
   // Use ref to store fetchContract to avoid infinite loop
   const fetchContractRef = useRef(fetchContract);
@@ -74,12 +76,13 @@ export default function ContractViewPage() {
 
   // Export functionality - define before any conditional returns
   const handleExport = useCallback(async (format: 'pdf' | 'docx' | 'txt') => {
+    if (!selectedContract?.id) return;
+    
     try {
-      const content = selectedContract?.final_content || selectedContract?.generated_content || 'No content available';
-      const title = selectedContract?.title || 'Contract';
-      
       if (format === 'txt') {
         // Simple text export
+        const content = selectedContract?.final_content || selectedContract?.generated_content || 'No content available';
+        const title = selectedContract?.title || 'Contract';
         const blob = new Blob([content], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -89,16 +92,36 @@ export default function ContractViewPage() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-      } else {
-        // For PDF and DOCX, we would typically call a backend endpoint
-        // For now, we'll show a notification that the feature is coming soon
-        alert(`${format.toUpperCase()} export feature is coming soon!`);
+      } else if (format === 'pdf') {
+        // PDF export via backend
+        const { ContractService } = await import('../services/api');
+        const blob = await ContractService.exportContractPDF(selectedContract.id);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${selectedContract.title || 'contract'}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else if (format === 'docx') {
+        // DOCX export via backend
+        const { ContractService } = await import('../services/api');
+        const blob = await ContractService.exportContractDOCX(selectedContract.id);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${selectedContract.title || 'contract'}.docx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       }
     } catch (error) {
       console.error('Export failed:', error);
       alert('Export failed. Please try again.');
     }
-  }, [selectedContract?.final_content, selectedContract?.generated_content, selectedContract?.title]);
+  }, [selectedContract]);
 
   // Use selectedContract from the hook or create a default object
   const contract = selectedContract || {
@@ -145,6 +168,43 @@ export default function ContractViewPage() {
       setIsGenerating(false);
     }
   }, [contract.id, generateContent, fetchContract, setIsGenerating]);
+
+  const handleAnalyzeRisk = useCallback(async () => {
+    if (!contract.id) return;
+    
+    setIsAnalyzing(true);
+    try {
+      await analyzeCompliance(contract.id, true); // Force reanalysis for risk assessment
+      // Refresh the contract to get the updated compliance data
+      await fetchContract(contract.id);
+    } catch (error) {
+      console.error('Failed to analyze risk:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [contract.id, analyzeCompliance, fetchContract, setIsAnalyzing]);
+
+  const handleEditContent = useCallback(() => {
+    setIsEditing(true);
+    setEditedContent(contract.final_content || contract.generated_content || '');
+  }, [contract.final_content, contract.generated_content]);
+
+  const handleSaveContent = useCallback(async () => {
+    if (!contract.id) return;
+    
+    try {
+      await updateContract(contract.id, { final_content: editedContent });
+      await fetchContract(contract.id);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to save content:', error);
+    }
+  }, [contract.id, editedContent, updateContract, fetchContract]);
+
+  const handleCancelEdit = useCallback(() => {
+    setIsEditing(false);
+    setEditedContent('');
+  }, []);
 
   const statusInfo = statusConfig[contract.status as keyof typeof statusConfig] || statusConfig.draft;
   const StatusIcon = statusInfo.icon;
@@ -259,6 +319,25 @@ export default function ContractViewPage() {
                 )}
               </button>
             )}
+
+            {/* Risk Analysis Button */}
+            <button 
+              className="btn-secondary"
+              onClick={handleAnalyzeRisk}
+              disabled={isAnalyzing}
+            >
+              {isAnalyzing ? (
+                <>
+                  <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <ShieldCheckIcon className="h-4 w-4 mr-2" />
+                  Analyze Risk
+                </>
+              )}
+            </button>
             
             <button className="btn-secondary">
               <ShareIcon className="h-4 w-4 mr-2" />
@@ -586,13 +665,149 @@ export default function ContractViewPage() {
 
             {/* Contract Content */}
             <div className="card">
-              <h3 className="text-lg font-medium text-gray-900 mb-6">Contract Content</h3>
-              {contract.generated_content ? (
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-medium text-gray-900">Contract Content</h3>
+                {contract.generated_content && !isEditing && (
+                  <button
+                    onClick={handleEditContent}
+                    className="btn-secondary text-sm"
+                  >
+                    <PencilIcon className="h-4 w-4 mr-1" />
+                    Edit Content
+                  </button>
+                )}
+                {isEditing && (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={handleSaveContent}
+                      className="btn-primary text-sm"
+                    >
+                      Save Changes
+                    </button>
+                    <button
+                      onClick={handleCancelEdit}
+                      className="btn-secondary text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              {isEditing ? (
+                /* Live Edit Mode */
+                <div className="space-y-4">
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <PencilIcon className="h-5 w-5 text-yellow-600" />
+                      </div>
+                      <div className="ml-3">
+                        <h4 className="text-sm font-medium text-yellow-800">Editing Mode</h4>
+                        <p className="text-sm text-yellow-700">Make changes to the contract content. Remember to save your changes.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <textarea
+                    value={editedContent}
+                    onChange={(e) => setEditedContent(e.target.value)}
+                    className="w-full h-96 p-4 border border-gray-300 rounded-lg font-mono text-sm resize-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Enter contract content..."
+                    style={{ fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace' }}
+                  />
+                  <div className="flex justify-between items-center text-sm text-gray-500">
+                    <span>{editedContent.length} characters</span>
+                    <span>Auto-save disabled in edit mode</span>
+                  </div>
+                </div>
+              ) : contract.generated_content ? (
                 <div className="prose max-w-none">
-                  <div className="bg-gray-50 p-6 rounded-lg">
-                    <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800">
-                      {contract.generated_content}
-                    </pre>
+                  {/* PDF-like document styling */}
+                  <div className="bg-white border border-gray-300 rounded-lg shadow-lg p-8 mx-auto max-w-4xl" style={{ fontFamily: 'Times, serif' }}>
+                    {/* Document header */}
+                    <div className="text-center mb-8 pb-4 border-b-2 border-gray-300">
+                      <h1 className="text-2xl font-bold text-gray-900 mb-2">{contract.title}</h1>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        {contract.client_name && <div><strong>Client:</strong> {contract.client_name}</div>}
+                        {contract.supplier_name && <div><strong>Service Provider:</strong> {contract.supplier_name}</div>}
+                        {contract.contract_value && (
+                          <div><strong>Contract Value:</strong> {new Intl.NumberFormat('en-GB', {
+                            style: 'currency',
+                            currency: contract.currency || 'GBP'
+                          }).format(contract.contract_value)}</div>
+                        )}
+                        {contract.start_date && contract.end_date && (
+                          <div><strong>Term:</strong> {new Date(contract.start_date).toLocaleDateString('en-GB')} - {new Date(contract.end_date).toLocaleDateString('en-GB')}</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Document content with PDF-like formatting */}
+                    <div 
+                      className="text-gray-800 leading-relaxed space-y-4"
+                      style={{ 
+                        fontSize: '14px',
+                        lineHeight: '1.6',
+                        textAlign: 'justify'
+                      }}
+                    >
+                      {(contract.final_content || contract.generated_content).split('\n\n').map((paragraph, index) => {
+                        const trimmed = paragraph.trim();
+                        if (!trimmed) return null;
+                        
+                        // Style different parts of the contract
+                        if (trimmed.toUpperCase() === trimmed && trimmed.length > 5) {
+                          // All caps = heading
+                          return (
+                            <h2 key={index} className="text-lg font-bold text-center my-6 text-gray-900">
+                              {trimmed}
+                            </h2>
+                          );
+                        } else if (trimmed.match(/^\d+\./)) {
+                          // Numbered sections
+                          return (
+                            <div key={index} className="mt-6 mb-4">
+                              <p className="font-semibold text-gray-900">{trimmed}</p>
+                            </div>
+                          );
+                        } else if (trimmed.match(/^[A-Z][A-Z\s]+:/)) {
+                          // Section headers with colon
+                          return (
+                            <h3 key={index} className="text-base font-bold mt-6 mb-3 text-gray-900 uppercase">
+                              {trimmed}
+                            </h3>
+                          );
+                        } else {
+                          // Regular paragraphs
+                          return (
+                            <p key={index} className="mb-4 text-gray-800">
+                              {trimmed}
+                            </p>
+                          );
+                        }
+                      })}
+                    </div>
+
+                    {/* Document footer */}
+                    <div className="mt-12 pt-8 border-t-2 border-gray-300">
+                      <div className="flex justify-between items-center">
+                        <div className="text-center flex-1">
+                          <div className="border-b border-gray-400 w-48 mx-auto mb-2"></div>
+                          <div className="text-sm text-gray-600">Client Signature</div>
+                          <div className="text-xs text-gray-500 mt-1">Date: ___________</div>
+                        </div>
+                        <div className="text-center flex-1">
+                          <div className="border-b border-gray-400 w-48 mx-auto mb-2"></div>
+                          <div className="text-sm text-gray-600">Service Provider Signature</div>
+                          <div className="text-xs text-gray-500 mt-1">Date: ___________</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Page number style footer */}
+                    <div className="text-center text-xs text-gray-500 mt-8">
+                      Page 1 of 1 | Contract ID: {contract.id.slice(0, 8)}
+                    </div>
                   </div>
                 </div>
               ) : (
