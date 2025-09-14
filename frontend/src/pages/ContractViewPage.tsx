@@ -75,6 +75,36 @@ export default function ContractViewPage() {
     }
   }, [id, fetchContractRef]);
 
+  // Use selectedContract from the hook or create a default object
+  const contract = selectedContract || {
+    id: id || '',
+    title: 'Loading...',
+    contract_type: 'unknown',
+    status: 'draft',
+    currency: 'USD',
+    version: 1,
+    is_current_version: true,
+    company_id: '',
+    created_by: '',
+    created_at: new Date().toISOString(),
+    client_name: '',
+    client_email: '',
+    supplier_name: '',
+    contract_value: 0,
+    start_date: '',
+    end_date: '',
+    parties: [],
+    deadlines: [],
+    tags: [],
+    complianceScore: 0,
+    riskAssessment: {
+      overall: 0,
+      factors: [],
+      recommendations: [],
+      lastUpdated: new Date()
+    }
+  };
+
   // Export functionality - define before any conditional returns
   const handleExport = useCallback(async (format: 'pdf' | 'docx') => {
     if (!contract.id) return;
@@ -109,36 +139,6 @@ export default function ContractViewPage() {
       alert('Failed to save changes. Please try again.');
     }
   }, [contract.id, updateContract, fetchContract]);
-
-  // Use selectedContract from the hook or create a default object
-  const contract = selectedContract || {
-    id: id || '',
-    title: 'Loading...',
-    contract_type: 'unknown',
-    status: 'draft',
-    currency: 'USD',
-    version: 1,
-    is_current_version: true,
-    company_id: '',
-    created_by: '',
-    created_at: new Date().toISOString(),
-    client_name: '',
-    client_email: '',
-    supplier_name: '',
-    contract_value: 0,
-    start_date: '',
-    end_date: '',
-    parties: [],
-    deadlines: [],
-    tags: [],
-    complianceScore: 0,
-    riskAssessment: {
-      overall: 0,
-      factors: [],
-      recommendations: [],
-      lastUpdated: new Date()
-    }
-  };
 
   // Handler functions
   const handleGenerateContent = useCallback(async () => {
