@@ -34,6 +34,18 @@ env/
 *.env
 !.env.example
 !.env.template
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+deployment/**/.env
+deployment/**/.env.*
+
+# API Keys and Secrets (extra protection)
+**/api-keys.txt
+**/secrets.txt
+**/*secret*
+**/*key*.env
 
 # Database
 *.db
