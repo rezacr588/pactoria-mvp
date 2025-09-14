@@ -138,6 +138,20 @@ export function ContractDetailsStep({
                 onTooltipClick={onTooltipClick}
                 data-testid="client-email-input"
               />
+
+              <ContractFormField
+                label="Your Company/Supplier Name"
+                name="supplierName"
+                type="text"
+                value={formData.supplierName}
+                onChange={onInputChange}
+                error={errors.supplierName}
+                placeholder="Your Company Ltd"
+                tooltip="Enter your company name as it should appear in the contract."
+                showTooltip={showTooltip}
+                onTooltipClick={onTooltipClick}
+                data-testid="supplier-name-input"
+              />
             </div>
           </div>
 
@@ -147,6 +161,22 @@ export function ContractDetailsStep({
               Contract Terms
             </h3>
             <div className="space-y-6">
+              <ContractFormField
+                label="Plain English Description"
+                name="plainEnglishInput"
+                type="textarea"
+                value={formData.plainEnglishInput}
+                onChange={onInputChange}
+                error={errors.plainEnglishInput}
+                required
+                placeholder="Describe what you need in plain English, e.g., 'I need a contract for website design services for my restaurant. The work includes creating a new website with online ordering system. Payment will be monthly over 6 months.'"
+                tooltip="Describe your contract needs in simple, everyday language. Our AI will use this to generate professional legal terms."
+                showTooltip={showTooltip}
+                onTooltipClick={onTooltipClick}
+                data-testid="plain-english-input"
+                rows={4}
+              />
+
               <ContractFormField
                 label="Service/Work Description"
                 name="serviceDescription"

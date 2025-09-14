@@ -19,6 +19,7 @@ interface ContractFormFieldProps {
   'data-testid'?: string;
   min?: string;
   step?: string;
+  rows?: number; // For textarea
 }
 
 export function ContractFormField({
@@ -37,6 +38,7 @@ export function ContractFormField({
   children,
   className = '',
   'data-testid': testId,
+  rows = 4,
   ...props
 }: ContractFormFieldProps) {
   const baseInputClasses = "form-input-lg";
@@ -72,7 +74,7 @@ export function ContractFormField({
       </label>
 
       {type === 'textarea' ? (
-        <textarea {...(inputProps as any)} rows={4} />
+        <textarea {...(inputProps as any)} rows={rows} />
       ) : type === 'select' ? (
         <select {...(inputProps as any)}>
           {children}
