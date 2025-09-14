@@ -2,12 +2,14 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useContracts } from '../hooks';
+import { usePermissions } from '../hooks/usePermissions';
+import { PermissionGate } from '../components/PermissionGate';
 import OnboardingChecklist from '../components/OnboardingChecklist';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '../components/ui';
 import { SkeletonDashboard } from '../components/ui/Skeleton';
 import { classNames } from '../utils/classNames';
 import { textColors, textStyles, typography } from '../utils/typography';
-import { AnalyticsService, ContractService } from '../services/api';
+import { AnalyticsService } from '../services/api';
 import { getErrorMessage } from '../utils/errorHandling';
 import { useToast } from '../contexts/ToastContext';
 import {
@@ -36,6 +38,7 @@ export default function DashboardPage() {
   const { showToast } = useToast();
   const { user } = useAuthStore();
   const { contracts: storeContracts } = useContracts();
+  const permissions = usePermissions();
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [contracts, setContracts] = useState<any[]>([]);
@@ -52,7 +55,8 @@ export default function DashboardPage() {
       // The contracts should already be loaded by the ContractsPage or other components
       const analyticsData = await AnalyticsService.getDashboard();
       setDashboardData(analyticsData);
-      setContracts(storeContracts);
+      // Don't include storeContracts as dependency to avoid infinite loop
+      // Use current contracts from store at render time
     } catch (err) {
       const errorMessage = getErrorMessage(err);
       setError(errorMessage);
@@ -60,7 +64,12 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [showToast, storeContracts]);
+  }, [showToast]);
+
+  // Update local contracts when store contracts change, but don't trigger refetch
+  useEffect(() => {
+    setContracts(storeContracts);
+  }, [storeContracts]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -246,11 +255,13 @@ export default function DashboardPage() {
             Here's what's happening with your contracts today
           </p>
         </div>
-        <Link to="/contracts/new" className="w-full sm:w-auto" aria-label="Create a new contract">
-          <Button icon={<PlusIcon className="h-4 w-4" aria-hidden="true" />} className="w-full sm:w-auto">
-            New Contract
-          </Button>
-        </Link>
+        <PermissionGate permission="canManageContracts">
+          <Link to="/contracts/new" className="w-full sm:w-auto" aria-label="Create a new contract">
+            <Button icon={<PlusIcon className="h-4 w-4" aria-hidden="true" />} className="w-full sm:w-auto">
+              New Contract
+            </Button>
+          </Link>
+        </PermissionGate>
       </header>
 
       {/* Error Display */}
@@ -485,14 +496,15 @@ export default function DashboardPage() {
           </Card>
 
           {/* Compliance Issues */}
-          <Card variant="bordered">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Compliance Alerts</CardTitle>
-                <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" aria-hidden="true" />
-              </div>
-            </CardHeader>
-            <CardContent>
+          <PermissionGate permission="canAccessAuditLogs">
+            <Card variant="bordered">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Compliance Alerts</CardTitle>
+                  <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" aria-hidden="true" />
+                </div>
+              </CardHeader>
+              <CardContent>
 
             <div className="space-y-4">
               {complianceIssues.length === 0 ? (
@@ -523,6 +535,7 @@ export default function DashboardPage() {
             </div>
             </CardContent>
           </Card>
+          </PermissionGate>
 
           {/* Quick Actions */}
           <Card variant="bordered">
@@ -531,38 +544,44 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
             <div className="space-y-3">
-              <Link
-                to="/contracts/new"
-                className="flex items-center justify-between p-3 bg-primary-50 dark:bg-primary-950/20 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-950/30 transition-colors group"
-              >
-                <div className="flex items-center space-x-3">
-                  <DocumentTextIcon className="h-6 w-6 text-primary-600" />
-                  <span className={`text-sm font-medium ${textColors.primary}`}>Create Contract</span>
-                </div>
-                <ArrowRightIcon className="h-4 w-4 text-primary-600 group-hover:text-primary-700" />
-              </Link>
+              <PermissionGate permission="canManageContracts">
+                <Link
+                  to="/contracts/new"
+                  className="flex items-center justify-between p-3 bg-primary-50 dark:bg-primary-950/20 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-950/30 transition-colors group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <DocumentTextIcon className="h-6 w-6 text-primary-600" />
+                    <span className={`text-sm font-medium ${textColors.primary}`}>Create Contract</span>
+                  </div>
+                  <ArrowRightIcon className="h-4 w-4 text-primary-600 group-hover:text-primary-700" />
+                </Link>
+              </PermissionGate>
               
-              <Link
-                to="/team"
-                className="flex items-center justify-between p-3 bg-success-50 dark:bg-success-950/20 rounded-lg hover:bg-success-100 dark:hover:bg-success-950/30 transition-colors group"
-              >
-                <div className="flex items-center space-x-3">
-                  <UsersIcon className="h-6 w-6 text-green-600" />
-                  <span className={`text-sm font-medium ${textColors.primary}`}>Manage Team</span>
-                </div>
-                <ArrowRightIcon className="h-4 w-4 text-green-600 group-hover:text-green-700" />
-              </Link>
+              <PermissionGate permission="canManageTeam">
+                <Link
+                  to="/team"
+                  className="flex items-center justify-between p-3 bg-success-50 dark:bg-success-950/20 rounded-lg hover:bg-success-100 dark:hover:bg-success-950/30 transition-colors group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <UsersIcon className="h-6 w-6 text-green-600" />
+                    <span className={`text-sm font-medium ${textColors.primary}`}>Manage Team</span>
+                  </div>
+                  <ArrowRightIcon className="h-4 w-4 text-green-600 group-hover:text-green-700" />
+                </Link>
+              </PermissionGate>
               
-              <Link
-                to="/analytics"
-                className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-950/30 transition-colors group"
-              >
-                <div className="flex items-center space-x-3">
-                  <ChartBarIcon className="h-6 w-6 text-purple-600" />
-                  <span className={`text-sm font-medium ${textColors.primary}`}>View Analytics</span>
-                </div>
-                <ArrowRightIcon className="h-4 w-4 text-purple-600 group-hover:text-purple-700" />
-              </Link>
+              <PermissionGate permission="canAccessAnalytics">
+                <Link
+                  to="/analytics"
+                  className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-950/30 transition-colors group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <ChartBarIcon className="h-6 w-6 text-purple-600" />
+                    <span className={`text-sm font-medium ${textColors.primary}`}>View Analytics</span>
+                  </div>
+                  <ArrowRightIcon className="h-4 w-4 text-purple-600 group-hover:text-purple-700" />
+                </Link>
+              </PermissionGate>
             </div>
             </CardContent>
           </Card>
@@ -624,11 +643,12 @@ export default function DashboardPage() {
         </Card>
 
         {/* Risk Assessment Summary */}
-        <Card variant="bordered">
-          <CardHeader>
-            <CardTitle>Risk Assessment Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <PermissionGate permission="canAccessAnalytics">
+          <Card variant="bordered">
+            <CardHeader>
+              <CardTitle>Risk Assessment Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
           
           <div className="space-y-4">
             {contracts.slice(0, 3).map((contract) => {
@@ -670,6 +690,7 @@ export default function DashboardPage() {
           </div>
           </CardContent>
         </Card>
+        </PermissionGate>
         </div>
       </section>
 

@@ -3,6 +3,8 @@ export interface User {
   email: string;
   full_name: string;
   is_active: boolean;
+  is_admin: boolean;
+  role: string;
   timezone: string;
   company_id: string | null;
   created_at: string;

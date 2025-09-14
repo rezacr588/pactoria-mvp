@@ -25,6 +25,8 @@ interface ContractState {
   isLoadingTemplates: boolean;
   error: string | null;
   lastFetchTime: number;
+  lastRequestKey?: string;
+  lastTemplatesKey?: string;
   pagination: {
     page: number;
     size: number;
@@ -91,6 +93,8 @@ export const useContractStore = create<ContractState>((set, get) => ({
   isLoadingTemplates: false,
   error: null,
   lastFetchTime: 0,
+  lastRequestKey: undefined,
+  lastTemplatesKey: undefined,
   pagination: {
     page: 1,
     size: 10,
@@ -109,19 +113,30 @@ export const useContractStore = create<ContractState>((set, get) => ({
   } = {}) => {
     const now = Date.now();
     const state = get();
-    
-    // Create request key for deduplication
-    const requestKey = `contracts_${JSON.stringify(params)}`;
-    
-    // Skip if already loading or request is pending
-    if (state.isLoading || state._pendingRequests.has(requestKey)) {
+
+    // Canonicalize params for a stable key
+    const keyParts = [
+      `page=${params.page ?? 1}`,
+      `size=${params.size ?? 100}`,
+      `type=${params.contract_type ?? ''}`,
+      `status=${params.status ?? ''}`,
+      `search=${params.search ?? ''}`
+    ];
+    const requestKey = `contracts::${keyParts.join('|')}`;
+
+    // Loop/dup guards
+    const MIN_REFETCH_INTERVAL_MS = 3000; // 3s to suppress rapid repeats
+    const recentSameRequest = state.lastRequestKey === requestKey && (now - state.lastFetchTime) < MIN_REFETCH_INTERVAL_MS;
+    const alreadyPending = state._pendingRequests.has(requestKey);
+
+    if (alreadyPending || recentSameRequest) {
       return;
     }
-    
-    // Add to pending requests
-    const pendingRequests = new Set(state._pendingRequests);
-    pendingRequests.add(requestKey);
-    set({ isLoading: true, error: null, _pendingRequests: pendingRequests });
+
+    // Add to pending requests before network call
+    const pendingAdd = new Set(state._pendingRequests);
+    pendingAdd.add(requestKey);
+    set({ isLoading: true, error: null, _pendingRequests: pendingAdd, lastRequestKey: requestKey });
     
     try {
       const response = await ContractService.getContracts({
@@ -166,10 +181,11 @@ export const useContractStore = create<ContractState>((set, get) => ({
       }
       throw new Error('Failed to load contracts');
     } finally {
-      // Remove from pending requests
-      const pendingRequests = new Set(state._pendingRequests);
-      pendingRequests.delete(requestKey);
-      set({ _pendingRequests: pendingRequests });
+      // Remove from pending requests using latest state
+      const cur = get();
+      const pendingNow = new Set(cur._pendingRequests);
+      pendingNow.delete(requestKey);
+      set({ _pendingRequests: pendingNow });
     }
   },
 
@@ -198,13 +214,17 @@ export const useContractStore = create<ContractState>((set, get) => ({
   },
 
   fetchTemplates: async (params = {}) => {
+    const now = Date.now();
     const state = get();
-    const requestKey = `templates_${JSON.stringify(params)}`;
-    
-    if (state.isLoadingTemplates || state._pendingRequests.has(requestKey)) return [];
-    
-    state._pendingRequests.add(requestKey);
-    set({ isLoadingTemplates: true, error: null });
+    const key = `templates::${JSON.stringify(params)}`;
+
+    const MIN_REFETCH_INTERVAL_MS = 10000; // 10s for templates
+    const recentSameRequest = state.lastTemplatesKey === key && (now - state.lastFetchTime) < MIN_REFETCH_INTERVAL_MS;
+    if (state.isLoadingTemplates || state._pendingRequests.has(key) || recentSameRequest) return [];
+
+    const pendingAdd = new Set(state._pendingRequests);
+    pendingAdd.add(key);
+    set({ isLoadingTemplates: true, error: null, _pendingRequests: pendingAdd, lastTemplatesKey: key });
     
     try {
       const templates = await ContractService.getTemplates(params);
@@ -227,10 +247,11 @@ export const useContractStore = create<ContractState>((set, get) => ({
       console.error('Error fetching templates:', error);
       return [];
     } finally {
-      // Remove from pending requests
-      const pendingRequests = new Set(state._pendingRequests);
-      pendingRequests.delete(requestKey);
-      set({ _pendingRequests: pendingRequests });
+      // Remove from pending requests using latest state
+      const cur = get();
+      const pendingNow = new Set(cur._pendingRequests);
+      pendingNow.delete(key);
+      set({ _pendingRequests: pendingNow });
     }
   },
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   DocumentTextIcon,
   MagnifyingGlassIcon,
@@ -152,6 +152,10 @@ export default function TemplatesPage() {
     }
   }, [pagination.page, pagination.size, typeFilter, categoryFilter, searchQuery, showToast]);
 
+  // Use ref to store fetchTemplates to avoid infinite loop
+  const fetchTemplatesRef = useRef(fetchTemplates);
+  fetchTemplatesRef.current = fetchTemplates;
+
   // Fetch categories and contract types
   const fetchMetadata = useCallback(async () => {
     try {
@@ -167,8 +171,8 @@ export default function TemplatesPage() {
   }, []);
 
   useEffect(() => {
-    fetchTemplates();
-  }, [fetchTemplates]);
+    fetchTemplatesRef.current();
+  }, [pagination.page, pagination.size, typeFilter, categoryFilter, searchQuery, fetchTemplatesRef]);
 
   useEffect(() => {
     fetchMetadata();

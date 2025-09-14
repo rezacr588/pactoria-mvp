@@ -95,8 +95,8 @@ export default function ContractCreatePage() {
         supplier_name: formData.supplierName,
         contract_value: formData.contractValue ? parseFloat(formData.contractValue) : undefined,
         currency: formData.currency || 'GBP',
-        start_date: formData.startDate,
-        end_date: formData.endDate,
+        start_date: formData.startDate || null,
+        end_date: formData.endDate || null,
         template_id: formData.templateId,
       });
 
@@ -107,21 +107,40 @@ export default function ContractCreatePage() {
       navigate(`/contracts/${newContract.id}`);
     } catch (error) {
       console.error('Failed to create contract:', error);
+      
+      // Extract meaningful error message
+      let errorMessage = 'Failed to create contract';
+      if (error instanceof Error) {
+        // Check if it's an ApiError with validation details
+        if ((error as any).data?.detail) {
+          const details = (error as any).data.detail;
+          if (Array.isArray(details)) {
+            // Handle validation errors
+            const validationErrors = details.map((detail: any) => 
+              `${detail.loc?.join('.') || 'Field'}: ${detail.msg}`
+            ).join('; ');
+            errorMessage = `Validation errors: ${validationErrors}`;
+          } else if (typeof details === 'string') {
+            errorMessage = details;
+          }
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      // Display error to user (you might want to use a toast notification here)
+      console.error('Contract creation error:', errorMessage);
     } finally {
       setIsGenerating(false);
     }
   };
 
   const renderCurrentStep = () => {
-    const stepProps = {
-      key: currentStep, // Force re-render on step change
-    };
-
     switch (currentStep) {
       case 1:
         return (
           <TemplateSelectionStep
-            {...stepProps}
+            key={currentStep}
             templates={templates}
             selectedTemplateId={formData.templateId}
             onTemplateSelect={handleTemplateSelect}
@@ -134,7 +153,7 @@ export default function ContractCreatePage() {
       case 2:
         return (
           <ContractDetailsStep
-            {...stepProps}
+            key={currentStep}
             formData={formData}
             errors={errors}
             showTooltip={showTooltip}
@@ -147,7 +166,7 @@ export default function ContractCreatePage() {
       case 3:
         return (
           <ReviewStep
-            {...stepProps}
+            key={currentStep}
             formData={formData}
             selectedTemplateName={selectedTemplate?.name}
             onGenerate={handleGenerate}
