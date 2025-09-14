@@ -59,6 +59,27 @@ export default function ContractViewPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  // Handle export functionality
+  const handleExport = useCallback(async (format: 'pdf' | 'docx' | 'txt') => {
+    if (!contract.id) return;
+    
+    try {
+      // For now, we'll create a simple text export
+      const content = contract.final_content || contract.generated_content || 'No content available';
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${contract.title || 'contract'}.${format === 'docx' ? 'txt' : format}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+    }
+  }, [contract]);
+
   // Use ref to store fetchContract to avoid infinite loop
   const fetchContractRef = useRef(fetchContract);
   fetchContractRef.current = fetchContract;
@@ -192,7 +213,7 @@ export default function ContractViewPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-3">
-              <h1 className="text-3xl font-bold text-gray-900 truncate">{contract.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 truncate">{contract.title || contract.name || 'Loading...'}</h1>
               <span className={classNames(
                 statusInfo.color,
                 statusInfo.bgColor,
@@ -203,11 +224,11 @@ export default function ContractViewPage() {
               </span>
             </div>
             <div className="mt-2 flex items-center text-sm text-gray-500 space-x-4">
-              <span>{(contract.type as any)?.name || contract.type || 'Unknown'}</span>
+              <span>{contract.contract_type || (contract.type as any)?.name || contract.type || 'Unknown'}</span>
               <span>•</span>
               <span>Version {contract.version}</span>
               <span>•</span>
-              <span>Updated {contract.updatedAt ? new Date(contract.updatedAt).toLocaleDateString() : 'Unknown'}</span>
+              <span>Updated {contract.updated_at ? new Date(contract.updated_at).toLocaleDateString() : (contract.updatedAt ? new Date(contract.updatedAt).toLocaleDateString() : 'Unknown')}</span>
             </div>
           </div>
           
@@ -375,18 +396,55 @@ export default function ContractViewPage() {
                 <dl className="space-y-4">
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Type</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{(contract.type as any)?.name || contract.type || 'Unknown'}</dd>
+                    <dd className="mt-1 text-sm text-gray-900">{contract.contract_type || (contract.type as any)?.name || contract.type || 'Unknown'}</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Created</dt>
                     <dd className="mt-1 text-sm text-gray-900">
-                      {contract.createdAt ? new Date(contract.createdAt).toLocaleDateString('en-GB', {
+                      {contract.created_at ? new Date(contract.created_at).toLocaleDateString('en-GB', {
                         day: 'numeric',
                         month: 'long',
                         year: 'numeric'
-                      }) : 'Unknown'}
+                      }) : (contract.createdAt ? new Date(contract.createdAt).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      }) : 'Unknown')}
                     </dd>
                   </div>
+                  {contract.client_name && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">Client</dt>
+                      <dd className="mt-1 text-sm text-gray-900">{contract.client_name}</dd>
+                    </div>
+                  )}
+                  {contract.supplier_name && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">Supplier</dt>
+                      <dd className="mt-1 text-sm text-gray-900">{contract.supplier_name}</dd>
+                    </div>
+                  )}
+                  {contract.contract_value && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">Contract Value</dt>
+                      <dd className="mt-1 text-sm text-gray-900">
+                        {new Intl.NumberFormat('en-GB', {
+                          style: 'currency',
+                          currency: contract.currency || 'GBP'
+                        }).format(contract.contract_value)}
+                      </dd>
+                    </div>
+                  )}
+                  {(contract.start_date || contract.end_date) && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">Contract Period</dt>
+                      <dd className="mt-1 text-sm text-gray-900">
+                        {contract.start_date && new Date(contract.start_date).toLocaleDateString('en-GB')}
+                        {contract.start_date && contract.end_date && ' - '}
+                        {contract.end_date && new Date(contract.end_date).toLocaleDateString('en-GB')}
+                      </dd>
+                    </div>
+                  )}
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Tags</dt>
                     <dd className="mt-1">
@@ -409,7 +467,7 @@ export default function ContractViewPage() {
               <div className="card">
                 <h3 className="text-lg font-medium text-gray-900 mb-6">Contract Parties</h3>
                 <div className="space-y-4">
-                  {contract.parties?.map((party) => (
+                  {contract.parties && contract.parties.length > 0 ? contract.parties.map((party) => (
                     <div key={party.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{party.name}</div>
@@ -432,10 +490,80 @@ export default function ContractViewPage() {
                         )}
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No parties defined yet</p>
+                      {(contract.client_name || contract.supplier_name) && (
+                        <div className="mt-4 space-y-2">
+                          {contract.client_name && (
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">{contract.client_name}</div>
+                                {contract.client_email && <div className="text-sm text-gray-500">{contract.client_email}</div>}
+                                <div className="text-xs text-gray-500">Client</div>
+                              </div>
+                            </div>
+                          )}
+                          {contract.supplier_name && (
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">{contract.supplier_name}</div>
+                                <div className="text-xs text-gray-500">Supplier</div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
+
+            {/* Contract Content */}
+            {(contract.plain_english_input || contract.generated_content || contract.final_content) && (
+              <div className="card">
+                <h3 className="text-lg font-medium text-gray-900 mb-6">Contract Content</h3>
+                <div className="space-y-6">
+                  {contract.plain_english_input && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500 mb-2">Original Requirements</h4>
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p className="text-sm text-gray-700">{contract.plain_english_input}</p>
+                      </div>
+                    </div>
+                  )}
+                  {contract.generated_content && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500 mb-2">AI Generated Content</h4>
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <div className="text-sm text-gray-700 whitespace-pre-wrap">{contract.generated_content}</div>
+                      </div>
+                    </div>
+                  )}
+                  {contract.final_content && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500 mb-2">Final Contract</h4>
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="text-sm text-gray-700 whitespace-pre-wrap">{contract.final_content}</div>
+                      </div>
+                    </div>
+                  )}
+                  {!contract.generated_content && !contract.final_content && contract.plain_english_input && (
+                    <div className="text-center py-6">
+                      <p className="text-gray-500 mb-4">Contract content has not been generated yet.</p>
+                      <button
+                        onClick={() => generateContent(contract.id)}
+                        disabled={isGenerating}
+                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                      >
+                        {isGenerating ? 'Generating...' : 'Generate Contract Content'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Deadlines */}
             <div className="card">
@@ -613,7 +741,7 @@ export default function ContractViewPage() {
                   <div className="flex items-center justify-between">
                     <div className="text-sm font-medium text-gray-900">Current Version (v{contract.version})</div>
                     <div className="text-sm text-gray-500">
-                      {contract.updatedAt ? new Date(contract.updatedAt).toLocaleDateString() : 'Unknown'}
+                      {contract.updated_at ? new Date(contract.updated_at).toLocaleDateString() : (contract.updatedAt ? new Date(contract.updatedAt).toLocaleDateString() : 'Unknown')}
                     </div>
                   </div>
                   <div className="text-sm text-gray-600 mt-1">Contract updated and compliance re-checked</div>
@@ -626,7 +754,7 @@ export default function ContractViewPage() {
                   <div className="flex items-center justify-between">
                     <div className="text-sm font-medium text-gray-900">Initial Creation (v1)</div>
                     <div className="text-sm text-gray-500">
-                      {contract.createdAt ? new Date(contract.createdAt).toLocaleDateString() : 'Unknown'}
+                      {contract.created_at ? new Date(contract.created_at).toLocaleDateString() : (contract.createdAt ? new Date(contract.createdAt).toLocaleDateString() : 'Unknown')}
                     </div>
                   </div>
                   <div className="text-sm text-gray-600 mt-1">Contract created from template</div>
