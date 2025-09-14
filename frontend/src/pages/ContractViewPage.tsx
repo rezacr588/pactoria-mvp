@@ -62,7 +62,6 @@ export default function ContractViewPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedContent, setEditedContent] = useState('');
   const [editingSections, setEditingSections] = useState<Record<string, boolean>>({});
   const [editedSections, setEditedSections] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -189,24 +188,12 @@ export default function ContractViewPage() {
 
   const handleEditContent = useCallback(() => {
     setIsEditing(true);
-    setEditedContent(contract.final_content || contract.generated_content || '');
-  }, [contract.final_content, contract.generated_content]);
-
-  const handleSaveContent = useCallback(async () => {
-    if (!contract.id) return;
-    
-    try {
-      await updateContract(contract.id, { final_content: editedContent });
-      await fetchContract(contract.id);
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Failed to save content:', error);
-    }
-  }, [contract.id, editedContent, updateContract, fetchContract]);
+  }, []);
 
   const handleCancelEdit = useCallback(() => {
     setIsEditing(false);
-    setEditedContent('');
+    setEditingSections({});
+    setEditedSections({});
   }, []);
 
   // New functions for inline editing
@@ -741,33 +728,7 @@ export default function ContractViewPage() {
                 )}
               </div>
               
-              {isEditing ? (
-                /* Live Edit Mode */
-                <div className="space-y-4">
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <div className="flex">
-                      <div className="flex-shrink-0">
-                        <PencilIcon className="h-5 w-5 text-yellow-600" />
-                      </div>
-                      <div className="ml-3">
-                        <h4 className="text-sm font-medium text-yellow-800">Editing Mode</h4>
-                        <p className="text-sm text-yellow-700">Make changes to the contract content. Remember to save your changes.</p>
-                      </div>
-                    </div>
-                  </div>
-                  <textarea
-                    value={editedContent}
-                    onChange={(e) => setEditedContent(e.target.value)}
-                    className="w-full h-96 p-4 border border-gray-300 rounded-lg font-mono text-sm resize-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Enter contract content..."
-                    style={{ fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace' }}
-                  />
-                  <div className="flex justify-between items-center text-sm text-gray-500">
-                    <span>{editedContent.length} characters</span>
-                    <span>Auto-save disabled in edit mode</span>
-                  </div>
-                </div>
-              ) : (contract.generated_content || contract.final_content) ? (
+              {(contract.generated_content || contract.final_content) ? (
                 <div className="prose max-w-none">
                   {/* Interactive PDF-like document styling */}
                   <div className="bg-white border border-gray-300 rounded-lg shadow-lg p-8 mx-auto max-w-4xl" style={{ fontFamily: 'Times, serif' }}>
