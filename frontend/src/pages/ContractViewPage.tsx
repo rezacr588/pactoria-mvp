@@ -57,7 +57,7 @@ function classNames(...classes: string[]) {
 export default function ContractViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { selectedContract, isLoading, error, fetchContract, generateContent, analyzeCompliance, clearError, updateContract } = useContracts();
+  const { selectedContract, isLoading, error, fetchContract, updateContract, generateContent, analyzeCompliance, clearError } = useContracts();
   const [activeTab, setActiveTab] = useState('overview');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
