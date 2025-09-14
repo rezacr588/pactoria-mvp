@@ -15,9 +15,12 @@ import {
   ShieldCheckIcon,
   ChartBarIcon,
   ChevronDownIcon,
+  SparklesIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
+import AIGenerationLoading from '../components/loading/AIGenerationLoading';
 
 function getComplianceColor(score: number) {
   if (score >= 90) return 'text-green-600 bg-green-100';
@@ -127,6 +130,22 @@ export default function ContractViewPage() {
     }
   };
 
+  // Handler functions
+  const handleGenerateContent = useCallback(async () => {
+    if (!contract.id) return;
+    
+    setIsGenerating(true);
+    try {
+      await generateContent(contract.id, false);
+      // Refresh the contract to get the updated content
+      await fetchContract(contract.id);
+    } catch (error) {
+      console.error('Failed to generate content:', error);
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [contract.id, generateContent, fetchContract, setIsGenerating]);
+
   const statusInfo = statusConfig[contract.status as keyof typeof statusConfig] || statusConfig.draft;
   const StatusIcon = statusInfo.icon;
   const riskLevel = contract.riskAssessment ? getRiskLevel(contract.riskAssessment.overall || 0) : 'Low';
@@ -220,6 +239,27 @@ export default function ContractViewPage() {
           </div>
           
           <div className="mt-4 sm:mt-0 flex space-x-3">
+            {/* Generate Content Button - only show if no generated content */}
+            {!contract.generated_content && (
+              <button 
+                className="btn-primary"
+                onClick={handleGenerateContent}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <>
+                    <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <SparklesIcon className="h-4 w-4 mr-2" />
+                    Generate Content
+                  </>
+                )}
+              </button>
+            )}
+            
             <button className="btn-secondary">
               <ShareIcon className="h-4 w-4 mr-2" />
               Share
@@ -546,75 +586,38 @@ export default function ContractViewPage() {
 
             {/* Contract Content */}
             <div className="card">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-medium text-gray-900">Contract Content</h3>
-                <div className="flex space-x-2">
-                  {!contract.generated_content && !contract.final_content && (
-                    <button
-                      onClick={() => generateContent(contract.id)}
-                      className="btn-secondary text-sm"
-                    >
-                      <DocumentIcon className="h-4 w-4 mr-2" />
-                      Generate Content
-                    </button>
-                  )}
-                  {(contract.generated_content || contract.final_content) && (
-                    <button
-                      onClick={() => generateContent(contract.id, true)}
-                      className="btn-secondary text-sm"
-                    >
-                      <DocumentIcon className="h-4 w-4 mr-2" />
-                      Regenerate
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {contract.final_content || contract.generated_content ? (
-                <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-sm font-medium text-gray-900">
-                        {contract.final_content ? 'Final Content' : 'Generated Content'}
-                      </h4>
-                      <span className={classNames(
-                        contract.final_content ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800',
-                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium'
-                      )}>
-                        {contract.final_content ? 'Final' : 'Draft'}
-                      </span>
-                    </div>
-                    <div className="prose prose-sm max-w-none">
-                      <pre className="whitespace-pre-wrap text-sm text-gray-700 bg-white rounded p-3 border">
-                        {contract.final_content || contract.generated_content}
-                      </pre>
-                    </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-6">Contract Content</h3>
+              {contract.generated_content ? (
+                <div className="prose max-w-none">
+                  <div className="bg-gray-50 p-6 rounded-lg">
+                    <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800">
+                      {contract.generated_content}
+                    </pre>
                   </div>
-                  
-                  {contract.plain_english_input && (
-                    <div className="bg-blue-50 rounded-lg p-4">
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">Original Requirements</h4>
-                      <p className="text-sm text-gray-700">{contract.plain_english_input}</p>
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <DocumentIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">No Contract Content Yet</h4>
-                  <p className="text-gray-600 mb-4">Generate AI-powered contract content based on your requirements.</p>
-                  {contract.plain_english_input && (
-                    <div className="bg-blue-50 rounded-lg p-4 mb-4 text-left">
-                      <h5 className="text-sm font-medium text-gray-900 mb-2">Requirements:</h5>
-                      <p className="text-sm text-gray-700">{contract.plain_english_input}</p>
-                    </div>
-                  )}
-                  <button
-                    onClick={() => generateContent(contract.id)}
+                  <DocumentIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">No Content Generated</h4>
+                  <p className="text-gray-500 mb-6">
+                    This contract doesn't have generated content yet. Click the "Generate Content" button above to create AI-powered contract content.
+                  </p>
+                  <button 
                     className="btn-primary"
+                    onClick={handleGenerateContent}
+                    disabled={isGenerating}
                   >
-                    <DocumentIcon className="h-4 w-4 mr-2" />
-                    Generate Contract Content
+                    {isGenerating ? (
+                      <>
+                        <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <SparklesIcon className="h-4 w-4 mr-2" />
+                        Generate Content
+                      </>
+                    )}
                   </button>
                 </div>
               )}
@@ -825,6 +828,9 @@ export default function ContractViewPage() {
           </div>
         )}
       </div>
+
+      {/* AI Generation Loading Overlay */}
+      <AIGenerationLoading isVisible={isGenerating} />
     </div>
   );
 }

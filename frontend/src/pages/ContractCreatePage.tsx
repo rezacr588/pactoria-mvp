@@ -23,10 +23,11 @@ import { ProgressIndicator } from '../components/forms/ProgressIndicator';
 import { TemplateSelectionStep } from '../components/forms/steps/TemplateSelectionStep';
 import { ContractDetailsStep } from '../components/forms/steps/ContractDetailsStep';
 import { ReviewStep } from '../components/forms/steps/ReviewStep';
+import AIGenerationLoading from '../components/loading/AIGenerationLoading';
 
 export default function ContractCreatePage() {
   const navigate = useNavigate();
-  const { createContract } = useContracts();
+  const { createContract, generateContent } = useContracts();
 
   // Use our custom hooks
   const { formData, errors, handleInputChange, validateStep, resetForm } = useContractForm();
@@ -86,6 +87,7 @@ export default function ContractCreatePage() {
     setIsGenerating(true);
 
     try {
+      // Step 1: Create the contract
       const newContract = await createContract({
         title: formData.name || `${selectedTemplate?.name} - ${formData.clientName}`,
         contract_type: (selectedTemplate?.contract_type || 'service_agreement') as ContractType,
@@ -99,6 +101,15 @@ export default function ContractCreatePage() {
         end_date: formData.endDate || null,
         template_id: formData.templateId,
       });
+
+      // Step 2: Generate AI content for the contract
+      try {
+        await generateContent(newContract.id, false);
+        console.log('Contract content generated successfully');
+      } catch (genError) {
+        console.warn('AI generation failed, but contract was created:', genError);
+        // Continue anyway - user can generate content later
+      }
 
       // Clear the draft after successful generation
       clearDraft();
@@ -316,6 +327,12 @@ export default function ContractCreatePage() {
           Step {currentStep} of {steps.length}
         </div>
       </div>
+
+      {/* AI Generation Loading Overlay */}
+      <AIGenerationLoading 
+        isVisible={isGenerating}
+        onComplete={() => setIsGenerating(false)}
+      />
     </div>
   );
 }
