@@ -867,3 +867,263 @@ async def get_contract_versions(
     )
 
     return [ContractVersionResponse.model_validate(v) for v in versions]
+
+
+@router.get("/{contract_id}/export/pdf")
+async def export_contract_pdf(
+    contract_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Export contract as PDF"""
+    from fastapi.responses import Response
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+    from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
+    from io import BytesIO
+    import html
+    
+    contract = db.query(Contract).filter(Contract.id == contract_id).first()
+    if not contract:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Contract not found"
+        )
+
+    # Check company access
+    require_company_access(current_user, contract.company_id)
+
+    # Get content to export
+    content = contract.final_content or contract.generated_content
+    if not content:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Contract has no content to export. Generate content first."
+        )
+
+    try:
+        # Create PDF buffer
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=A4,
+            rightMargin=1*inch,
+            leftMargin=1*inch,
+            topMargin=1*inch,
+            bottomMargin=1*inch
+        )
+
+        # Create styles
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=18,
+            spaceAfter=30,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold'
+        )
+        
+        body_style = ParagraphStyle(
+            'CustomBody',
+            parent=styles['Normal'],
+            fontSize=11,
+            spaceAfter=12,
+            alignment=TA_JUSTIFY,
+            fontName='Helvetica',
+            leading=14
+        )
+
+        # Create content
+        story = []
+        
+        # Title
+        safe_title = html.escape(contract.title or "Contract")
+        story.append(Paragraph(safe_title, title_style))
+        story.append(Spacer(1, 20))
+        
+        # Contract metadata
+        if contract.client_name or contract.supplier_name:
+            story.append(Paragraph("<b>Contract Details:</b>", styles['Heading2']))
+            
+            if contract.client_name:
+                story.append(Paragraph(f"<b>Client:</b> {html.escape(contract.client_name)}", body_style))
+            if contract.supplier_name:
+                story.append(Paragraph(f"<b>Supplier:</b> {html.escape(contract.supplier_name)}", body_style))
+            if contract.contract_value:
+                value_str = f"{contract.currency or 'GBP'} {contract.contract_value:,.2f}"
+                story.append(Paragraph(f"<b>Contract Value:</b> {value_str}", body_style))
+            if contract.start_date:
+                story.append(Paragraph(f"<b>Start Date:</b> {contract.start_date.strftime('%d %B %Y')}", body_style))
+            if contract.end_date:
+                story.append(Paragraph(f"<b>End Date:</b> {contract.end_date.strftime('%d %B %Y')}", body_style))
+            
+            story.append(Spacer(1, 20))
+        
+        # Contract content
+        story.append(Paragraph("<b>Contract Terms:</b>", styles['Heading2']))
+        story.append(Spacer(1, 12))
+        
+        # Clean and format content
+        content_lines = content.split('\n')
+        for line in content_lines:
+            clean_line = html.escape(line.strip())
+            if clean_line:
+                story.append(Paragraph(clean_line, body_style))
+            else:
+                story.append(Spacer(1, 6))
+
+        # Build PDF
+        doc.build(story)
+        buffer.seek(0)
+
+        # Create audit log
+        audit_log = AuditLog(
+            action=AuditAction.VIEW,
+            resource_type=AuditResourceType.CONTRACT,
+            resource_id=contract.id,
+            user_id=current_user.id,
+            new_values={"action": "pdf_export"},
+            contract_id=contract.id,
+        )
+        db.add(audit_log)
+        db.commit()
+
+        # Return PDF response
+        filename = f"{contract.title.replace(' ', '_') if contract.title else 'contract'}_{contract_id[:8]}.pdf"
+        return Response(
+            content=buffer.getvalue(),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+
+    except ImportError:
+        # Fallback if ReportLab is not available
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="PDF export feature requires additional dependencies. Please contact support."
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate PDF: {str(e)}"
+        )
+
+
+@router.get("/{contract_id}/export/docx")
+async def export_contract_docx(
+    contract_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Export contract as Word document"""
+    from fastapi.responses import Response
+    from docx import Document
+    from docx.shared import Inches
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from io import BytesIO
+    
+    contract = db.query(Contract).filter(Contract.id == contract_id).first()
+    if not contract:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Contract not found"
+        )
+
+    # Check company access
+    require_company_access(current_user, contract.company_id)
+
+    # Get content to export
+    content = contract.final_content or contract.generated_content
+    if not content:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Contract has no content to export. Generate content first."
+        )
+
+    try:
+        # Create Word document
+        doc = Document()
+        
+        # Set margins
+        sections = doc.sections
+        for section in sections:
+            section.top_margin = Inches(1)
+            section.bottom_margin = Inches(1)
+            section.left_margin = Inches(1)
+            section.right_margin = Inches(1)
+
+        # Title
+        title = doc.add_heading(contract.title or "Contract", level=0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+        # Contract metadata
+        if contract.client_name or contract.supplier_name or contract.contract_value:
+            doc.add_heading('Contract Details', level=1)
+            
+            if contract.client_name:
+                p = doc.add_paragraph()
+                p.add_run('Client: ').bold = True
+                p.add_run(contract.client_name)
+            
+            if contract.supplier_name:
+                p = doc.add_paragraph()
+                p.add_run('Supplier: ').bold = True
+                p.add_run(contract.supplier_name)
+            
+            if contract.contract_value:
+                p = doc.add_paragraph()
+                p.add_run('Contract Value: ').bold = True
+                value_str = f"{contract.currency or 'GBP'} {contract.contract_value:,.2f}"
+                p.add_run(value_str)
+            
+            if contract.start_date:
+                p = doc.add_paragraph()
+                p.add_run('Start Date: ').bold = True
+                p.add_run(contract.start_date.strftime('%d %B %Y'))
+            
+            if contract.end_date:
+                p = doc.add_paragraph()
+                p.add_run('End Date: ').bold = True
+                p.add_run(contract.end_date.strftime('%d %B %Y'))
+
+        # Contract content
+        doc.add_heading('Contract Terms', level=1)
+        
+        # Add content paragraphs
+        content_lines = content.split('\n')
+        for line in content_lines:
+            clean_line = line.strip()
+            if clean_line:
+                doc.add_paragraph(clean_line)
+
+        # Save to buffer
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+
+        # Create audit log
+        audit_log = AuditLog(
+            action=AuditAction.VIEW,
+            resource_type=AuditResourceType.CONTRACT,
+            resource_id=contract.id,
+            user_id=current_user.id,
+            new_values={"action": "docx_export"},
+            contract_id=contract.id,
+        )
+        db.add(audit_log)
+        db.commit()
+
+        # Return Word document response
+        filename = f"{contract.title.replace(' ', '_') if contract.title else 'contract'}_{contract_id[:8]}.docx"
+        return Response(
+            content=buffer.getvalue(),
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate Word document: {str(e)}"
+        )
