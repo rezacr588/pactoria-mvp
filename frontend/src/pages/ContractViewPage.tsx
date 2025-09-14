@@ -211,11 +211,11 @@ export default function ContractViewPage() {
               </span>
             </div>
             <div className="mt-2 flex items-center text-sm text-gray-500 space-x-4">
-              <span>{(contract.type as any)?.name || contract.contract_type || contract.type || 'Unknown'}</span>
+              <span>{contract.contract_type || (contract.type as any)?.name || contract.type || 'Unknown'}</span>
               <span>•</span>
               <span>Version {contract.version}</span>
               <span>•</span>
-              <span>Updated {contract.updated_at || contract.updatedAt ? new Date(contract.updated_at || contract.updatedAt).toLocaleDateString() : contract.created_at ? new Date(contract.created_at).toLocaleDateString() : 'Unknown'}</span>
+              <span>Updated {contract.updated_at ? new Date(contract.updated_at).toLocaleDateString() : (contract.updatedAt ? new Date(contract.updatedAt).toLocaleDateString() : 'Unknown')}</span>
             </div>
           </div>
           
@@ -391,18 +391,55 @@ export default function ContractViewPage() {
                 <dl className="space-y-4">
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Type</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{(contract.type as any)?.name || contract.contract_type || contract.type || 'Unknown'}</dd>
+                    <dd className="mt-1 text-sm text-gray-900">{contract.contract_type || (contract.type as any)?.name || contract.type || 'Unknown'}</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Created</dt>
                     <dd className="mt-1 text-sm text-gray-900">
-                      {contract.created_at || contract.createdAt ? new Date(contract.created_at || contract.createdAt).toLocaleDateString('en-GB', {
+                      {contract.created_at ? new Date(contract.created_at).toLocaleDateString('en-GB', {
                         day: 'numeric',
                         month: 'long',
                         year: 'numeric'
-                      }) : 'Unknown'}
+                      }) : (contract.createdAt ? new Date(contract.createdAt).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      }) : 'Unknown')}
                     </dd>
                   </div>
+                  {contract.client_name && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">Client</dt>
+                      <dd className="mt-1 text-sm text-gray-900">{contract.client_name}</dd>
+                    </div>
+                  )}
+                  {contract.supplier_name && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">Supplier</dt>
+                      <dd className="mt-1 text-sm text-gray-900">{contract.supplier_name}</dd>
+                    </div>
+                  )}
+                  {contract.contract_value && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">Contract Value</dt>
+                      <dd className="mt-1 text-sm text-gray-900">
+                        {new Intl.NumberFormat('en-GB', {
+                          style: 'currency',
+                          currency: contract.currency || 'GBP'
+                        }).format(contract.contract_value)}
+                      </dd>
+                    </div>
+                  )}
+                  {(contract.start_date || contract.end_date) && (
+                    <div>
+                      <dt className="text-sm font-medium text-gray-500">Contract Period</dt>
+                      <dd className="mt-1 text-sm text-gray-900">
+                        {contract.start_date && new Date(contract.start_date).toLocaleDateString('en-GB')}
+                        {contract.start_date && contract.end_date && ' - '}
+                        {contract.end_date && new Date(contract.end_date).toLocaleDateString('en-GB')}
+                      </dd>
+                    </div>
+                  )}
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Contract Value</dt>
                     <dd className="mt-1 text-sm text-gray-900">
@@ -765,7 +802,7 @@ export default function ContractViewPage() {
                   <div className="flex items-center justify-between">
                     <div className="text-sm font-medium text-gray-900">Current Version (v{contract.version})</div>
                     <div className="text-sm text-gray-500">
-                      {contract.updatedAt ? new Date(contract.updatedAt).toLocaleDateString() : 'Unknown'}
+                      {contract.updated_at ? new Date(contract.updated_at).toLocaleDateString() : (contract.updatedAt ? new Date(contract.updatedAt).toLocaleDateString() : 'Unknown')}
                     </div>
                   </div>
                   <div className="text-sm text-gray-600 mt-1">Contract updated and compliance re-checked</div>
@@ -778,7 +815,7 @@ export default function ContractViewPage() {
                   <div className="flex items-center justify-between">
                     <div className="text-sm font-medium text-gray-900">Initial Creation (v1)</div>
                     <div className="text-sm text-gray-500">
-                      {contract.createdAt ? new Date(contract.createdAt).toLocaleDateString() : 'Unknown'}
+                      {contract.created_at ? new Date(contract.created_at).toLocaleDateString() : (contract.createdAt ? new Date(contract.createdAt).toLocaleDateString() : 'Unknown')}
                     </div>
                   </div>
                   <div className="text-sm text-gray-600 mt-1">Contract created from template</div>
