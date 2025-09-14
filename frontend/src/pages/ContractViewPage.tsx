@@ -59,27 +59,6 @@ export default function ContractViewPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  // Handle export functionality
-  const handleExport = useCallback(async (format: 'pdf' | 'docx' | 'txt') => {
-    if (!contract.id) return;
-    
-    try {
-      // For now, we'll create a simple text export
-      const content = contract.final_content || contract.generated_content || 'No content available';
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${contract.title || 'contract'}.${format === 'docx' ? 'txt' : format}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Export failed:', error);
-    }
-  }, [contract]);
-
   // Use ref to store fetchContract to avoid infinite loop
   const fetchContractRef = useRef(fetchContract);
   fetchContractRef.current = fetchContract;
@@ -119,6 +98,27 @@ export default function ContractViewPage() {
       lastUpdated: new Date()
     }
   };
+
+  // Handle export functionality - moved after contract definition
+  const handleExport = useCallback(async (format: 'pdf' | 'docx' | 'txt') => {
+    if (!contract.id) return;
+    
+    try {
+      // For now, we'll create a simple text export
+      const content = contract.final_content || contract.generated_content || 'No content available';
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${contract.title || 'contract'}.${format === 'docx' ? 'txt' : format}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+    }
+  }, [contract]);
 
   // Show loading state when still loading
   if (isLoading) {
