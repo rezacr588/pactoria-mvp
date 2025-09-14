@@ -31,6 +31,8 @@ from app.infrastructure.database.models import (
     ContractType,
     ContractStatus,
     AuditLog,
+    AuditAction,
+    AuditResourceType,
 )
 from app.schemas.contracts import (
     ContractCreate,
@@ -211,7 +213,6 @@ async def create_contract(
     db.refresh(contract)
 
     # Create audit log
-    from app.infrastructure.database.models import AuditAction, AuditResourceType
     audit_log = AuditLog(
         action=AuditAction.CREATE,
         resource_type=AuditResourceType.CONTRACT,
