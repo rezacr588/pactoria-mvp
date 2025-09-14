@@ -2,10 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   DocumentTextIcon,
   MagnifyingGlassIcon,
-  PlusIcon,
   FunnelIcon,
   EyeIcon,
-  PencilIcon,
   DocumentDuplicateIcon,
   HeartIcon,
   TagIcon,
@@ -22,6 +20,7 @@ import { TemplateService } from '../services/api';
 import { getErrorMessage } from '../utils/errorHandling';
 import { useToast } from '../contexts/ToastContext';
 import { SkeletonGrid } from '../components/ui/Skeleton';
+import TemplatePreviewModal from '../components/templates/TemplatePreviewModal';
 
 interface Template {
   id: string;
@@ -108,6 +107,10 @@ export default function TemplatesPage() {
 
   // Favorite templates state (stored locally)
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+
+  // Template preview modal state
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [previewTemplateId, setPreviewTemplateId] = useState<string | null>(null);
 
   // Load favorites from localStorage
   useEffect(() => {
@@ -233,6 +236,24 @@ export default function TemplatesPage() {
 
   const favoriteTemplates = templates.filter(t => favoriteIds.has(t.id));
   const activeTemplates = templates.filter(t => t.is_active);
+
+  // Handle template preview
+  const handlePreviewTemplate = (templateId: string) => {
+    setPreviewTemplateId(templateId);
+    setPreviewModalOpen(true);
+  };
+
+  // Handle closing preview modal
+  const handleClosePreview = () => {
+    setPreviewModalOpen(false);
+    setPreviewTemplateId(null);
+  };
+
+  // Handle using template from preview
+  const handleUseTemplate = (templateId: string) => {
+    // Navigate to contract creation with this template
+    window.location.href = `/contracts/new?template=${templateId}`;
+  };
 
   if (isLoading) {
     return (
@@ -522,10 +543,7 @@ export default function TemplatesPage() {
                       size="sm"
                       className="flex-1"
                       icon={<DocumentDuplicateIcon className="h-4 w-4" />}
-                      onClick={() => {
-                        // Navigate to contract creation with this template
-                        window.location.href = `/contracts/new?template=${template.id}`;
-                      }}
+                      onClick={() => handleUseTemplate(template.id)}
                     >
                       Use Template
                     </Button>
@@ -533,10 +551,7 @@ export default function TemplatesPage() {
                       variant="secondary"
                       size="sm"
                       icon={<EyeIcon className="h-4 w-4" />}
-                      onClick={() => {
-                        // Show preview modal or navigate to preview
-                        console.log('Preview template:', template.id);
-                      }}
+                      onClick={() => handlePreviewTemplate(template.id)}
                     >
                       Preview
                     </Button>
@@ -546,6 +561,16 @@ export default function TemplatesPage() {
             );
           })}
         </div>
+      )}
+
+      {/* Template Preview Modal */}
+      {previewTemplateId && (
+        <TemplatePreviewModal
+          isOpen={previewModalOpen}
+          onClose={handleClosePreview}
+          templateId={previewTemplateId}
+          onUseTemplate={handleUseTemplate}
+        />
       )}
     </div>
   );
