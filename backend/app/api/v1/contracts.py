@@ -9,9 +9,11 @@ from app.services.ai_service import (
     ComplianceAnalysisRequest,
 )
 from app.services.analytics_cache_service import invalidate_company_analytics_cache
+from app.services.pdf_service import pdf_service
 from app.core.datetime_utils import get_current_utc
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 import asyncio
@@ -867,3 +869,133 @@ async def get_contract_versions(
     )
 
     return [ContractVersionResponse.model_validate(v) for v in versions]
+
+
+@router.get(
+    "/{contract_id}/export/{format}",
+    summary="Export Contract",
+    description="""
+    Export contract in PDF or DOCX format with professional formatting.
+    
+    **Supported Formats:**
+    - `pdf`: Portable Document Format with proper UK legal document styling
+    - `docx`: Microsoft Word document format for editing
+    
+    **Features:**
+    - Professional contract formatting
+    - Proper typography and margins
+    - Metadata table with contract details
+    - Footer with generation timestamp
+    
+    **Path Parameters:**
+    - `contract_id`: Unique identifier of the contract
+    - `format`: Export format (pdf or docx)
+    
+    **Requires Authentication:** JWT Bearer token
+    **Requires Company Access:** User must belong to the same company as the contract
+    """,
+    responses={
+        200: {
+            "description": "Contract exported successfully",
+            "content": {
+                "application/pdf": {"example": "Binary PDF content"},
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {"example": "Binary DOCX content"}
+            }
+        },
+        400: {
+            "description": "Invalid format or contract has no content",
+            "model": ErrorResponse,
+        },
+        401: {"description": "Authentication required", "model": UnauthorizedError},
+        403: {
+            "description": "Access forbidden - contract belongs to different company",
+            "model": ForbiddenError,
+        },
+        404: {"description": "Contract not found", "model": NotFoundError},
+    },
+    dependencies=[Depends(security)],
+)
+async def export_contract(
+    contract_id: str,
+    format: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Export contract in specified format (PDF or DOCX)"""
+    
+    # Validate format
+    if format not in ['pdf', 'docx']:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Format must be 'pdf' or 'docx'"
+        )
+    
+    # Get contract
+    contract = db.query(Contract).filter(Contract.id == contract_id).first()
+    if not contract:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Contract not found"
+        )
+
+    # Check company access
+    require_company_access(current_user, contract.company_id)
+    
+    # Get content to export (prefer final_content, then generated_content)
+    content_to_export = contract.final_content or contract.generated_content
+    if not content_to_export:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Contract has no content to export. Generate or add content first."
+        )
+    
+    # Prepare metadata
+    metadata = {
+        'contract_type': contract.contract_type.value if contract.contract_type else 'Unknown',
+        'client_name': contract.client_name,
+        'supplier_name': contract.supplier_name,
+        'contract_value': contract.contract_value,
+        'currency': contract.currency,
+        'start_date': contract.start_date.strftime('%d %B %Y') if contract.start_date else None,
+        'end_date': contract.end_date.strftime('%d %B %Y') if contract.end_date else None,
+    }
+    
+    try:
+        if format == 'pdf':
+            # Generate PDF
+            pdf_bytes = pdf_service.generate_contract_pdf(
+                title=contract.title,
+                content=content_to_export,
+                metadata=metadata
+            )
+            
+            # Return PDF response
+            return Response(
+                content=pdf_bytes,
+                media_type="application/pdf",
+                headers={
+                    "Content-Disposition": f"attachment; filename=\"{contract.title}_contract.pdf\""
+                }
+            )
+        
+        elif format == 'docx':
+            # Generate DOCX
+            docx_bytes = pdf_service.generate_contract_docx(
+                title=contract.title,
+                content=content_to_export,
+                metadata=metadata
+            )
+            
+            # Return DOCX response
+            return Response(
+                content=docx_bytes,
+                media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                headers={
+                    "Content-Disposition": f"attachment; filename=\"{contract.title}_contract.docx\""
+                }
+            )
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate {format.upper()} document: {str(e)}"
+        )

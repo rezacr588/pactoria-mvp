@@ -1918,5 +1918,55 @@ export class CompanyService {
   }
 }
 
+// Contract Export Service
+export class ContractExportService {
+  static async exportContract(contractId: string, format: 'pdf' | 'docx'): Promise<Blob> {
+    const response = await fetch(`${API_BASE_URL}/contracts/${contractId}/export/${format}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token') || ''}`
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new ApiError(
+        response.status,
+        errorData.detail || `Failed to export contract as ${format.toUpperCase()}`,
+        errorData
+      );
+    }
+
+    return response.blob();
+  }
+
+  static async downloadContract(contractId: string, contractTitle: string, format: 'pdf' | 'docx'): Promise<void> {
+    try {
+      const blob = await this.exportContract(contractId, format);
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Generate filename
+      const sanitizedTitle = contractTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const timestamp = new Date().toISOString().split('T')[0];
+      link.download = `${sanitizedTitle}_${timestamp}.${format}`;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(`Failed to download ${format.toUpperCase()}:`, error);
+      throw error;
+    }
+  }
+}
+
 // Export types
 export type { ApiResponse, ApiError };

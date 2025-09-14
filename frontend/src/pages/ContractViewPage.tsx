@@ -21,6 +21,8 @@ import {
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import AIGenerationLoading from '../components/loading/AIGenerationLoading';
+import PDFStyleContractViewer from '../components/contracts/PDFStyleContractViewer';
+import { ContractExportService } from '../services/api';
 
 function getComplianceColor(score: number) {
   if (score >= 90) return 'text-green-600 bg-green-100';
@@ -57,10 +59,11 @@ function classNames(...classes: string[]) {
 export default function ContractViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { selectedContract, isLoading, error, fetchContract, generateContent, analyzeCompliance, clearError } = useContracts();
+  const { selectedContract, isLoading, error, fetchContract, generateContent, analyzeCompliance, clearError, updateContract } = useContracts();
   const [activeTab, setActiveTab] = useState('overview');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Use ref to store fetchContract to avoid infinite loop
   const fetchContractRef = useRef(fetchContract);
@@ -73,32 +76,39 @@ export default function ContractViewPage() {
   }, [id, fetchContractRef]);
 
   // Export functionality - define before any conditional returns
-  const handleExport = useCallback(async (format: 'pdf' | 'docx' | 'txt') => {
+  const handleExport = useCallback(async (format: 'pdf' | 'docx') => {
+    if (!contract.id) return;
+    
+    setIsExporting(true);
     try {
-      const content = selectedContract?.final_content || selectedContract?.generated_content || 'No content available';
-      const title = selectedContract?.title || 'Contract';
-      
-      if (format === 'txt') {
-        // Simple text export
-        const blob = new Blob([content], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${title}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } else {
-        // For PDF and DOCX, we would typically call a backend endpoint
-        // For now, we'll show a notification that the feature is coming soon
-        alert(`${format.toUpperCase()} export feature is coming soon!`);
-      }
+      await ContractExportService.downloadContract(
+        contract.id,
+        contract.title || 'Contract',
+        format
+      );
     } catch (error) {
-      console.error('Export failed:', error);
-      alert('Export failed. Please try again.');
+      console.error(`${format.toUpperCase()} export failed:`, error);
+      alert(`Failed to export as ${format.toUpperCase()}. Please try again.`);
+    } finally {
+      setIsExporting(false);
     }
-  }, [selectedContract?.final_content, selectedContract?.generated_content, selectedContract?.title]);
+  }, [contract.id, contract.title]);
+
+  // Handle content updates from the PDF viewer
+  const handleContentUpdate = useCallback(async (newContent: string) => {
+    if (!contract.id) return;
+    
+    try {
+      await updateContract(contract.id, {
+        final_content: newContent
+      });
+      // Refresh the contract to get the updated content
+      await fetchContract(contract.id);
+    } catch (error) {
+      console.error('Failed to update contract content:', error);
+      alert('Failed to save changes. Please try again.');
+    }
+  }, [contract.id, updateContract, fetchContract]);
 
   // Use selectedContract from the hook or create a default object
   const contract = selectedContract || {
@@ -267,9 +277,9 @@ export default function ContractViewPage() {
             
             {/* Export Dropdown */}
             <Menu as="div" className="relative inline-block text-left">
-              <Menu.Button className="btn-secondary">
+              <Menu.Button className="btn-secondary" disabled={isExporting}>
                 <DownloadIcon className="h-4 w-4 mr-2" />
-                Export
+                {isExporting ? 'Exporting...' : 'Export'}
                 <ChevronDownIcon className="h-4 w-4 ml-2" />
               </Menu.Button>
               <Transition
@@ -287,8 +297,10 @@ export default function ContractViewPage() {
                       {({ active }) => (
                         <button
                           onClick={() => handleExport('pdf')}
+                          disabled={isExporting}
                           className={classNames(
                             active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                            isExporting ? 'opacity-50 cursor-not-allowed' : '',
                             'flex items-center w-full text-left px-4 py-2 text-sm'
                           )}
                         >
@@ -301,27 +313,15 @@ export default function ContractViewPage() {
                       {({ active }) => (
                         <button
                           onClick={() => handleExport('docx')}
+                          disabled={isExporting}
                           className={classNames(
                             active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                            isExporting ? 'opacity-50 cursor-not-allowed' : '',
                             'flex items-center w-full text-left px-4 py-2 text-sm'
                           )}
                         >
                           <DocumentIcon className="h-4 w-4 mr-3 text-blue-500" />
                           Export as Word
-                        </button>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <button
-                          onClick={() => handleExport('txt')}
-                          className={classNames(
-                            active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                            'flex items-center w-full text-left px-4 py-2 text-sm'
-                          )}
-                        >
-                          <DocumentIcon className="h-4 w-4 mr-3 text-gray-500" />
-                          Export as Text
                         </button>
                       )}
                     </Menu.Item>
@@ -584,17 +584,27 @@ export default function ContractViewPage() {
               </div>
             </div>
 
-            {/* Contract Content */}
+            {/* Contract Content - PDF Style Viewer */}
             <div className="card">
               <h3 className="text-lg font-medium text-gray-900 mb-6">Contract Content</h3>
-              {contract.generated_content ? (
-                <div className="prose max-w-none">
-                  <div className="bg-gray-50 p-6 rounded-lg">
-                    <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800">
-                      {contract.generated_content}
-                    </pre>
-                  </div>
-                </div>
+              {contract.generated_content || contract.final_content ? (
+                <PDFStyleContractViewer
+                  title={contract.title}
+                  content={contract.final_content || contract.generated_content || ''}
+                  metadata={{
+                    contract_type: contract.contract_type,
+                    client_name: contract.client_name,
+                    supplier_name: contract.supplier_name,
+                    contract_value: contract.contract_value,
+                    currency: contract.currency,
+                    start_date: contract.start_date,
+                    end_date: contract.end_date,
+                  }}
+                  isEditable={true}
+                  onContentUpdate={handleContentUpdate}
+                  onExport={handleExport}
+                  className="mt-4"
+                />
               ) : (
                 <div className="text-center py-12">
                   <DocumentIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />

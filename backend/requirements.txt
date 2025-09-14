@@ -26,6 +26,7 @@ langchain-community==0.2.16
 # File handling
 python-docx==1.1.2
 pypdf==5.1.0
+reportlab==4.2.5
 jinja2==3.1.4
 
 # HTTP client
