@@ -9,12 +9,15 @@ from app.services.ai_service import (
     ComplianceAnalysisRequest,
 )
 from app.services.analytics_cache_service import invalidate_company_analytics_cache
+from app.services.pdf_export_service import pdf_export_service
 from app.core.datetime_utils import get_current_utc
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 import asyncio
+import os
 from functools import lru_cache
 
 from app.core.database import get_db
@@ -867,3 +870,133 @@ async def get_contract_versions(
     )
 
     return [ContractVersionResponse.model_validate(v) for v in versions]
+
+
+@router.get(
+    "/{contract_id}/export/pdf",
+    summary="Export Contract as PDF",
+    description="""
+    Export contract content as a professionally formatted PDF document.
+
+    **Key Features:**
+    - Professional PDF formatting with proper typography and layout
+    - Includes contract header, details, content sections, and signature areas
+    - Optional inclusion of risk assessment and compliance scores
+    - Maintains consistent formatting suitable for legal documentation
+    - Proper page breaks and print-ready layout
+
+    **Query Parameters:**
+    - `include_risk_assessment`: Include risk assessment in PDF (default: true)
+    - `include_compliance_score`: Include compliance analysis in PDF (default: true)
+    - `filename`: Custom filename for downloaded PDF (optional)
+
+    **Response:**
+    - Returns PDF file for download
+    - Content-Type: application/pdf
+    - Content-Disposition: attachment with appropriate filename
+
+    **Use Cases:**
+    - Download contract for offline review
+    - Share formatted contract with stakeholders
+    - Print professional contract documents
+    - Archive contract in standard PDF format
+
+    **Requires Authentication:** JWT Bearer token
+    **Requires Company Access:** User must belong to the same company as the contract
+    """,
+    responses={
+        200: {
+            "description": "PDF file generated successfully",
+            "content": {"application/pdf": {}},
+        },
+        401: {"description": "Authentication required", "model": UnauthorizedError},
+        403: {
+            "description": "Access forbidden - contract belongs to different company",
+            "model": ForbiddenError,
+        },
+        404: {"description": "Contract not found", "model": NotFoundError},
+        503: {
+            "description": "PDF generation service unavailable",
+            "model": ErrorResponse,
+        },
+    },
+    dependencies=[Depends(security)],
+)
+async def export_contract_pdf(
+    contract_id: str,
+    include_risk_assessment: bool = Query(
+        True, description="Include risk assessment in PDF export"
+    ),
+    include_compliance_score: bool = Query(
+        True, description="Include compliance score in PDF export"
+    ),
+    filename: Optional[str] = Query(
+        None, description="Custom filename for PDF (without .pdf extension)"
+    ),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Export contract as PDF"""
+
+    # Check if PDF service is available
+    if pdf_export_service is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="PDF export service is not available. Please install reportlab: pip install reportlab",
+        )
+
+    # Get contract
+    contract = db.query(Contract).filter(Contract.id == contract_id).first()
+    if not contract:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Contract not found"
+        )
+
+    # Check company access
+    require_company_access(current_user, contract.company_id)
+
+    try:
+        # Generate PDF
+        pdf_path = pdf_export_service.export_contract_to_pdf(
+            contract=contract,
+            include_risk_assessment=include_risk_assessment,
+            include_compliance_score=include_compliance_score,
+        )
+
+        # Determine filename
+        if filename:
+            download_filename = f"{filename}.pdf"
+        else:
+            # Create filename from contract title and date
+            safe_title = "".join(c for c in contract.title if c.isalnum() or c in (' ', '-', '_')).rstrip()
+            safe_title = safe_title.replace(' ', '_')[:50]  # Limit length
+            download_filename = f"contract_{safe_title}_{contract.version}.pdf"
+
+        # Create audit log
+        audit_log = AuditLog(
+            action=AuditAction.VIEW,
+            resource_type=AuditResourceType.CONTRACT,
+            resource_id=contract.id,
+            user_id=current_user.id,
+            new_values={
+                "action": "pdf_export",
+                "include_risk_assessment": include_risk_assessment,
+                "include_compliance_score": include_compliance_score,
+            },
+            contract_id=contract.id,
+        )
+        db.add(audit_log)
+        db.commit()
+
+        # Return PDF file
+        return FileResponse(
+            path=pdf_path,
+            filename=download_filename,
+            media_type="application/pdf",
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate PDF: {str(e)}",
+        )

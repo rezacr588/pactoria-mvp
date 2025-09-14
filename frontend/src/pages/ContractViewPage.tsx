@@ -21,6 +21,8 @@ import {
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import AIGenerationLoading from '../components/loading/AIGenerationLoading';
+import ContractContentFormatter from '../components/contracts/ContractContentFormatter';
+import ContractRiskAssessment from '../components/contracts/ContractRiskAssessment';
 
 function getComplianceColor(score: number) {
   if (score >= 90) return 'text-green-600 bg-green-100';
@@ -61,6 +63,7 @@ export default function ContractViewPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isEditable, setIsEditable] = useState(false);
 
   // Use ref to store fetchContract to avoid infinite loop
   const fetchContractRef = useRef(fetchContract);
@@ -75,11 +78,41 @@ export default function ContractViewPage() {
   // Export functionality - define before any conditional returns
   const handleExport = useCallback(async (format: 'pdf' | 'docx' | 'txt') => {
     try {
-      const content = selectedContract?.final_content || selectedContract?.generated_content || 'No content available';
-      const title = selectedContract?.title || 'Contract';
-      
-      if (format === 'txt') {
+      if (format === 'pdf') {
+        // Use the new PDF export endpoint
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('Authentication required for PDF export');
+          return;
+        }
+
+        const response = await fetch(`/api/v1/contracts/${id}/export/pdf`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`PDF export failed: ${response.statusText}`);
+        }
+
+        // Create download
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${selectedContract?.title || 'contract'}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+      } else if (format === 'txt') {
         // Simple text export
+        const content = selectedContract?.final_content || selectedContract?.generated_content || 'No content available';
+        const title = selectedContract?.title || 'Contract';
+        
         const blob = new Blob([content], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -90,15 +123,14 @@ export default function ContractViewPage() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } else {
-        // For PDF and DOCX, we would typically call a backend endpoint
-        // For now, we'll show a notification that the feature is coming soon
+        // For DOCX, show coming soon message
         alert(`${format.toUpperCase()} export feature is coming soon!`);
       }
     } catch (error) {
       console.error('Export failed:', error);
       alert('Export failed. Please try again.');
     }
-  }, [selectedContract?.final_content, selectedContract?.generated_content, selectedContract?.title]);
+  }, [selectedContract?.final_content, selectedContract?.generated_content, selectedContract?.title, id]);
 
   // Use selectedContract from the hook or create a default object
   const contract = selectedContract || {
@@ -587,14 +619,23 @@ export default function ContractViewPage() {
             {/* Contract Content */}
             <div className="card">
               <h3 className="text-lg font-medium text-gray-900 mb-6">Contract Content</h3>
-              {contract.generated_content ? (
-                <div className="prose max-w-none">
-                  <div className="bg-gray-50 p-6 rounded-lg">
-                    <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800">
-                      {contract.generated_content}
-                    </pre>
-                  </div>
-                </div>
+              {contract.generated_content || contract.final_content ? (
+                <ContractContentFormatter
+                  content={contract.final_content || contract.generated_content}
+                  isEditable={isEditable}
+                  onContentChange={(newContent) => {
+                    // Handle content updates if needed
+                    console.log('Content updated:', newContent);
+                  }}
+                  title={contract.title}
+                  contractType={contract.contract_type}
+                  clientName={contract.client_name}
+                  supplierName={contract.supplier_name}
+                  contractValue={contract.contract_value}
+                  currency={contract.currency}
+                  startDate={contract.start_date}
+                  endDate={contract.end_date}
+                />
               ) : (
                 <div className="text-center py-12">
                   <DocumentIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -729,70 +770,27 @@ export default function ContractViewPage() {
         )}
 
         {activeTab === 'risk' && (
-          <div className="space-y-8">
-            {/* Risk Assessment Overview */}
-            <div className="card">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-medium text-gray-900">Risk Assessment</h3>
-                <div className="flex items-center space-x-3">
-                  <span className="text-sm text-gray-500">Overall Risk:</span>
-                  <span className={classNames(
-                    getRiskColor(contract.riskAssessment?.overall || 0),
-                    'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border'
-                  )}>
-                    {riskLevel} ({contract.riskAssessment?.overall || 0}%)
-                  </span>
-                </div>
-              </div>
-
-              {/* Risk Factors */}
-              <div className="space-y-4">
-                <h4 className="text-base font-medium text-gray-900">Risk Factors</h4>
-                {contract.riskAssessment?.factors?.map((factor, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h5 className="text-sm font-medium text-gray-900">{factor.name}</h5>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-xs text-gray-500">Impact: {factor.impact}</span>
-                        <span className="text-xs text-gray-500">•</span>
-                        <span className="text-xs text-gray-500">Likelihood: {factor.likelihood}</span>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600">{factor.description}</p>
-                    <div className="mt-3">
-                      <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                        <span>Risk Score</span>
-                        <span>{factor.score}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full ${
-                            factor.score <= 30 ? 'bg-green-600' :
-                            factor.score <= 60 ? 'bg-yellow-600' :
-                            'bg-red-600'
-                          }`}
-                          style={{ width: `${factor.score}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Recommendations */}
-              <div className="border-t border-gray-200 pt-6">
-                <h4 className="text-base font-medium text-gray-900 mb-4">AI Recommendations</h4>
-                <div className="space-y-3">
-                  {contract.riskAssessment?.recommendations?.map((recommendation, index) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <CheckCircleIcon className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <p className="text-sm text-gray-700">{recommendation}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          <ContractRiskAssessment
+            contractId={contract.id}
+            contractContent={contract.final_content || contract.generated_content}
+            existingAssessment={contract.riskAssessment}
+            isLoading={isLoading}
+            onAssessmentComplete={(assessment) => {
+              // Handle assessment completion
+              console.log('Risk assessment completed:', assessment);
+            }}
+            onTriggerAssessment={async () => {
+              // Call backend risk assessment if available
+              setIsAnalyzing(true);
+              try {
+                // This would call the backend risk assessment endpoint
+                // For now, let the component handle it internally
+                await new Promise(resolve => setTimeout(resolve, 100)); // Placeholder
+              } finally {
+                setIsAnalyzing(false);
+              }
+            }}
+          />
         )}
 
         {activeTab === 'history' && (
