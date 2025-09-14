@@ -16,6 +16,7 @@ from app.infrastructure.database.models import User, Company, UserRole
 security = HTTPBearer(auto_error=False)
 
 # Simple in-memory cache for user data (expires after 30 seconds)
+# Stores user data as dict to avoid SQLAlchemy session detachment issues
 _user_cache = {}
 CACHE_EXPIRY_SECONDS = 30
 
@@ -28,6 +29,11 @@ def _cleanup_expired_cache():
     ]
     for key in expired_keys:
         _user_cache.pop(key, None)
+
+
+def clear_user_cache():
+    """Clear all user cache entries - useful for testing"""
+    _user_cache.clear()
 
 
 class AuthenticationError(HTTPException):
@@ -67,7 +73,28 @@ async def get_current_user(
     if cache_key in _user_cache:
         cached_data = _user_cache[cache_key]
         if current_time - cached_data['timestamp'] < CACHE_EXPIRY_SECONDS:
-            return cached_data['user']
+            # Reconstruct User object from cached data to avoid detached session issues
+            user_data = cached_data['user_data']
+            
+            # Create a fresh User object with the cached data
+            # This avoids the DetachedInstanceError by not using the original SQLAlchemy object
+            user = User()
+            user.id = user_data['id']
+            user.email = user_data['email']
+            user.full_name = user_data['full_name']
+            user.is_active = user_data['is_active']
+            user.is_admin = user_data['is_admin']
+            user.role = user_data['role']
+            user.timezone = user_data['timezone']
+            user.company_id = user_data['company_id']
+            user.created_at = user_data['created_at']
+            user.updated_at = user_data.get('updated_at')
+            user.last_login_at = user_data['last_login_at']
+            user.hashed_password = user_data.get('hashed_password', '')
+            user.department = user_data.get('department')
+            user.notification_preferences = user_data.get('notification_preferences', {})
+            
+            return user
 
     # Get user from database
     user = db.query(User).filter(User.id == user_id).first()
@@ -78,9 +105,26 @@ async def get_current_user(
     if not user.is_active:
         raise AuthenticationError("Inactive user")
 
-    # Cache the user
+    # Cache user data (not the SQLAlchemy object) to avoid detached session issues
+    user_data = {
+        'id': user.id,
+        'email': user.email,
+        'full_name': user.full_name,
+        'is_active': user.is_active,
+        'is_admin': user.is_admin,
+        'role': user.role,
+        'timezone': user.timezone,
+        'company_id': user.company_id,
+        'created_at': user.created_at,
+        'updated_at': user.updated_at,
+        'last_login_at': user.last_login_at,
+        'hashed_password': user.hashed_password,
+        'department': user.department,
+        'notification_preferences': user.notification_preferences,
+    }
+    
     _user_cache[cache_key] = {
-        'user': user,
+        'user_data': user_data,
         'timestamp': current_time
     }
 
