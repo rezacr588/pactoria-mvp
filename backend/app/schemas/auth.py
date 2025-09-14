@@ -134,7 +134,9 @@ class UserProfile(BaseModel):
     )
     full_name: str = Field(..., description="User's full name", example="John Doe")
     is_active: bool = Field(..., description="User account status", example=True)
-    timezone: str = Field(..., description="User timezone", example="Europe/London")
+    is_admin: bool = Field(..., description="User admin status", example=False)
+    role: str = Field(..., description="User role", example="contract_manager")
+    timezone: Optional[str] = Field(None, description="User timezone", example="Europe/London")
     company_id: Optional[str] = Field(
         None,
         description="Associated company ID",

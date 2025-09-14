@@ -8,7 +8,7 @@ from app.core.datetime_utils import get_current_utc
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc, text
+from sqlalchemy import func, desc, text, case
 
 from app.core.database import get_db
 from app.core.auth import get_admin_user, get_user_company
@@ -133,9 +133,14 @@ async def get_dashboard_analytics(
         )
 
     # Contract distribution analysis
-    top_contract_type = (
-        max(contract_types, key=lambda x: x.count) if contract_types else None
-    )
+    top_contract_type = None
+    if contract_types:
+        try:
+            top_contract_type = max(contract_types, key=lambda x: getattr(x, 'count', 0))
+        except (TypeError, AttributeError) as e:
+            # Fallback in case of attribute issues
+            top_contract_type = contract_types[0] if contract_types else None
+    
     if top_contract_type:
         insights.append(f"{top_contract_type.contract_type.replace('_', ' ').title()
                            } contracts dominate portfolio ({top_contract_type.percentage:.1f}%)")
@@ -207,25 +212,25 @@ async def get_business_metrics(
         db.query(
             # Count by status using CASE statements
             func.sum(
-                func.case(
+                case(
                     (Contract.status == ContractStatus.ACTIVE, 1),
                     else_=0
                 )
             ).label("active_contracts"),
             func.sum(
-                func.case(
+                case(
                     (Contract.status == ContractStatus.DRAFT, 1),
                     else_=0
                 )
             ).label("draft_contracts"),
             func.sum(
-                func.case(
+                case(
                     (Contract.status == ContractStatus.COMPLETED, 1),
                     else_=0
                 )
             ).label("completed_contracts"),
             func.sum(
-                func.case(
+                case(
                     (Contract.status == ContractStatus.TERMINATED, 1),
                     else_=0
                 )
@@ -252,7 +257,7 @@ async def get_business_metrics(
         db.query(
             func.avg(ComplianceScore.overall_score).label("compliance_avg"),
             func.sum(
-                func.case(
+                case(
                     (ComplianceScore.risk_score >= 7, 1),
                     else_=0
                 )
@@ -593,19 +598,19 @@ async def get_compliance_metrics(
             func.avg(ComplianceScore.commercial_terms_compliance).label("commercial"),
             # Risk distribution using conditional aggregation
             func.sum(
-                func.case(
+                case(
                     (ComplianceScore.risk_score >= 7, 1),
                     else_=0
                 )
             ).label("high_risk"),
             func.sum(
-                func.case(
+                case(
                     ((ComplianceScore.risk_score >= 4) & (ComplianceScore.risk_score < 7), 1),
                     else_=0
                 )
             ).label("medium_risk"),
             func.sum(
-                func.case(
+                case(
                     (ComplianceScore.risk_score < 4, 1),
                     else_=0
                 )
@@ -621,7 +626,7 @@ async def get_compliance_metrics(
     trend_and_recommendations = (
         db.query(
             func.avg(
-                func.case(
+                case(
                     (ComplianceScore.analysis_date >= thirty_days_ago, ComplianceScore.overall_score),
                     else_=None
                 )

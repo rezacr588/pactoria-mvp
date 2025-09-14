@@ -47,6 +47,12 @@ class Settings(BaseSettings):
         # Initialize CORS_ORIGINS as a regular attribute (not a Pydantic field)
         object.__setattr__(self, 'CORS_ORIGINS', [])
         self.CORS_ALLOW_ALL = os.getenv("CORS_ALLOW_ALL", "false").lower() == "true"
+        
+        # Initialize ALLOWED_FILE_TYPES from environment
+        allowed_types_str = os.getenv("ALLOWED_FILE_TYPES", ".pdf,.docx,.txt")
+        allowed_types = [t.strip() for t in allowed_types_str.split(",")]
+        object.__setattr__(self, 'ALLOWED_FILE_TYPES', allowed_types)
+        
         self._validate_required_settings()
         self._setup_cors_origins()
         self._setup_azure_config()
@@ -167,14 +173,8 @@ class Settings(BaseSettings):
                 logger.info(
                     "🔧 Debug mode enabled for production connection monitoring"
                 )
-        else:
-            self.PRODUCTION_CONNECTION_WARNING = False
-
     # File Upload - Azure optimized
     MAX_FILE_SIZE_MB: int = int(os.getenv("MAX_FILE_SIZE_MB", "10"))
-    ALLOWED_FILE_TYPES: List[str] = os.getenv(
-        "ALLOWED_FILE_TYPES", ".pdf,.docx,.txt"
-    ).split(",")
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", os.path.join(os.getcwd(), "uploads"))
 
     # Azure Storage (optional for persistent file storage)

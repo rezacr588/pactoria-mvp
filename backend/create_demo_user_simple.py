@@ -44,10 +44,10 @@ def create_demo_user():
                 is_verified, is_vat_registered, created_by_user_id, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            company_id, "Demo Company Ltd", "limited_company", "12345678", "GB123456789",
-            "technology", "10-50", "active", "contact@democompany.com", "+44 20 1234 5678",
+            company_id, "Demo Company Ltd", "PRIVATE_LIMITED", "12345678", "GB123456789",
+            "TECHNOLOGY", "SMALL", "ACTIVE", "contact@democompany.com", "+44 20 1234 5678",
             "https://democompany.com", "123 Demo Street", "London", "SW1A 1AA", "United Kingdom",
-            "professional", 5, 100,
+            "PROFESSIONAL", 5, 100,
             1, 1, user_id, datetime.utcnow().isoformat()
         ))
         
@@ -60,7 +60,7 @@ def create_demo_user():
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             user_id, "demo@pactoria.com", "Demo User", hashed_pw, 1, 1,
-            company_id, "admin", "Europe/London", datetime.utcnow().isoformat()
+            company_id, "ADMIN", "Europe/London", datetime.utcnow().isoformat()
         ))
         
         # Commit changes

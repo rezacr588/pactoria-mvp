@@ -5,6 +5,7 @@ Query performance monitoring for analytics endpoints
 import time
 import logging
 from contextlib import contextmanager
+from functools import wraps
 from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 
@@ -122,6 +123,7 @@ query_monitor = QueryPerformanceMonitor()
 def log_query_performance(query_name: str):
     """Decorator to log query performance"""
     def decorator(func):
+        @wraps(func)
         async def wrapper(*args, **kwargs):
             company_id = None
             
