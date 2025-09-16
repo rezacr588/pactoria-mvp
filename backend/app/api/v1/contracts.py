@@ -12,10 +12,33 @@ from app.services.analytics_cache_service import invalidate_company_analytics_ca
 from app.core.datetime_utils import get_current_utc
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 import asyncio
 from functools import lru_cache
+from io import BytesIO
+import html
+
+# Import ReportLab dependencies for PDF generation
+try:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+    from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
+    REPORTLAB_AVAILABLE = True
+except ImportError:
+    REPORTLAB_AVAILABLE = False
+
+# Import python-docx for DOCX generation
+try:
+    from docx import Document
+    from docx.shared import Inches
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    PYTHON_DOCX_AVAILABLE = True
+except ImportError:
+    PYTHON_DOCX_AVAILABLE = False
 
 from app.core.database import get_db
 from app.core.auth import get_current_user, require_company_access
@@ -876,14 +899,12 @@ async def export_contract_pdf(
     db: Session = Depends(get_db),
 ):
     """Export contract as PDF"""
-    from fastapi.responses import Response
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.units import inch
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
-    from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
-    from io import BytesIO
-    import html
+    # Check if ReportLab is available
+    if not REPORTLAB_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="PDF export feature requires additional dependencies. Please contact support."
+        )
     
     contract = db.query(Contract).filter(Contract.id == contract_id).first()
     if not contract:
@@ -998,12 +1019,6 @@ async def export_contract_pdf(
             headers={"Content-Disposition": f"attachment; filename={filename}"}
         )
 
-    except ImportError:
-        # Fallback if ReportLab is not available
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="PDF export feature requires additional dependencies. Please contact support."
-        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1018,11 +1033,12 @@ async def export_contract_docx(
     db: Session = Depends(get_db),
 ):
     """Export contract as Word document"""
-    from fastapi.responses import Response
-    from docx import Document
-    from docx.shared import Inches
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
-    from io import BytesIO
+    # Check if python-docx is available
+    if not PYTHON_DOCX_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="DOCX export feature requires additional dependencies. Please contact support."
+        )
     
     contract = db.query(Contract).filter(Contract.id == contract_id).first()
     if not contract:
