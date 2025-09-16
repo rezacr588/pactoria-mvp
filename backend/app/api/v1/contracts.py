@@ -10,6 +10,10 @@ from app.services.ai_service import (
 )
 from app.services.analytics_cache_service import invalidate_company_analytics_cache
 from app.core.datetime_utils import get_current_utc
+from app.domain.services.uk_compliance_engine import uk_compliance_engine
+from app.domain.entities.company import Company as DomainCompany, CompanyId, BusinessAddress, CompanyType as DomainCompanyType, IndustryType as DomainIndustryType, CompanySize as DomainCompanySize
+from app.domain.value_objects import ContractType as DomainContractType, Email, Money
+from decimal import Decimal
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
@@ -788,15 +792,80 @@ async def analyze_contract_compliance(
     )
 
     try:
-        # Check if AI service is available
-        if ai_service is None:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="AI service is not available. Please configure GROQ_API_KEY to enable AI features.",
-            )
+        compliance_response = None
+        analysis_method = "ai"
         
-        # Analyze using AI service
-        compliance_response = await ai_service.analyze_compliance(compliance_request)
+        # Try AI service first if available
+        if ai_service is not None:
+            try:
+                compliance_response = await ai_service.analyze_compliance(compliance_request)
+                analysis_method = "ai"
+            except Exception as ai_error:
+                print(f"AI service failed: {ai_error}, falling back to UK compliance engine")
+                compliance_response = None
+        
+        # Fallback to UK compliance engine if AI service failed or unavailable
+        if compliance_response is None:
+            print("Using UK compliance engine for analysis")
+            analysis_method = "uk_engine"
+            
+            # Create a basic company domain entity for compliance analysis
+            # Using defaults since we don't have detailed company domain mapping yet
+            domain_company = DomainCompany(
+                company_id=CompanyId(current_user.company_id),
+                name="Default Company",  # Will improve with proper company domain integration
+                company_type=DomainCompanyType.PRIVATE_LIMITED,
+                industry=DomainIndustryType.TECHNOLOGY,  
+                address=BusinessAddress(
+                    line1="Business Address",
+                    city="London",
+                    postcode="SW1A 1AA"
+                ),
+                primary_contact_email=Email(current_user.email),
+                created_by_user_id=current_user.id,
+                company_size=DomainCompanySize.SMALL
+            )
+            
+            # Convert contract type to domain enum
+            domain_contract_type = DomainContractType(contract.contract_type.value)
+            
+            # Convert contract value to Money object if available
+            contract_value = None
+            if contract.contract_value:
+                contract_value = Money(Decimal(str(contract.contract_value)), contract.currency or "GBP")
+            
+            # Run UK compliance engine analysis
+            uk_assessment = uk_compliance_engine.validate_contract(
+                contract_content=content_to_analyze,
+                company=domain_company,
+                contract_type=domain_contract_type,
+                contract_value=contract_value
+            )
+            
+            # Convert UK assessment to compliance response format
+            class LocalComplianceResponse:
+                def __init__(self, assessment):
+                    self.overall_score = float(assessment.overall_score)
+                    self.gdpr_compliance = float(assessment.framework_scores.get("gdpr", 75.0))
+                    self.employment_law_compliance = float(assessment.framework_scores.get("employment_law", 75.0))
+                    self.consumer_rights_compliance = float(assessment.framework_scores.get("consumer_rights", 75.0))
+                    self.commercial_terms_compliance = float(assessment.framework_scores.get("commercial_law", 75.0))
+                    
+                    # Map risk level to numeric score (1-10 scale)
+                    risk_mapping = {
+                        "low": 2,
+                        "medium": 5,
+                        "high": 8,
+                        "critical": 10
+                    }
+                    self.risk_score = risk_mapping.get(assessment.risk_level.value.lower(), 5)
+                    
+                    # Extract risk factors and recommendations
+                    self.risk_factors = [v.description for v in assessment.violations[:5]]  # Top 5
+                    self.recommendations = assessment.recommendations
+                    self.analysis_raw = f"UK Compliance Engine Analysis: {assessment.overall_level.value}"
+            
+            compliance_response = LocalComplianceResponse(uk_assessment)
 
         # Create compliance score record
         compliance_score = ComplianceScore(
@@ -809,7 +878,7 @@ async def analyze_contract_compliance(
             risk_score=compliance_response.risk_score,
             risk_factors=compliance_response.risk_factors,
             recommendations=compliance_response.recommendations,
-            analysis_version="1.0",
+            analysis_version=f"1.0-{analysis_method}",
             analysis_raw=compliance_response.analysis_raw,
         )
 
@@ -826,6 +895,7 @@ async def analyze_contract_compliance(
             new_values={
                 "overall_score": compliance_response.overall_score,
                 "risk_score": compliance_response.risk_score,
+                "analysis_method": analysis_method,
             },
             contract_id=contract.id,
         )
