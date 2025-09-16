@@ -21,6 +21,7 @@ import {
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import AIGenerationLoading from '../components/loading/AIGenerationLoading';
+import { RiskAssessment } from '../components/risk';
 
 function getComplianceColor(score: number) {
   if (score >= 90) return 'text-green-600 bg-green-100';
@@ -1107,70 +1108,11 @@ export default function ContractViewPage() {
         )}
 
         {activeTab === 'risk' && (
-          <div className="space-y-8">
-            {/* Risk Assessment Overview */}
-            <div className="card">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-medium text-gray-900">Risk Assessment</h3>
-                <div className="flex items-center space-x-3">
-                  <span className="text-sm text-gray-500">Overall Risk:</span>
-                  <span className={classNames(
-                    getRiskColor(contract.riskAssessment?.overall || 0),
-                    'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border'
-                  )}>
-                    {riskLevel} ({contract.riskAssessment?.overall || 0}%)
-                  </span>
-                </div>
-              </div>
-
-              {/* Risk Factors */}
-              <div className="space-y-4">
-                <h4 className="text-base font-medium text-gray-900">Risk Factors</h4>
-                {contract.riskAssessment?.factors?.map((factor, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h5 className="text-sm font-medium text-gray-900">{factor.name}</h5>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-xs text-gray-500">Impact: {factor.impact}</span>
-                        <span className="text-xs text-gray-500">•</span>
-                        <span className="text-xs text-gray-500">Likelihood: {factor.likelihood}</span>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600">{factor.description}</p>
-                    <div className="mt-3">
-                      <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                        <span>Risk Score</span>
-                        <span>{factor.score}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full ${
-                            factor.score <= 30 ? 'bg-green-600' :
-                            factor.score <= 60 ? 'bg-yellow-600' :
-                            'bg-red-600'
-                          }`}
-                          style={{ width: `${factor.score}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Recommendations */}
-              <div className="border-t border-gray-200 pt-6">
-                <h4 className="text-base font-medium text-gray-900 mb-4">AI Recommendations</h4>
-                <div className="space-y-3">
-                  {contract.riskAssessment?.recommendations?.map((recommendation, index) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <CheckCircleIcon className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <p className="text-sm text-gray-700">{recommendation}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          <RiskAssessment
+            contractId={contract.id}
+            contractContent={contract.final_content || contract.generated_content}
+            contractType={contract.contract_type}
+          />
         )}
 
         {activeTab === 'history' && (
