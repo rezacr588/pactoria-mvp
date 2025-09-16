@@ -173,7 +173,7 @@ class ErrorHandlingService {
     message: string;
     actions?: Array<{ label: string; action: () => void }>;
   } {
-    const type = error.severity === 'critical' || error.severity === 'high' ? 'error' : 
+    const type: "error" | "warning" | "info" = error.severity === 'critical' || error.severity === 'high' ? 'error' : 
                  error.severity === 'medium' ? 'warning' : 'info';
 
     const notification = {

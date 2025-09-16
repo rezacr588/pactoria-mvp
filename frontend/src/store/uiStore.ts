@@ -108,7 +108,7 @@ const initialState: UIState = {
 
 export const useUIStore = create<UIState & UIActions>()(
   subscribeWithSelector(
-    immer((set, get) => ({
+    immer((set) => ({
       ...initialState,
       
       // Modal actions

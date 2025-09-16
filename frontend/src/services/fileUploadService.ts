@@ -46,7 +46,7 @@ export interface FileValidation {
 class FileUploadService {
   private readonly MAX_FILE_SIZE_MB = 10; // 10MB default
   private readonly ALLOWED_TYPES = ['.pdf', '.docx', '.txt', '.doc'];
-  private readonly CHUNK_SIZE = 1024 * 1024; // 1MB chunks for large files
+  // private readonly CHUNK_SIZE = 1024 * 1024; // 1MB chunks for large files (reserved for chunked uploads)
 
   /**
    * Validate file before upload
@@ -90,11 +90,11 @@ class FileUploadService {
     // Validate file
     const validation = this.validateFile(file, options);
     if (!validation.isValid) {
-      const error: FileUploadError = {
+      const error = new FileUploadError({
         code: 'VALIDATION_ERROR',
         message: validation.errors.join(', '),
         details: { validation }
-      };
+      });
       options?.onError?.(error);
       throw error;
     }
@@ -116,14 +116,14 @@ class FileUploadService {
       return result;
 
     } catch (error: any) {
-      const uploadError: FileUploadError = {
+      const uploadError = new FileUploadError({
         code: error.status === 413 ? 'FILE_TOO_LARGE' : 
               error.status === 415 ? 'UNSUPPORTED_MEDIA_TYPE' :
               error.status === 401 ? 'UNAUTHORIZED' :
               error.status === 400 ? 'BAD_REQUEST' : 'UPLOAD_FAILED',
         message: error.data?.detail || error.message || 'File upload failed',
         details: error.data
-      };
+      });
 
       options?.onError?.(uploadError);
       throw uploadError;
@@ -252,8 +252,19 @@ class FileUploadService {
 
       // Get auth token for authorization
       const tokenKey = env.get('TOKEN_STORAGE_KEY');
-      const token = localStorage.getItem(tokenKey) || 
-                   localStorage.getItem('auth-storage')?.state?.token;
+      let token = localStorage.getItem(tokenKey);
+      
+      if (!token) {
+        try {
+          const authStorage = localStorage.getItem('auth-storage');
+          if (authStorage) {
+            const parsed = JSON.parse(authStorage);
+            token = parsed.state?.token;
+          }
+        } catch (e) {
+          // Ignore parsing errors
+        }
+      }
 
       // Configure request
       xhr.open('POST', `${env.get('API_URL')}/files/upload`);

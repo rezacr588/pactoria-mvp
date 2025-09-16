@@ -127,7 +127,7 @@ export default function AnalyticsPage() {
   const complianceMetrics = dashboardData.compliance_metrics || {};
   const contractTypes = dashboardData.contract_types || [];
   const contractValueTrend = dashboardData.contract_value_trend || {};
-  const recentContractsTrend = dashboardData.recent_contracts_trend || {};
+  // const recentContractsTrend = dashboardData.recent_contracts_trend || {}; // Reserved for future trend analysis
 
   // Prepare overview metrics from backend data
   const overviewMetrics = [
@@ -210,18 +210,18 @@ export default function AnalyticsPage() {
     }
   ];
 
-  // Prepare monthly activity from trends data
-  const monthlyActivity = recentContractsTrend.data_points?.slice(-6).map((point: any) => ({
-    month: new Date(point.date).toLocaleDateString('en-US', { month: 'short' }),
-    contracts: point.count || point.value || 0,
-    compliance: Math.round(complianceMetrics.overall_compliance_average || 0)
-  })) || [];
+  // Prepare monthly activity from trends data (reserved for future chart implementation)
+  // const monthlyActivity = recentContractsTrend.data_points?.slice(-6).map((point: any) => ({
+  //   month: new Date(point.date).toLocaleDateString('en-US', { month: 'short' }),
+  //   contracts: point.count || point.value || 0,
+  //   compliance: Math.round(complianceMetrics.overall_compliance_average || 0)
+  // })) || [];
 
-  // Mock upcoming deadlines (since this isn't in the API)
-  const upcomingDeadlines = [
-    { contract: 'Next contract review', date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), daysLeft: 7, type: 'Review Due' },
-    { contract: 'Contract renewal', date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), daysLeft: 14, type: 'Renewal Due' }
-  ];
+  // Mock upcoming deadlines (reserved for future deadline tracking)
+  // const upcomingDeadlines = [
+  //   { contract: 'Next contract review', date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), daysLeft: 7, type: 'Review Due' },
+  //   { contract: 'Contract renewal', date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), daysLeft: 14, type: 'Renewal Due' }
+  // ];
 
   return (
     <div className="p-4 sm:p-6">

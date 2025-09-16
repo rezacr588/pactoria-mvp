@@ -16,11 +16,11 @@ export function useStore<T, U>(
   selectorRef.current = selector;
   equalityRef.current = equalityFn;
   
-  // Use the store hook with proper selector and equality function
-  return store(
-    useCallback((state: T) => selectorRef.current(state), []),
-    equalityRef.current
-  );
+  // Use the store hook with proper selector - ignore equality function for now
+  const stableSelector = useCallback((state: T) => selectorRef.current(state), []);
+  
+  // For now, just use the selector without equality function to avoid v5 compatibility issues
+  return store(stableSelector);
 }
 
 /**

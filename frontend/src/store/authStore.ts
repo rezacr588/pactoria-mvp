@@ -122,12 +122,12 @@ export const useAuthStore = create<AuthState>()(
           
           // Enhance user object with computed properties for UI consistency
           const enhancedUser: User = {
-            ...response.user,
+            ...(response.user as UserApiResponse),
             name: response.user.full_name, // Use full_name as display name
             avatar: undefined, // Backend doesn't provide avatar yet, using default
             company: response.company?.name || undefined, // Company name for display
-            is_admin: response.user.is_admin || false, // Default to false if not provided
-            role: response.user.role || 'user' // Default role if not provided
+            is_admin: (response.user as UserApiResponse).is_admin || false, // Default to false if not provided
+            role: (response.user as UserApiResponse).role || 'user' // Default role if not provided
           };
           
           set({ 
@@ -181,12 +181,12 @@ export const useAuthStore = create<AuthState>()(
           
           // Enhance user object with computed properties for UI consistency
           const enhancedUser: User = {
-            ...response.user,
+            ...(response.user as UserApiResponse),
             name: response.user.full_name, // Use full_name as display name
             avatar: undefined, // Backend doesn't provide avatar yet, using default
             company: response.company?.name || undefined, // Company name for display
-            is_admin: response.user.is_admin || false, // Default to false if not provided
-            role: response.user.role || 'user' // Default role if not provided
+            is_admin: (response.user as UserApiResponse).is_admin || false, // Default to false if not provided
+            role: (response.user as UserApiResponse).role || 'user' // Default role if not provided
           };
           
           set({ 
