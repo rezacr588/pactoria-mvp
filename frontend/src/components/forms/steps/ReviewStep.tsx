@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { CheckCircleIcon, ExclamationTriangleIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { ContractFormData } from '../../../types/contract-form';
 import { textColors } from '../../../utils/typography';

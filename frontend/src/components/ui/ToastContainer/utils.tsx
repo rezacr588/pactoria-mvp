@@ -5,7 +5,6 @@ import {
   InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import { classNames } from '../../../utils/classNames';
-import { ToastPosition } from './types';
 
 export const getToastIcon = (type: string) => {
   const iconClass = 'h-6 w-6 flex-shrink-0';

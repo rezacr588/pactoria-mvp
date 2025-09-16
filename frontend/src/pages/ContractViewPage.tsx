@@ -1005,7 +1005,7 @@ export default function ContractViewPage() {
             <div className="card">
               <h3 className="text-lg font-medium text-gray-900 mb-6">Upcoming Deadlines</h3>
               <div className="space-y-4">
-                {contract.deadlines?.length > 0 ? contract.deadlines.map((deadline, index) => (
+                {(contract.deadlines && contract.deadlines.length > 0) ? contract.deadlines.map((deadline, index) => (
                   <div key={(deadline as any).id || index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <div className={classNames(

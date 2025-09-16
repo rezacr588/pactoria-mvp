@@ -25,13 +25,27 @@ export interface Company {
   created_at: string;
 }
 
+export interface UserApiResponse {
+  id: string;
+  email: string;
+  full_name: string;
+  is_active: boolean;
+  timezone: string;
+  company_id: string | null;
+  created_at: string;
+  last_login_at: string | null;
+  // These might not be present in API response
+  is_admin?: boolean;
+  role?: string;
+}
+
 export interface AuthResponse {
   token: {
     access_token: string;
     token_type: string;
     expires_in: number;
   };
-  user: User;
+  user: UserApiResponse;
   company: Company | null;
 }
 

@@ -1173,8 +1173,9 @@ export class WebSocketService {
   private reconnectDelay = 1000;
   private messageHandlers: Map<string, (message: any) => void> = new Map();
   private connectionHandlers: Array<(connected: boolean) => void> = [];
-  private connectionId: string | null = null;
-  private heartbeatInterval: NodeJS.Timeout | null = null;
+  // Note: connectionId and heartbeatInterval are reserved for future use
+  // private connectionId: string | null = null;
+  // private heartbeatInterval: NodeJS.Timeout | null = null;
 
   connect(token: string) {
     try {
@@ -1218,7 +1219,7 @@ export class WebSocketService {
         }
       };
 
-      this.ws.onerror = (error) => {
+      this.ws.onerror = () => {
         // Handle WebSocket errors silently in production
       };
     } catch (error) {

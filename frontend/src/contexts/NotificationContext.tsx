@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useReducer, useCallback } from 'react';
 import { NotificationsService } from '../services/api';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { Notification, PaginatedNotificationResponse } from '../types';
+import { Notification, PaginatedNotificationResponse, NotificationMessage } from '../types';
 
 interface NotificationState {
   notifications: Notification[];
@@ -159,29 +159,30 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     onMessage: (message) => {
       switch (message.type) {
         case 'notification':
-          // New notification received
+          // New notification received - cast to NotificationMessage
+          const notificationMessage = message as NotificationMessage;
           dispatch({
             type: 'ADD_NOTIFICATION',
             payload: {
               id: message.message_id || `temp_${Date.now()}`,
-              type: message.notification_type,
-              title: message.title,
-              message: message.message,
-              priority: message.priority?.toLowerCase() || 'medium',
+              type: notificationMessage.notification_type,
+              title: notificationMessage.title,
+              message: notificationMessage.message,
+              priority: notificationMessage.priority?.toLowerCase() as 'low' | 'medium' | 'high' || 'medium',
               action_required: false,
               read: false,
               timestamp: message.timestamp,
-              user_id: message.target_user_id || '',
-              metadata: message.data || {},
+              user_id: notificationMessage.target_user_id || '',
+              metadata: notificationMessage.data || {},
             } as Notification,
           });
           break;
 
         case 'notification_read':
-          // Notification marked as read
+          // Notification marked as read - cast to any for the id
           dispatch({
             type: 'MARK_AS_READ',
-            payload: message.notification_id,
+            payload: (message as any).notification_id,
           });
           break;
 
@@ -189,7 +190,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
           // All notifications marked as read
           dispatch({
             type: 'MARK_ALL_AS_READ',
-            payload: message.updated_count,
+            payload: (message as any).updated_count,
           });
           break;
 
@@ -197,7 +198,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
           // Notification deleted
           dispatch({
             type: 'REMOVE_NOTIFICATION',
-            payload: message.notification_id,
+            payload: (message as any).notification_id,
           });
           break;
       }

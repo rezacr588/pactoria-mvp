@@ -1,4 +1,3 @@
-import { ContractType } from '../types';
 import { TemplateDisplayInfo } from '../utils/templateMapping';
 
 // Contract Form Data Types

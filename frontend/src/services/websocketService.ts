@@ -217,7 +217,7 @@ class WebSocketService {
           }
         }, this.config.connectionTimeout);
 
-        this.ws.onopen = (event) => {
+        this.ws.onopen = () => {
           this.clearTimers();
           this.setStatus('connected');
           this.reconnectAttempts = 0;

@@ -2,7 +2,6 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useContracts } from '../hooks';
-import { usePermissions } from '../hooks/usePermissions';
 import { PermissionGate } from '../components/PermissionGate';
 import OnboardingChecklist from '../components/OnboardingChecklist';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '../components/ui';
@@ -38,7 +37,6 @@ export default function DashboardPage() {
   const { showToast } = useToast();
   const { user } = useAuthStore();
   const { contracts: storeContracts } = useContracts();
-  const permissions = usePermissions();
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [contracts, setContracts] = useState<any[]>([]);
@@ -181,7 +179,7 @@ export default function DashboardPage() {
     
     const businessMetrics = dashboardData.business_metrics;
     const complianceMetrics = dashboardData.compliance_metrics;
-    const timeMetrics = dashboardData.time_metrics;
+    // const timeMetrics = dashboardData.time_metrics; // Reserved for future time-based analytics
     
     // Calculate real period-over-period changes if available
     const contractChange = businessMetrics?.contracts_created_this_month || 0;

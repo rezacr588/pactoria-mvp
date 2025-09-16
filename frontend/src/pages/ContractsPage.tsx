@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useContracts } from '../hooks';
 import { useAuthStore } from '../store/authStore';
-import { usePermissions } from '../hooks/usePermissions';
 import { PermissionGate } from '../components/PermissionGate';
 import { Contract } from '../types';
 import { CONTRACT_STATUS_OPTIONS } from '../store/contractStore';
@@ -36,7 +35,6 @@ const CONTRACT_TYPE_OPTIONS = [
 
 export default function ContractsPage() {
   const { user, isAuthenticated } = useAuthStore();
-  const permissions = usePermissions();
   const { 
     contracts = [], 
     isLoading, 

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { CheckCircleIcon } from '@heroicons/react/24/outline';
 import { ContractStep } from '../../types/contract-form';
 import { textColors } from '../../utils/typography';
