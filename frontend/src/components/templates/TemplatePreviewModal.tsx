@@ -7,11 +7,13 @@ import {
   InformationCircleIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
+  PencilIcon,
 } from '@heroicons/react/24/outline';
 import { Card, Button, Badge } from '../ui';
 import { TemplateService } from '../../services/api';
 import { getErrorMessage } from '../../utils/errorHandling';
 import { useToast } from '../../contexts/ToastContext';
+import { InteractiveEditor, EditorFormData } from '../editors';
 
 interface Template {
   id: string;
@@ -176,7 +178,8 @@ export default function TemplatePreviewModal({
   const [template, setTemplate] = useState<Template | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'preview' | 'variables'>('preview');
+  const [viewMode, setViewMode] = useState<'preview' | 'variables' | 'edit'>('preview');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (isOpen && templateId) {
@@ -207,6 +210,40 @@ export default function TemplatePreviewModal({
     }
   };
 
+  const handleUpdateTemplate = async (formData: Partial<EditorFormData>) => {
+    if (!template) return;
+
+    setIsUpdating(true);
+    try {
+      const updateData = {
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        contract_type: formData.contractType,
+        template_content: formData.templateContent,
+        legal_notes: formData.legalNotes,
+        version: formData.version,
+        compliance_features: template.compliance_features, // Keep existing features for now
+      };
+
+      await TemplateService.updateTemplate(template.id, updateData);
+      showToast('Template updated successfully', 'success');
+      
+      // Refresh template data
+      await fetchTemplate();
+      setViewMode('preview');
+    } catch (err) {
+      const errorMessage = getErrorMessage(err);
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setViewMode('preview');
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -229,7 +266,7 @@ export default function TemplatePreviewModal({
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">
-                    Template Preview
+                    {viewMode === 'edit' ? 'Edit Template' : 'Template Preview'}
                   </h2>
                   {template && (
                     <p className="text-sm text-gray-500">
@@ -241,30 +278,39 @@ export default function TemplatePreviewModal({
               
               <div className="flex items-center space-x-2">
                 {/* View mode toggle */}
-                <div className="flex bg-gray-100 rounded-lg p-1">
-                  <button
-                    onClick={() => setViewMode('preview')}
-                    className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                      viewMode === 'preview'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <EyeIcon className="h-4 w-4 inline mr-1" />
-                    Preview
-                  </button>
-                  <button
-                    onClick={() => setViewMode('variables')}
-                    className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                      viewMode === 'variables'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <InformationCircleIcon className="h-4 w-4 inline mr-1" />
-                    Variables
-                  </button>
-                </div>
+                {viewMode !== 'edit' && (
+                  <div className="flex bg-gray-100 rounded-lg p-1">
+                    <button
+                      onClick={() => setViewMode('preview')}
+                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                        viewMode === 'preview'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <EyeIcon className="h-4 w-4 inline mr-1" />
+                      Preview
+                    </button>
+                    <button
+                      onClick={() => setViewMode('variables')}
+                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                        viewMode === 'variables'
+                          ? 'bg-white text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <InformationCircleIcon className="h-4 w-4 inline mr-1" />
+                      Variables
+                    </button>
+                    <button
+                      onClick={() => setViewMode('edit')}
+                      className="px-3 py-1 text-sm font-medium rounded-md transition-colors text-gray-600 hover:text-gray-900"
+                    >
+                      <PencilIcon className="h-4 w-4 inline mr-1" />
+                      Edit
+                    </button>
+                  </div>
+                )}
                 
                 <button
                   onClick={onClose}
@@ -292,117 +338,153 @@ export default function TemplatePreviewModal({
                 </div>
               ) : template ? (
                 <>
-                  {/* Template Info */}
-                  <div className="p-6 border-b border-gray-200 bg-gray-50">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                      <div>
-                        <p className="text-xs font-medium text-gray-500 mb-1">Category</p>
-                        <Badge className={`text-xs ${getCategoryColor(template.category)}`}>
-                          {template.category}
-                        </Badge>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-gray-500 mb-1">Type</p>
-                        <p className="text-sm font-medium text-gray-900">
-                          {template.contract_type.replace('_', ' ').toUpperCase()}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-gray-500 mb-1">Compliance Features</p>
-                        <p className="text-sm font-medium text-gray-900">
-                          {template.compliance_features.length} features
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium text-gray-500 mb-1">Last Updated</p>
-                        <p className="text-sm font-medium text-gray-900">
-                          {new Date(template.updated_at || template.created_at).toLocaleDateString('en-GB')}
-                        </p>
-                      </div>
+                  {viewMode === 'edit' ? (
+                    <div className="p-6">
+                      <InteractiveEditor
+                        data={{
+                          name: template.name,
+                          description: template.description,
+                          clientName: '',
+                          clientEmail: '',
+                          serviceDescription: '',
+                          contractValue: '',
+                          startDate: '',
+                          endDate: '',
+                          paymentTerms: '30',
+                          specialTerms: '',
+                          plainEnglishInput: '',
+                          supplierName: '',
+                          currency: 'GBP',
+                          templateContent: template.template_content,
+                          category: template.category,
+                          contractType: template.contract_type,
+                          version: template.version,
+                          complianceFeatures: template.compliance_features,
+                          legalNotes: template.legal_notes,
+                        }}
+                        onUpdate={handleUpdateTemplate}
+                        isUpdating={isUpdating}
+                        onCancel={handleCancelEdit}
+                        mode="template"
+                        title="Edit Template"
+                        subtitle="Modify template content and metadata"
+                      />
                     </div>
-                    
-                    <div className="mb-4">
-                      <p className="text-xs font-medium text-gray-500 mb-1">Description</p>
-                      <p className="text-sm text-gray-700">{template.description}</p>
-                    </div>
-
-                    {template.legal_notes && (
-                      <div className="mb-4">
-                        <p className="text-xs font-medium text-gray-500 mb-1">Legal Notes</p>
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                          <div className="flex">
-                            <InformationCircleIcon className="h-5 w-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
-                            <p className="text-sm text-blue-700">{template.legal_notes}</p>
+                  ) : (
+                    <>
+                      {/* Template Info */}
+                      <div className="p-6 border-b border-gray-200 bg-gray-50">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 mb-1">Category</p>
+                            <Badge className={`text-xs ${getCategoryColor(template.category)}`}>
+                              {template.category}
+                            </Badge>
                           </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Template Content */}
-                  <div className="p-6">
-                    {viewMode === 'preview' ? (
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                          Template Content (with sample data)
-                        </h3>
-                        <div className="bg-white border border-gray-300 rounded-lg p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap">
-                          {processTemplateContent(template.template_content)}
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                          Template Variables
-                        </h3>
-                        <div className="bg-gray-50 border border-gray-300 rounded-lg p-6 font-mono text-sm leading-relaxed">
-                          {highlightVariables(template.template_content)}
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 mb-1">Type</p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {template.contract_type.replace('_', ' ').toUpperCase()}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 mb-1">Compliance Features</p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {template.compliance_features.length} features
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 mb-1">Last Updated</p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {new Date(template.updated_at || template.created_at).toLocaleDateString('en-GB')}
+                            </p>
+                          </div>
                         </div>
                         
-                        <div className="mt-6">
-                          <h4 className="text-md font-semibold text-gray-900 mb-3">
-                            Compliance Features
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {template.compliance_features.map((feature, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm"
-                              >
-                                <CheckCircleIcon className="h-4 w-4 mr-1" />
-                                {feature}
-                              </div>
-                            ))}
-                          </div>
+                        <div className="mb-4">
+                          <p className="text-xs font-medium text-gray-500 mb-1">Description</p>
+                          <p className="text-sm text-gray-700">{template.description}</p>
                         </div>
 
-                        {template.suitable_for.length > 0 && (
-                          <div className="mt-6">
-                            <h4 className="text-md font-semibold text-gray-900 mb-3">
-                              Suitable For
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {template.suitable_for.map((suitability, index) => (
-                                <Badge
-                                  key={index}
-                                  variant="default"
-                                  className="text-xs"
-                                >
-                                  {suitability}
-                                </Badge>
-                              ))}
+                        {template.legal_notes && (
+                          <div className="mb-4">
+                            <p className="text-xs font-medium text-gray-500 mb-1">Legal Notes</p>
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                              <div className="flex">
+                                <InformationCircleIcon className="h-5 w-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+                                <p className="text-sm text-blue-700">{template.legal_notes}</p>
+                              </div>
                             </div>
                           </div>
                         )}
                       </div>
-                    )}
-                  </div>
+
+                      {/* Template Content */}
+                      <div className="p-6">
+                        {viewMode === 'preview' ? (
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                              Template Content (with sample data)
+                            </h3>
+                            <div className="bg-white border border-gray-300 rounded-lg p-6 font-mono text-sm leading-relaxed whitespace-pre-wrap">
+                              {processTemplateContent(template.template_content)}
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                              Template Variables
+                            </h3>
+                            <div className="bg-gray-50 border border-gray-300 rounded-lg p-6 font-mono text-sm leading-relaxed">
+                              {highlightVariables(template.template_content)}
+                            </div>
+                            
+                            <div className="mt-6">
+                              <h4 className="text-md font-semibold text-gray-900 mb-3">
+                                Compliance Features
+                              </h4>
+                              <div className="flex flex-wrap gap-2">
+                                {template.compliance_features.map((feature, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm"
+                                  >
+                                    <CheckCircleIcon className="h-4 w-4 mr-1" />
+                                    {feature}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {template.suitable_for.length > 0 && (
+                              <div className="mt-6">
+                                <h4 className="text-md font-semibold text-gray-900 mb-3">
+                                  Suitable For
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {template.suitable_for.map((suitability, index) => (
+                                    <Badge
+                                      key={index}
+                                      variant="default"
+                                      className="text-xs"
+                                    >
+                                      {suitability}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </>
               ) : null}
             </div>
 
             {/* Footer */}
-            {template && (
+            {template && viewMode !== 'edit' && (
               <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
                 <div className="text-sm text-gray-500">
                   This preview shows how the template will appear with sample data filled in.
