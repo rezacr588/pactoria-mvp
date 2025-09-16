@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   ShieldExclamationIcon,
   ExclamationTriangleIcon,
@@ -51,7 +51,7 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-export default function RiskAssessment({ contractId, contractContent, contractType }: RiskAssessmentProps) {
+export default function RiskAssessment({ contractContent, contractType }: Omit<RiskAssessmentProps, 'contractId'>) {
   const [riskData, setRiskData] = useState<RiskAssessmentData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
