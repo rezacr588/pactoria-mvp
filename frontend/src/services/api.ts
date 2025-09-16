@@ -99,22 +99,8 @@ async function ensureConnection(): Promise<void> {
 }
 
 // Main API request function with retry logic
-async function apiRequest<T>(
-  endpoint: string,
-  config: RequestConfig = {}
-): Promise<T> {
-  const ERROR_RETRY_ATTEMPTS = env.get('ERROR_RETRY_ATTEMPTS');
-  const ERROR_RETRY_DELAY = env.get('ERROR_RETRY_DELAY');
-  
-  // Extract config properties
-  const { method = 'GET', headers = {}, body, params, ...restConfig } = config;
-  const maxRetries = ERROR_RETRY_ATTEMPTS;
-  const retryDelay = ERROR_RETRY_DELAY;
-  
-  // Ensure connection before making request
-  await ensureConnection();
-  
-  // Get auth token - check both new and old storage locations
+// Helper function to get auth token - centralized logic
+async function getAuthToken(): Promise<string | null> {
   let token: string | null = null;
   const tokenKey = env.get('TOKEN_STORAGE_KEY');
   
@@ -144,6 +130,27 @@ async function apiRequest<T>(
       // Silently handle import errors
     }
   }
+
+  return token;
+}
+
+async function apiRequest<T>(
+  endpoint: string,
+  config: RequestConfig = {}
+): Promise<T> {
+  const ERROR_RETRY_ATTEMPTS = env.get('ERROR_RETRY_ATTEMPTS');
+  const ERROR_RETRY_DELAY = env.get('ERROR_RETRY_DELAY');
+  
+  // Extract config properties
+  const { method = 'GET', headers = {}, body, params, ...restConfig } = config;
+  const maxRetries = ERROR_RETRY_ATTEMPTS;
+  const retryDelay = ERROR_RETRY_DELAY;
+  
+  // Ensure connection before making request
+  await ensureConnection();
+  
+  // Get auth token using centralized function
+  const token = await getAuthToken();
 
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
@@ -581,10 +588,16 @@ export class ContractService {
   }
 
   static async exportContractPDF(id: string): Promise<Blob> {
+    const token = await getAuthToken();
+
+    if (!token) {
+      throw new Error('No authorization header provided');
+    }
+
     const response = await fetch(`${API_BASE_URL}/contracts/${id}/export/pdf`, {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('auth-token') || ''}`
+        Authorization: `Bearer ${token}`
       }
     });
 
@@ -606,10 +619,16 @@ export class ContractService {
   }
 
   static async exportContractDOCX(id: string): Promise<Blob> {
+    const token = await getAuthToken();
+
+    if (!token) {
+      throw new Error('No authorization header provided');
+    }
+
     const response = await fetch(`${API_BASE_URL}/contracts/${id}/export/docx`, {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('auth-token') || ''}`
+        Authorization: `Bearer ${token}`
       }
     });
 
