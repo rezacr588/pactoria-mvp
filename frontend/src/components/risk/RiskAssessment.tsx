@@ -8,6 +8,7 @@ import {
   InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import { Card } from '../ui';
+import { useAuthStore } from '../../store/authStore';
 
 interface RiskFactor {
   score: number;
@@ -54,6 +55,9 @@ export default function RiskAssessment({ contractId, contractContent, contractTy
   const [riskData, setRiskData] = useState<RiskAssessmentData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get token from auth store
+  const { token, isAuthenticated } = useAuthStore();
 
   const fetchRiskAssessment = async () => {
     if (!contractContent || !contractType) return;
@@ -62,8 +66,7 @@ export default function RiskAssessment({ contractId, contractContent, contractTy
     setError(null);
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
+      if (!token || !isAuthenticated) {
         throw new Error('Authentication token not found');
       }
 
