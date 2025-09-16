@@ -122,7 +122,9 @@ export default function ContractViewPage() {
       }
     } catch (error) {
       console.error('Export failed:', error);
-      alert('Export failed. Please try again.');
+      // Show a more user-friendly error message
+      const errorMessage = error instanceof Error ? error.message : 'Export failed. Please try again.';
+      alert(errorMessage);
     }
   }, [selectedContract]);
 

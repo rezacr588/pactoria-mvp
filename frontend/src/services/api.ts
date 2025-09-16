@@ -589,7 +589,17 @@ export class ContractService {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to export PDF: ${response.statusText}`);
+      // Try to parse error details from response body
+      let errorMessage = `Failed to export PDF: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        if (errorData.detail) {
+          errorMessage = errorData.detail;
+        }
+      } catch (e) {
+        // If JSON parsing fails, use the default message
+      }
+      throw new Error(errorMessage);
     }
 
     return response.blob();
@@ -604,7 +614,17 @@ export class ContractService {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to export DOCX: ${response.statusText}`);
+      // Try to parse error details from response body
+      let errorMessage = `Failed to export DOCX: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        if (errorData.detail) {
+          errorMessage = errorData.detail;
+        }
+      } catch (e) {
+        // If JSON parsing fails, use the default message
+      }
+      throw new Error(errorMessage);
     }
 
     return response.blob();
