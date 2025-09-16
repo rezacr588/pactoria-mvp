@@ -1,5 +1,4 @@
 // Consistent Form Select Component
-import React from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { classNames } from '../../utils/classNames';
 import FormField from './FormField';

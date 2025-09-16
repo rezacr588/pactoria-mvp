@@ -1,5 +1,4 @@
 // Consistent Loading Spinner Component
-import React from 'react';
 import { classNames } from '../../utils/classNames';
 
 export interface LoadingSpinnerProps {

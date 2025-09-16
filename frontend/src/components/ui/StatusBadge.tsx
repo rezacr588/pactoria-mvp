@@ -1,5 +1,4 @@
 // Consistent Status Badge Component
-import React from 'react';
 import Badge from './Badge';
 import { getStatusBadgeVariant } from '../../utils/contractTypes';
 

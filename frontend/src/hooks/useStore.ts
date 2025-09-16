@@ -16,6 +16,7 @@ export function useStore<T, U>(
   selectorRef.current = selector;
   equalityRef.current = equalityFn;
   
+  // Use the store hook with proper selector and equality function
   return store(
     useCallback((state: T) => selectorRef.current(state), []),
     equalityRef.current

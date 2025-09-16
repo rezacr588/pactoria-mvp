@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, Company } from '../types';
+import { User, Company, UserApiResponse } from '../types';
 import { AuthService } from '../services/api';
 import { env } from '../config/env';
 
@@ -121,11 +121,13 @@ export const useAuthStore = create<AuthState>()(
           storeToken(response.token.access_token);
           
           // Enhance user object with computed properties for UI consistency
-          const enhancedUser = {
+          const enhancedUser: User = {
             ...response.user,
             name: response.user.full_name, // Use full_name as display name
             avatar: undefined, // Backend doesn't provide avatar yet, using default
-            company: response.company?.name || undefined // Company name for display
+            company: response.company?.name || undefined, // Company name for display
+            is_admin: response.user.is_admin || false, // Default to false if not provided
+            role: response.user.role || 'user' // Default role if not provided
           };
           
           set({ 
@@ -178,11 +180,13 @@ export const useAuthStore = create<AuthState>()(
           storeToken(response.token.access_token);
           
           // Enhance user object with computed properties for UI consistency
-          const enhancedUser = {
+          const enhancedUser: User = {
             ...response.user,
             name: response.user.full_name, // Use full_name as display name
             avatar: undefined, // Backend doesn't provide avatar yet, using default
-            company: response.company?.name || undefined // Company name for display
+            company: response.company?.name || undefined, // Company name for display
+            is_admin: response.user.is_admin || false, // Default to false if not provided
+            role: response.user.role || 'user' // Default role if not provided
           };
           
           set({ 
@@ -213,13 +217,15 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         
         try {
-          const userResponse = await AuthService.getCurrentUser();
+          const userResponse: UserApiResponse = await AuthService.getCurrentUser();
           // Enhance user object with computed properties for UI consistency
-          const enhancedUser = {
+          const enhancedUser: User = {
             ...userResponse,
             name: userResponse.full_name,
             avatar: undefined,
-            company: get().company?.name || undefined
+            company: get().company?.name || undefined,
+            is_admin: userResponse.is_admin || false, // Default to false if not provided
+            role: userResponse.role || 'user' // Default role if not provided
           };
           set({ 
             user: enhancedUser, 

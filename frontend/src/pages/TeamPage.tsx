@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { usePermissions } from '../hooks/usePermissions';
 import { PermissionGate } from '../components/PermissionGate';
 import { TeamService } from '../services/api';
 import { TeamMemberNew, TeamStats } from '../types';

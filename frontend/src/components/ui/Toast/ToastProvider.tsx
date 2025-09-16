@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { classNames } from '../../../utils/classNames';
 import { ToastProviderProps, Toast } from './types';
 import { ToastContext } from './context';

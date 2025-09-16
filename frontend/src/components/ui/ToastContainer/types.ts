@@ -1,4 +1,4 @@
-import { Toast } from '../../contexts/ToastContext';
+import { Toast } from '../../../contexts/ToastContext';
 
 export interface ToastItemProps {
   toast: Toast;
